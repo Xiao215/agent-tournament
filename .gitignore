@@ -1,0 +1,51 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# PyCharm & VSCode
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Hugging Face cache (optional)
+~/.cache/huggingface/
+huggingface_cache/
+hf_cache/
+
+# SLURM job outputs (if not wanted in version control)
+slurm-*.out
+*.sbatch
+
+# Datasets or large experiment files
+data/
+outputs/
+results/
+checkpoints/
+*.pt
+*.bin
+*.ckpt
+
+# Environment
+.env
+.env.*
+
+# Mac/Unix OS junk
+.DS_Store
+Thumbs.db
+
+# LLM cache
+cache/

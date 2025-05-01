@@ -1,0 +1,7 @@
+langchain
+langchain_core
+transformers
+langchain_huggingface
+accelerate
+huggingface_hub
+pyyaml
