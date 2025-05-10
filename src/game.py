@@ -49,13 +49,13 @@ class IteratedPrisonersDilemma(Game):
 
         score1, score2 = self.payoff_matrix[(action1, action2)]
 
-        self.history_p1.append(action1)
-        self.history_p2.append(action2)
+        self.history_p1.append(action1.value)
+        self.history_p2.append(action2.value)
 
         self.total_score_p1 += score1
         self.total_score_p2 += score2
 
-        self.history.append(((action1, action2), (score1, score2)))
+        # self.history.append(((action1, action2), (score1, score2)))
 
     def reset(self):
         self.agent1 = None

@@ -44,18 +44,24 @@ class BaseAgent(Agent):
             prompt += """
             1. What strategy do you think your opponent is using?
             2. What is the best strategy to respond?
-            3. Output your final action as either \"Final Answer: C\" or \"Final Answer: D\"
+            3. Output your final action as either \"Final choice is C\" or \"Final choice is D\"
             """
         else:
-            prompt += 'Output your final action as either \"Final Answer: C\" or \"Final Answer: D\"'
+            prompt += 'Output your final action as either \"Final choice is C\" or \"Final choice is D\"'
         messages.append(HumanMessage(content=prompt))
 
         actions_picked = []
         for _ in range(self_consistency):
+            print(self.llm.invoke(messages))
             response = self.llm.invoke(messages).content.strip()
-            match = re.search(r"Final Answer:\s*([CD])", response)
-            if match:
-                actions_picked.append(Action(match.group(1)))
+
+            pattern = r"Final choice is\s*([CD])"
+
+            all_choices = re.findall(pattern, response)
+
+            if all_choices:
+                last_choice = all_choices[-1]
+                actions_picked.append(Action(last_choice))
             else:
                 raise ValueError(
                     f'{self.llm} failed to make a action at round {round_number}, response was: {response}'
@@ -79,10 +85,10 @@ class CodeStrategyAgent(Agent):
         messages = [
             SystemMessage(content=self.rule),
             HumanMessage(content="""
-Develop a simple strategy for an iterated normal-form game that maximizes your overall payoff considering the game's payoff structure.
-Provide a straightforward description using only natural language with minimal commentary.
-Be clear and specific about the conditions governing when to cooperate or defect, and order them appropriately.
-""")
+            Develop a simple strategy for an iterated normal-form game that maximizes your overall payoff considering the game's payoff structure.
+            Provide a straightforward description using only natural language with minimal commentary.
+            Be clear and specific about the conditions governing when to cooperate or defect, and order them appropriately.
+            """)
         ]
 
         strategy = self.llm.invoke(messages).content.strip()

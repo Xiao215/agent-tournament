@@ -3,6 +3,7 @@ import itertools
 from typing import Any
 from pathlib import Path
 
+from langchain_huggingface.chat_models import ChatHuggingFace
 from langchain_huggingface.llms import HuggingFacePipeline
 from transformers import pipeline
 import yaml
@@ -13,7 +14,8 @@ from src.action import Action
 
 from huggingface_hub import login
 
-login()
+# login()
+
 
 def load_config(path: str) -> dict:
     path = Path(path)
@@ -34,18 +36,21 @@ def build_huggingface_agent(
         "text-generation",
         model=agent_config['model'],
         tokenizer=agent_config['model'],
-        device_map="auto",
+        device=0,
         model_kwargs={"cache_dir": cache_dir},
         **kwargs
     )
 
     llm = HuggingFacePipeline(pipeline=pipe)
 
+    chat_model = ChatHuggingFace(llm=llm)
+
+
     agent = None
     if agent_type == "BaseAgent":
-        agent = BaseAgent(llm, rule)
+        agent = BaseAgent(chat_model, rule)
     elif agent_type == "CodeStrategyAgent":
-        agent = CodeStrategyAgent(llm, rule)
+        agent = CodeStrategyAgent(chat_model, rule)
     else:
         raise ValueError(f'Agent type name `{agent_type}` is not allowed')
 

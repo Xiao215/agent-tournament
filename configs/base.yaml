@@ -6,11 +6,9 @@ llm:
   agents:
     - model: meta-llama/Llama-3.2-3B-Instruct
       kwargs:
-        temperature: 0.0
         max_new_tokens: 1000
     - model: google/gemma-3-4b-it
       kwargs:
-        temperature: 0.0
         max_new_tokens: 1000
     # - model: deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
     #   kwargs:
@@ -18,7 +16,6 @@ llm:
     #     max_tokens: 1000
     - model: Qwen/Qwen3-4B
       kwargs:
-        temperature: 0.0
         max_new_tokens: 1000
 
 payoff_matrix:
