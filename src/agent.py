@@ -10,6 +10,9 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from src.action import Action
 
 class Agent(ABC):
+    def __init__(self, name: str):
+        self.name = name
+
     @abstractmethod
     def play(self,
         self_history: list[Action],
@@ -18,9 +21,13 @@ class Agent(ABC):
         """Decide what action to play this round."""
         pass
 
+    def __str__(self):
+        return self.name
+
 
 class BaseAgent(Agent):
-    def __init__(self, llm: BaseChatModel, rule: str):
+    def __init__(self, llm: BaseChatModel, name:str, rule: str):
+        super().__init__(name)
         self.llm = llm
         self.rule = rule
 
@@ -44,32 +51,43 @@ class BaseAgent(Agent):
             prompt += """
             1. What strategy do you think your opponent is using?
             2. What is the best strategy to respond?
-            3. Output your final action as either \"Final choice is C\" or \"Final choice is D\"
+            3. You must say the final action as either \"I will choose C\" or \"I will choose D\"
             """
         else:
-            prompt += 'Output your final action as either \"Final choice is C\" or \"Final choice is D\"'
+            prompt += 'You must say the final action as either \"I will choose C\" or \"I will choose D\"'
         messages.append(HumanMessage(content=prompt))
 
         actions_picked = []
-        for _ in range(self_consistency):
-            print(self.llm.invoke(messages))
-            response = self.llm.invoke(messages).content.strip()
+        reasons = []
 
-            pattern = r"Final choice is\s*([CD])"
+        attempt = 0  # counts valid responses
+        total_retries = 0  # counts all attempts including failed ones
+        max_total_retries = 10 + self_consistency
 
+        while attempt < self_consistency and total_retries < max_total_retries:
+            total_retries += 1
+            raw = self.llm.invoke(messages).content.strip()
+
+            prompt_text = messages[-1].content.strip()
+            response = raw.split(prompt_text)[-1].strip()
+            reasons.append(response)
+
+            pattern = r"I will choose\s*([CD])"
             all_choices = re.findall(pattern, response)
 
             if all_choices:
                 last_choice = all_choices[-1]
                 actions_picked.append(Action(last_choice))
+                attempt += 1
             else:
-                raise ValueError(
-                    f'{self.llm} failed to make a action at round {round_number}, response was: {response}'
-                )
+                print(f"Retry {total_retries}: LLM failed at round {round_number}. Response:\n{response}")
+
+        if attempt < self_consistency:
+            raise RuntimeError(f"LLM failed to produce {self_consistency} valid actions after {max_total_retries} retries.")
 
         # Majority vote for self consistency
         action = Counter(actions_picked).most_common(1)[0][0]
-        return action
+        return action, reasons
 
 
 class CodeStrategyAgent(Agent):

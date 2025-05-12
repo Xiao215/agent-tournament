@@ -1,6 +1,6 @@
-from enum import StrEnum
+from enum import Enum
 
-class Action(StrEnum):
+class Action(Enum):
     COOPERATE = "C"
     DEFECT = "D"
 

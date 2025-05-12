@@ -1,0 +1,21 @@
+simulation:
+  num_rounds: 1
+  agent_type: BaseAgent
+
+llm:
+  agents:
+    - model: Llama-3.2-3B-Instruct
+      kwargs:
+        max_new_tokens: 1000
+    - model: gemma-3-4b-it
+      kwargs:
+        max_new_tokens: 1000
+    - model: Qwen3-8B
+      kwargs:
+        max_new_tokens: 1000
+
+payoff_matrix:
+  CC: [3, 3]
+  CD: [0, 5]
+  DC: [5, 0]
+  DD: [1, 1]
