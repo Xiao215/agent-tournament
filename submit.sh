@@ -3,7 +3,7 @@
 YEAR=$(date +%Y)
 MONTH=$(date +%m)
 DAY=$(date +%d)
-OUTDIR="sbatch-output/$YEAR/$MONTH/$DAY"
+OUTDIR="sbatch-logs/$YEAR/$MONTH/$DAY"
 mkdir -p "$OUTDIR"
 
 JOBNAME="IPD_sim"

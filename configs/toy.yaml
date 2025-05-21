@@ -1,19 +1,21 @@
 simulation:
-  num_rounds: 1
+  num_rounds: 100
   agent_type: BaseAgent
 
 llm:
   agents:
+    - model: Qwen2.5-7B-Instruct
+      kwargs:
+        max_new_tokens: 1024
+    - model: Mistral-7B-Instruct-v0.3
+      kwargs:
+        max_new_tokens: 1024
     - model: Llama-3.2-3B-Instruct
       kwargs:
-        max_new_tokens: 1000
+        max_new_tokens: 1024
     - model: gemma-3-4b-it
       kwargs:
-        max_new_tokens: 1000
-    - model: Qwen3-8B
-      kwargs:
-        max_new_tokens: 1000
-
+        max_new_tokens: 1024
 payoff_matrix:
   CC: [3, 3]
   CD: [0, 5]

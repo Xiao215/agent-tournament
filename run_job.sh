@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=IPD_sim
-#SBATCH --gres=gpu:rtx6000:2
-#SBATCH --time=3:00:00
-#SBATCH -c 4
-#SBATCH --mem=32G
+#SBATCH --gres=gpu:a40:2
+#SBATCH --time=4:00:00
+#SBATCH -c 16
+#SBATCH --mem=48G
 #SBATCH --mail-user=xiaoo.zhang@mail.utoronto.ca
 #SBATCH --mail-type=END,FAIL
 
@@ -11,4 +11,4 @@
 source venv/bin/activate
 export PYTHONPATH=.
 
-python script/simulate.py --log
+python3 script/simulate.py --log

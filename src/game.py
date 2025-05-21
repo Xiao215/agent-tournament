@@ -72,8 +72,8 @@ class IteratedPrisonersDilemma(Game):
         if self.log and self.log_file:
             round_num = len(self.actions_p1)
             self.log_file.write(f"Round {round_num}:\n")
-            self.log_file.write(f"  {self.agent1} played {action1.value} with reason: {reasons1}\n")
-            self.log_file.write(f"  {self.agent2} played {action2.value} with reason: {reasons2}\n")
+            self.log_file.write(f"\t{self.agent1} played {action1.value} with reason: \n\t\t{reasons1}\n")
+            self.log_file.write(f"\t{self.agent2} played {action2.value} with reason: \n\t\t{reasons2}\n")
             self.log_file.write("\n")
 
     def get_rule(self) -> str:

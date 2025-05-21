@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import inspect
 import random
 from collections import Counter
+import sys
 import re
 
 from langchain_core.language_models import BaseChatModel
@@ -41,9 +42,6 @@ class BaseAgent(Agent):
 
         assert len(self_history) == len(opponent_history), f"Self and opponent histories should have equal lengths, but got self:{len(self_history)} and opponent:{len(opponent_history)}"
 
-        messages = [
-            SystemMessage(content=self.rule)
-        ]
         round_number = len(self_history) + 1
 
         prompt = f"Round {round_number}. Your past actions: {self_history}. Opponent past actions: {opponent_history}."
@@ -55,8 +53,19 @@ class BaseAgent(Agent):
             """
         else:
             prompt += 'You must say the final action as either \"I will choose C\" or \"I will choose D\"'
-        messages.append(HumanMessage(content=prompt))
 
+        messages = []
+        # Mistral model does not accept System Message, so merge with user message
+        if "mistral" in self.name.lower():
+            combined_prompt = f"{self.rule.strip()}\n\n{prompt.strip()}"
+            messages.append(HumanMessage(content=combined_prompt))
+        else:
+            messages = [
+                SystemMessage(content=self.rule),
+                HumanMessage(content=prompt)
+            ]
+        # print(self.name.lower())
+        # print(messages)
         actions_picked = []
         reasons = []
 
@@ -80,7 +89,7 @@ class BaseAgent(Agent):
                 actions_picked.append(Action(last_choice))
                 attempt += 1
             else:
-                print(f"Retry {total_retries}: LLM failed at round {round_number}. Response:\n{response}")
+                print(f"Retry {total_retries}: LLM failed at round {round_number}. Response:\n{response}", file=sys.stderr)
 
         if attempt < self_consistency:
             raise RuntimeError(f"LLM failed to produce {self_consistency} valid actions after {max_total_retries} retries.")
