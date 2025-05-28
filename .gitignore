@@ -48,7 +48,7 @@ checkpoints/
 Thumbs.db
 
 # LLM cache
-cache/
+caches/
 outputs/
 sbatch-logs/
 figures/

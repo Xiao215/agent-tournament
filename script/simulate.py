@@ -3,6 +3,7 @@ import argparse
 import itertools
 from typing import Any
 from pathlib import Path
+from collections import defaultdict
 
 import torch
 from langchain_huggingface.chat_models import ChatHuggingFace
@@ -14,27 +15,32 @@ from src.agent import Agent, BaseAgent, CodeStrategyAgent
 from src.game import IteratedPrisonersDilemma
 from src.action import Action
 
-from config import MODEL_WEIGHTS_DIR
+from config import MODEL_WEIGHTS_DIR, CONFIG_DIR
+from src.plot import plot_model_scores
 
 def load_config(path: str) -> dict:
-    path = Path(path)
+
+    path = Path(CONFIG_DIR / path)
     if not path.exists():
         raise FileNotFoundError(f"Config file {path} not found.")
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 def build_huggingface_agent(
+    llm_config: dict[str, Any],
     agent_config: dict[str, Any],
-    agent_type: str,
     rule: str,
-    gpu_device_num: int,
 ) -> list[Agent]:
-    model_path = MODEL_WEIGHTS_DIR / agent_config['model']
+    model_path = MODEL_WEIGHTS_DIR / llm_config['model']
 
-    kwargs = agent_config.get("kwargs", {})
+    llm_kwargs = llm_config.get("kwargs", {})
 
     tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        device_map="auto",
+        torch_dtype="auto"
+    )
     tokenizer.pad_token = tokenizer.eos_token
     model.config.pad_token_id = tokenizer.eos_token_id
 
@@ -42,8 +48,8 @@ def build_huggingface_agent(
         "text-generation",
         model=model,
         tokenizer=tokenizer,
-        device=gpu_device_num,
-        **kwargs
+        return_full_text=False,
+        **llm_kwargs
     )
 
     llm = HuggingFacePipeline(pipeline=pipe)
@@ -51,13 +57,21 @@ def build_huggingface_agent(
     chat_model = ChatHuggingFace(llm=llm, model_id=str(model_path))
 
 
-    agent = None
-    if agent_type == "BaseAgent":
-        agent = BaseAgent(chat_model, agent_config['model'], rule)
-    elif agent_type == "CodeStrategyAgent":
-        agent = CodeStrategyAgent(chat_model, agent_config['model'], rule)
-    else:
-        raise ValueError(f'Agent type name `{agent_type}` is not allowed')
+    AGENT_CLASSES = {
+        "BaseAgent": BaseAgent,
+        "CodeStrategyAgent": CodeStrategyAgent,
+    }
+    agent_class = AGENT_CLASSES.get(agent_config['type'])
+
+    if agent_class is None:
+        raise ValueError(f"Unknown agent type: {agent_config['type']}")
+
+    agent = agent_class(
+        chat_model,
+        name=llm_config['model'],
+        rule=rule,
+        **(agent_config.get("kwargs") or {})
+    )
 
     return agent
 
@@ -80,7 +94,7 @@ def build_prisoners_dilemma(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default='configs/toy.yaml')
+    parser.add_argument('--config', type=str)
     parser.add_argument('--log', action='store_true', help='Enable logging')
 
     args = parser.parse_args()
@@ -92,27 +106,26 @@ if __name__ == "__main__":
         log=args.log
     )
 
-    for i, (agent1_config, agent2_config) in enumerate(
-        itertools.combinations(config["llm"]["agents"], 2)
+    model_total_score = defaultdict(int)
+    for i, (llm1_config, llm2_config) in enumerate(
+        itertools.combinations(config["llm"], 2)
     ):
-        num_gpus = torch.cuda.device_count()
-        gpu_num1 = 0
-        gpu_num2 = 0 if num_gpus == 1 else 1
         agent1 = build_huggingface_agent(
-            agent1_config,
-            config["simulation"]["agent_type"],
+            llm1_config,
+            config["simulation"]["agent"],
             env.get_rule(),
-            gpu_num1
         )
         agent2 = build_huggingface_agent(
-            agent2_config,
-            config["simulation"]["agent_type"],
+            llm2_config,
+            config["simulation"]["agent"],
             env.get_rule(),
-            gpu_num2
         )
 
         env.enroll_agents(agent1, agent2)
         reward1, reward2 = env.simulate()
+        model_total_score[str(agent1)] += reward1
+        model_total_score[str(agent2)] += reward2
+
         print(f'{agent1} vs {agent2} — score: {reward1}, {reward2}')
 
         # Free GPU memory
@@ -123,3 +136,5 @@ if __name__ == "__main__":
 
         torch.cuda.empty_cache()
         gc.collect()
+
+    plot_model_scores(model_total_score)
