@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import inspect
-import random
+import os
+from datetime import datetime
 from collections import Counter
 import sys
 import re
@@ -9,6 +10,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from src.action import Action
+from config import OUTPUTS_DIR, CACHE_DIR
 
 class Agent(ABC):
     def __init__(self, name: str):
@@ -25,38 +27,51 @@ class Agent(ABC):
     def __str__(self):
         return self.name
 
-
 class BaseAgent(Agent):
-    def __init__(self, llm: BaseChatModel, name:str, rule: str):
-        super().__init__(name)
+    def __init__(self,
+        llm: BaseChatModel,
+        name:str,
+        rule: str,
+        reasoning: bool = False
+    ):
+        super().__init__(f'{name}{"(reasoning)" if reasoning else ""}')
         self.llm = llm
         self.rule = rule
+        self.reasoning = reasoning
 
     def play(self,
         self_history: list[Action],
         opponent_history: list[Action],
         *,
-        reason: bool,
         self_consistency: int = 1,
-    ) -> Action:
+    ) -> tuple[Action, str]:
 
         assert len(self_history) == len(opponent_history), f"Self and opponent histories should have equal lengths, but got self:{len(self_history)} and opponent:{len(opponent_history)}"
 
         round_number = len(self_history) + 1
 
         prompt = f"Round {round_number}. Your past actions: {self_history}. Opponent past actions: {opponent_history}."
-        if reason:
+        if self.reasoning:
             prompt += """
-            1. What strategy do you think your opponent is using?
-            2. What is the best strategy to respond?
-            3. You must say the final action as either \"I will choose C\" or \"I will choose D\"
+            1. Analyze your opponent's strategy based on their past actions.
+            2. Decide the best response strategy for this round.
+            3. End your response with the exact sentence:
+                I will choose C
+                or
+                I will choose D
             """
         else:
-            prompt += 'You must say the final action as either \"I will choose C\" or \"I will choose D\"'
+            prompt += """\n End your response with the exact sentence:
+            I will choose C
+            or
+            I will choose D
+
+            Do not include any explanation, commentary, or additional text after that sentence.
+            """
 
         messages = []
         # Mistral model does not accept System Message, so merge with user message
-        if "mistral" in self.name.lower():
+        if any(model in self.name for model in ("gemma-2-9b-it", "Mistral-7B-Instruct-v0.3")):
             combined_prompt = f"{self.rule.strip()}\n\n{prompt.strip()}"
             messages.append(HumanMessage(content=combined_prompt))
         else:
@@ -64,8 +79,7 @@ class BaseAgent(Agent):
                 SystemMessage(content=self.rule),
                 HumanMessage(content=prompt)
             ]
-        # print(self.name.lower())
-        # print(messages)
+
         actions_picked = []
         reasons = []
 
@@ -75,16 +89,13 @@ class BaseAgent(Agent):
 
         while attempt < self_consistency and total_retries < max_total_retries:
             total_retries += 1
-            raw = self.llm.invoke(messages).content.strip()
-
-            prompt_text = messages[-1].content.strip()
-            response = raw.split(prompt_text)[-1].strip()
-            reasons.append(response)
+            response = self.llm.invoke(messages).content.strip()
 
             pattern = r"I will choose\s*([CD])"
             all_choices = re.findall(pattern, response)
 
             if all_choices:
+                reasons.append(response)
                 last_choice = all_choices[-1]
                 actions_picked.append(Action(last_choice))
                 attempt += 1
@@ -100,23 +111,31 @@ class BaseAgent(Agent):
 
 
 class CodeStrategyAgent(Agent):
-    def __init__(self, llm: BaseChatModel, rule: str):
+    def __init__(self, llm: BaseChatModel, name: str, rule: str, log: bool):
+        super().__init__(f'{name}(code)')
         self.llm = llm
         self.rule = rule
+        self.log = log
 
-        self.strategy_text = self._generate_strategy()
-        self.strategy_code = self._generate_code(self.strategy_text)
-        self.play_fn = self._compile_play(self.strategy_code)
+        self.play_fn = self._compile_play()
 
     def _generate_strategy(self) -> str:
-        messages = [
-            SystemMessage(content=self.rule),
-            HumanMessage(content="""
-            Develop a simple strategy for an iterated normal-form game that maximizes your overall payoff considering the game's payoff structure.
-            Provide a straightforward description using only natural language with minimal commentary.
-            Be clear and specific about the conditions governing when to cooperate or defect, and order them appropriately.
-            """)
-        ]
+        nlp_strategy_prompt = """
+        Develop a simple strategy for an iterated normal-form game that maximizes your overall payoff considering the game's payoff structure.
+        Provide a straightforward description using only natural language with minimal commentary.
+        Be clear and specific about the conditions governing when to cooperate or defect, and order them appropriately.
+        """
+
+        messages = []
+        # Mistral model does not accept System Message, so merge with user message
+        if any(model in self.name for model in ("gemma-2-9b-it", "Mistral-7B-Instruct-v0.3")):
+            combined_prompt = f"{self.rule.strip()}\n\n{nlp_strategy_prompt.strip()}"
+            messages.append(HumanMessage(content=combined_prompt))
+        else:
+            messages = [
+                SystemMessage(content=self.rule),
+                HumanMessage(content=nlp_strategy_prompt)
+            ]
 
         strategy = self.llm.invoke(messages).content.strip()
 
@@ -130,45 +149,90 @@ class CodeStrategyAgent(Agent):
 
         return refined_strategy
 
-
     def _generate_code(self, strategy: str) -> str:
-        return f"""Implement the following strategy description as an algorithm using python 3.11 and the Axelrod library.
+        code_generation_prompt = f"""Implement the following strategy description as an algorithm using python 3.11
 
         {strategy}
 
         {self.rule}
 
-        Your response should only include the python code for the strategy function, which has the following signature:
+        Implement only the following Python code—nothing else:
 
-        def play(self,
-            self_history: list[Action],
-            opponent_history: list[Action],
+        1. The import for `Action` and the definition of `play(...)`, using this exact signature:
+
+        from src.action import Action
+        def play(
+            self_history: list[str],
+            opponent_history: list[str],
         ) -> Action:
+            <YOUR STRATEGY HERE>
 
-        # Example:
-        # self_history = [Action.COOPERATE, Action.DEFECT]
-        # opponent_history = [Action.DEFECT, Action.COOPERATE]
+        2. The self_history and opponent_history are both a list of 'C' and 'D'. For example:
+            ['C', 'D', 'D']
 
-        You use assume the following imports:
+        3. You may assume numpy is installed. If you need it, you can import it as:
+            import numpy as np
 
-        import random
-        import numpy as np
+        4. You may assume `Action` is defined as:
 
-        {inspect.getsource(Action)}
+        class Action(Enum):
+            COOPERATE = "C"
+            DEFECT    = "D"
 
-        No other libraries are to be used and no additional member functions are to be defined, but you may create nested subfunctions.
+        5. You may create nested helper functions inside `play`, but DO **NOT**:
+        - Use any other libraries
+        - Define any extra methods or classes
+        - Wrap your answer in markdown or triple-backticks
+        - Add any explanation or comments outside of your strategy code
 
-        Begin your response by repeating the strategy function signature. Only include python code in your response.
+        6. At the top of your response, repeat exactly:
+
+        from src.action import Action
+        def play(...
+
+        and then provide only valid Python code.
         """
 
-    def _compile_play(self, code: str):
-        """Dynamically compile the LLM-generated play function."""
+        return self.llm.invoke(code_generation_prompt).content.strip()
+
+    def _compile_play(self):
+        """Dynamically compile or load the LLM-generated play function."""
         namespace = {}
         try:
+            # Hash the strategy text to create a unique cache filename
+            file_path = CACHE_DIR / "code_strategy" / f"{self.name}.py"
+
+            if file_path.exists():
+                code = file_path.read_text(encoding='utf-8')
+                source = 'cache'
+            else:
+                strategy = self._generate_strategy()
+                code = self._generate_code(strategy)
+
+                if self.log:
+                    now = datetime.now()
+                    date_path = now.strftime("%Y/%m/%d")
+                    time_stamp = now.strftime("%H-%M")
+                    dir_path = OUTPUTS_DIR / date_path
+                    os.makedirs(dir_path, exist_ok=True)
+                    self.log_file = open(dir_path / f"{self}_{time_stamp}.txt", "w", encoding="utf-8")
+                    self.log_file.write(f"Strategy: {strategy}\n\n")
+                    self.log_file.write(f"Code:\n{code}\n")
+
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(code, encoding='utf-8')
+                source = 'LLM'
+
+            print(f'Code loaded from {source}: {code}')
+
+            if code.startswith('```'):
+                code = code.split('```', 2)[1]
+
             exec(code, globals(), namespace)
-            return namespace["play"]
+
+            return namespace['play']
         except Exception as e:
-            raise RuntimeError(f"Failed to compile strategy code:\n{code}\n\nError: {e}")
+            raise RuntimeError(f"Failed to compile strategy code from {source}:\n{code}\n\nError: {e}") from e
 
     def play(
         self,
@@ -176,5 +240,4 @@ class CodeStrategyAgent(Agent):
         opponent_history: list[Action],
         **kwargs
     ) -> Action:
-        """Call the generated strategy function."""
-        return self.play_fn(self, self_history, opponent_history)
+        return self.play_fn(self_history, opponent_history), 'No reasoning'

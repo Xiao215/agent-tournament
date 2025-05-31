@@ -7,11 +7,10 @@ import numpy as np
 
 from config import FIGURE_DIR
 
-def plot_ipd_results(game):
+def plot_ipd_results(game) -> None:
     now = datetime.now()
-    timestamp = now.strftime("%m-%d-%Y_%H-%M")
     dated_dir = FIGURE_DIR / now.strftime("%Y") / now.strftime("%m") / now.strftime("%d")
-    graph_name = f"{game.agent1} vs {game.agent2}"
+    graph_name = f"{game.agent1} vs {game.agent2}_{now.strftime('%H-%M')}"
 
     # === Score Trend ===
     score_dir = dated_dir / "score_trend"
@@ -64,4 +63,23 @@ def plot_ipd_results(game):
     plt.xticks(rotation=20)
     plt.tight_layout()
     plt.savefig(bar_path)
+    plt.close()
+
+def plot_model_scores(model_scores: dict[str, float]) -> None:
+    sorted_items = sorted(model_scores.items(), key=lambda kv: kv[1], reverse=True)
+    names, scores = zip(*sorted_items)
+
+    plt.figure(figsize=(8, max(4, len(names) * 0.5)))
+    plt.barh(names, scores)
+    plt.xlabel("Total Score")
+    plt.title("Model Rankings by Total Score")
+    plt.gca().invert_yaxis()  # highest score at the top
+    plt.tight_layout()
+
+
+    now = datetime.now()
+    dated_dir = FIGURE_DIR / now.strftime("%Y") / now.strftime("%m") / now.strftime("%d")
+    plot_name = f"model_ranking({len(model_scores)}).png"
+
+    plt.savefig(dated_dir / plot_name)
     plt.close()

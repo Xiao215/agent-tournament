@@ -27,6 +27,7 @@ class IteratedPrisonersDilemma(Game):
         self.payoff_matrix = payoff_matrix
         self.log = log
         self.plot = plot
+        self.log_file = None
 
         # Since agents' initialization depends on env, we will use enroll_agents to initialize agents later.
         self.agent1 = None
@@ -58,8 +59,8 @@ class IteratedPrisonersDilemma(Game):
 
     def play_PD(self):
         """Play one round of Prisoners Dilemma"""
-        action1, reasons1 = self.agent1.play(self.actions_p1, self.actions_p2, reason=False)
-        action2, reasons2 = self.agent2.play(self.actions_p2, self.actions_p1, reason=False)
+        action1, response1 = self.agent1.play(self.actions_p1, self.actions_p2)
+        action2, response2 = self.agent2.play(self.actions_p2, self.actions_p1)
 
         score1, score2 = self.payoff_matrix[(action1, action2)]
 
@@ -72,15 +73,15 @@ class IteratedPrisonersDilemma(Game):
         if self.log and self.log_file:
             round_num = len(self.actions_p1)
             self.log_file.write(f"Round {round_num}:\n")
-            self.log_file.write(f"\t{self.agent1} played {action1.value} with reason: \n\t\t{reasons1}\n")
-            self.log_file.write(f"\t{self.agent2} played {action2.value} with reason: \n\t\t{reasons2}\n")
+            self.log_file.write(f"\t{self.agent1} played {action1.value} with response: \n\t\t{response1}\n")
+            self.log_file.write(f"\t{self.agent2} played {action2.value} with response: \n\t\t{response2}\n")
             self.log_file.write("\n")
 
     def get_rule(self) -> str:
         def format_key(key: tuple[Action, Action]) -> str:
             return f'If you choose {key[0].value} and your opponent chooses {key[1].value}'
 
-        game_rules = f"""
+        game_rules = """
         You are an AI assistant with expertise in strategic thinking. You will play against an opponent on Iterated Prisoner's Dilemma.
 
         Game Rules:
@@ -99,14 +100,14 @@ class IteratedPrisonersDilemma(Game):
     def simulate(self) -> tuple[float, float]:
         assert self.agent1 is not None or self.agent2 is not None, "Agents not initialized"
 
-        for _ in tqdm(range(self.num_rounds), desc="Simulating PD"):
+        for _ in tqdm(range(self.num_rounds), desc=f'{self.agent1}&{self.agent2}'):
             self.play_PD()
 
         final_score_p1 = sum(self.scores_p1)
         final_score_p2 = sum(self.scores_p2)
 
         if self.log and self.log_file:
-            self.log_file.write(f"Final Score:\n")
+            self.log_file.write("Final Score:\n")
             self.log_file.write(f"  {self.agent1}: {final_score_p1}\n")
             self.log_file.write(f"  {self.agent2}: {final_score_p2}\n")
             self.log_file.close()
