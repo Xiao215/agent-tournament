@@ -52,3 +52,4 @@ caches/
 outputs/
 sbatch-logs/
 figures/
+test/
