@@ -12,10 +12,22 @@ from langchain_huggingface.llms import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import yaml
 
-from src.agent import Agent, IOAgent, CoTAgent
-from src.games.prisoner_dilemma import IteratedPrisonersDilemma
-
+from src.games.base import game_registry
+from src.agent import agent_registry, Agent
+from src.mechanisms.base import mechanism_registry, NoMechanism
 from config import MODEL_WEIGHTS_DIR, CONFIG_DIR, OUTPUTS_DIR
+
+
+# Temporary fix for registry issue
+from src.mechanisms.repetition import Repetition
+from src.games.prisoner_dilemma import PrisonersDilemma
+from src.agent import IOAgent, CoTAgent
+game_registry = {"PrisonersDilemma": PrisonersDilemma}
+mechanism_registry = {"Repetition": Repetition, "NoMechanism": NoMechanism}
+agent_registry = {
+    "IOAgent": IOAgent,
+    "CoTAgent": CoTAgent,
+}
 
 def load_config(path: str) -> dict:
     """
@@ -59,11 +71,8 @@ def build_huggingface_agent(
     chat_model = ChatHuggingFace(llm=llm, model_id=str(model_path))
 
 
-    agent_classes = {
-        "IOAgent": IOAgent,
-        "CoTAgent": CoTAgent,
-    }
-    agent_class = agent_classes.get(agent_config['type'])
+
+    agent_class = agent_registry.get(agent_config['type'])
 
     if agent_class is None:
         raise ValueError(f"Unknown agent type: {agent_config['type']}")
@@ -86,46 +95,54 @@ def main():
 
     # Set up logging
     logger = None
+    debugger = None
+
+    game = game_registry.get(config["game"]["type"])
+    mechanism = mechanism_registry.get(config["mechanism"]["type"], NoMechanism)
+
     if args.log:
         now = datetime.now()
         date_path = now.strftime("%Y/%m/%d")
         time_stamp = now.strftime("%H-%M")
-        log_path = Path(OUTPUTS_DIR / "IPD" / date_path / f"{time_stamp}.log")
-        log_path.parent.mkdir(parents=True, exist_ok=True)
+        logger_path = Path(OUTPUTS_DIR / game.__class__.__name__ / date_path / f"{time_stamp}_result.log")
+        debugger_path = Path(OUTPUTS_DIR / game.__class__.__name__ / date_path / f"{time_stamp}_debug.log")
+        logger_path.parent.mkdir(parents=True, exist_ok=True)
 
-        logger = logging.getLogger("IPD")
+        # Logger is used for dense game outcomes while
+        # debugger is used for logging all the game actions, reasonings and etc.
+        logger = logging.getLogger("game_results")
         logger.setLevel(logging.INFO)
-
-        file_handler = logging.FileHandler(log_path, encoding="utf-8")
+        file_handler = logging.FileHandler(logger_path, encoding="utf-8")
         file_handler.setFormatter(logging.Formatter("%(message)s"))
         logger.addHandler(file_handler)
 
 
-    for _, (agent1_config, agent2_config) in enumerate(
-        itertools.combinations(config["agents"], 2)
+        debugger = logging.getLogger("game_log")
+        debugger.setLevel(logging.INFO)
+        debugger_handler = logging.FileHandler(debugger_path, encoding="utf-8")
+        debugger_handler.setFormatter(logging.Formatter("%(message)s"))
+        debugger.addHandler(debugger_handler)
+
+
+    for _, agents_config in enumerate(
+        itertools.combinations(config["agents"], game.num_players)
     ):
-        agent1 = build_huggingface_agent(
-            agent1_config,
-        )
-        agent2 = build_huggingface_agent(
-            agent2_config,
-        )
+        agents = [build_huggingface_agent(
+            config,
+        ) for config in agents_config]
 
-        env = IteratedPrisonersDilemma(
-            agent1=agent1,
-            agent2=agent2,
+        game_instance = game(debugger=debugger, agents=agents, **config["game"]["kwargs"])
+        game_with_mechanism = mechanism(
+            base_game=game_instance,
             logger=logger,
-            **config["game"]
+            **config["mechanism"]["kwargs"]
         )
 
-        # Run the game
-        env.play()
+        game_with_mechanism.run()
 
         # Free GPU memory
-        del agent1
-        del agent2
-        del env.agent1
-        del env.agent2
+        for agent in agents:
+            del agent
 
         torch.cuda.empty_cache()
         gc.collect()

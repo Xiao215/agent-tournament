@@ -11,6 +11,4 @@
 source venv/bin/activate
 export PYTHONPATH=.
 
-# python3 script/simulate.py --log --config base.yaml
-python3 script/ipd.py --config prisoner_dilemma.yaml
-# python3 script/simulate.py --log --config code_strat_toy.yaml
+python3 script/run_game.py --config prisoner_dilemma_toy.yaml --log

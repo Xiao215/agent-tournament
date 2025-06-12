@@ -1,17 +1,24 @@
 game:
-  payoff_matrix:
+  type: PrisonersDilemma
+  kwargs:
+    payoff_matrix:
     CC: [3, 3]
     CD: [0, 5]
     DC: [5, 0]
     DD: [1, 1]
-  num_rounds: 50
+
+
+mechanism:
+  type: Repetition
+  kwargs:
+    num_rounds: 50
 
 
 agents:
   - llm:
       model: Qwen2.5-7B-Instruct
       kwargs:
-        max_new_tokens: 1024
+        max_new_tokens: 2048
     type: CoTAgent
 
   - llm:
@@ -23,7 +30,7 @@ agents:
   - llm:
       model: Llama-3.2-3B-Instruct
       kwargs:
-        max_new_tokens: 1024
+        max_new_tokens: 2048
     type: CoTAgent
 
   - llm:
