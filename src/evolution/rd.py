@@ -56,8 +56,10 @@ class discrete_replicator_dynamics:
     
     where η is the learning rate and Z(t) is the normalization constant. For learning rate going to zero, this approaches the continuous-time replicator dynamics.
     """
-    def __init__(self, pop_payoffs):
+    def __init__(self, pop_payoffs, payoffs_updating=False):
         self.population_payoffs = pop_payoffs
+        if payoffs_updating:
+            raise NotImplementedError("Payoff updates in between the dynamics is not implemented yet!")
 
     def replicator_dynamics_update(self, current_pop, fitness, avg_fitness, lr):
         """
@@ -422,7 +424,7 @@ def run_experiments(experiment):
     action_names = ['Cooperate', 'Defect', 'Punish']
 
     pop_payoffs = population_payoffs(agent_types=action_names, payoff_tensor=payoff_tensor)
-    RD = discrete_replicator_dynamics(pop_payoffs)
+    RD = discrete_replicator_dynamics(pop_payoffs,  payoffs_updating=False)
 
     if experiment == "simplex_plot":
         trajectories = []
