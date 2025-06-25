@@ -13,7 +13,7 @@ class Repetition(Mechanism):
             base_game: Game,
             num_rounds: int,
             logger: Logger | None = None
-        ):
+        ) -> None:
         super().__init__(base_game, logger)
         self.num_rounds = num_rounds
         self.history = []
@@ -34,8 +34,12 @@ class Repetition(Mechanism):
         return history_str.strip()
 
 
-    def run(self):
-        """Repeat the base game for a specified number of repetitions."""
+    def run(self) -> dict[str, float]:
+        """Repeat the base game for a specified number of repetitions.
+
+        Returns:
+            final_score (dict[str, float]): A dictionary mapping player names to their final scores after all rounds.
+        """
         if self.logger:
             self.logger.info(
                 f"{'='*5} Repetition ({self.num_rounds}) @ {self.base_game.__class__.__name__} {'='*5}"

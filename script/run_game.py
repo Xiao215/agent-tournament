@@ -131,6 +131,7 @@ def main():
             config,
         ) for config in agents_config]
 
+        # TODO: seperate agents from game
         game_instance = game(debugger=debugger, agents=agents, **config["game"]["kwargs"])
         game_with_mechanism = mechanism(
             base_game=game_instance,
