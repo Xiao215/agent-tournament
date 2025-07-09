@@ -58,6 +58,7 @@ class PopulationPayoffs:
 
     def expected_payoffs(self, population: Sequence[float]) -> np.ndarray:
         k = len(self.agent_types)
+        print(self._table)
 
         # build a quick name→index map for lookups
         idx_map = {name: i for i, name in enumerate(self.agent_types)}
@@ -203,7 +204,7 @@ class DiscreteReplicatorDynamics:
         population /= population.sum()
 
         # Run the dynamics
-        population_history = []
+        population_history = [population.copy()]
         payoff_history = []
 
         for _ in range(steps):
@@ -230,7 +231,6 @@ class DiscreteReplicatorDynamics:
 
             expected_payoffs = self.population_payoffs.expected_payoffs(population)
             weighted_mean_payoff = np.dot(population, expected_payoffs)
-            population_history.append(population.copy())
             payoff_history.append(weighted_mean_payoff)
 
             if self.mechanism.logger:
@@ -251,6 +251,8 @@ class DiscreteReplicatorDynamics:
                 weighted_mean_payoff=weighted_mean_payoff,
                 lr=lr_fct(len(population_history) + 1)
             )
+            population_history.append(population.copy())
+            self.population_payoffs.reset()
 
         # TODO, improve the logger so it is not so hardcoded
         if self.mechanism.logger:

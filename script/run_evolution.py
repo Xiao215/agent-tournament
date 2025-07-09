@@ -7,7 +7,6 @@ import yaml
 
 from config import CONFIG_DIR, OUTPUTS_DIR
 
-from src import plot
 from src.evolution.replicator_dynamics import DiscreteReplicatorDynamics
 from src.registry import GAME_REGISTRY, MECHANISM_REGISTRY
 from src.plot import plot_probability_evolution
@@ -87,10 +86,9 @@ def main():
     )
 
     plot_probability_evolution(
-        trajectory=population_history
+        trajectory=population_history,
+        labels=[agent['llm']['model'] for agent in config['agents']],
     )
-
-
 
     if logger:
         for handler in list(logger.handlers):

@@ -25,9 +25,9 @@ def save_figure(fig, filename: str) -> Path:
 
 def plot_probability_evolution(
         trajectory: list[np.ndarray],
-        colors=None,
-        labels=None,
-        figsize=(10, 6)
+        colors: list[str] | None = None,
+        labels: list[str] | None = None,
+        figsize: tuple[int, int] = (10, 6)
     ) -> None:
     """
     Plot the evolution of a probability distribution over time as a stacked area chart.

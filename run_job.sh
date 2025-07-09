@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=IPD_sim
+#SBATCH --job-name=LLM_evolution_tournament
 #SBATCH --gres=gpu:a40:2
 #SBATCH --time=5:00:00
 #SBATCH -c 16

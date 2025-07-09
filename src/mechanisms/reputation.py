@@ -71,27 +71,26 @@ class ReputationPrisonersDilemma(Reputation):
             coop_entry = type(self).cooperation_rate.get(name)
             betray_entry = type(self).betrayal_rate.get(name)
 
-            # If we have no history at all
-            if coop_entry is None or betray_entry is None:
+            if coop_entry is None and betray_entry is None:
                 lines.append(f"{name}: no reputation yet")
                 continue
 
-            coop_count, total_count = coop_entry
-            betray_count, opp_coop_count = betray_entry
+            parts = []
 
-            # If they've never been in any rounds
-            if total_count == 0 and opp_coop_count == 0:
-                lines.append(f"{name}: no reputation yet")
-                continue
+            if coop_entry is not None:
+                coop_count, total_count = coop_entry
+                coop_pct = coop_count / total_count * 100
+                parts.append(f"Cooperated in {coop_count}/{total_count} rounds ({coop_pct:.2f}%)")
 
-            # Otherwise compute percentages
-            coop_pct = (coop_count / total_count * 100) if total_count else 0.0
-            betray_pct = (betray_count / opp_coop_count * 100) if opp_coop_count else 0.0
+            if betray_entry is not None:
+                betray_count, opp_coop_count = betray_entry
+                betray_pct = betray_count / opp_coop_count * 100
+                parts.append(
+                    f"When opponent cooperated, betrayed in "
+                    f"{betray_count}/{opp_coop_count} rounds ({betray_pct:.2f}%)"
+                )
 
-            lines.append(
-                f"{name}: Cooperated in {coop_pct:.2f}% of rounds; "
-                f"when opponent cooperated, betrayed in {betray_pct:.2f}% of those rounds"
-            )
+            lines.append(f"{name}: " + "; ".join(parts))
 
         return "Reputation:\n" + "\n".join(lines)
 
@@ -107,7 +106,6 @@ class ReputationPrisonersDilemma(Reputation):
                 coop_count += 1
             type(self).cooperation_rate[name] = [coop_count, total_count]
 
-            # 2) If opponent cooperated, update betrayal counts
             if opp.action == self.base_game.Action.COOPERATE.value:
                 betray_count, opp_coop_count = type(self).betrayal_rate[name]
                 opp_coop_count += 1
