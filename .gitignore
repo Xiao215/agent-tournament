@@ -20,10 +20,6 @@ env/
 .idea/
 .vscode/
 
-# Logs
-logs/
-*.log
-
 # Hugging Face cache (optional)
 ~/.cache/huggingface/
 huggingface_cache/
