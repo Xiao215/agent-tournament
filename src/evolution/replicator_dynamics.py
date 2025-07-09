@@ -1,84 +1,183 @@
-import numpy as np
+from typing import Any, Sequence
+import gc
+import itertools
 
+import torch
+import numpy as np
+from langchain_huggingface.chat_models import ChatHuggingFace
+from langchain_huggingface.llms import HuggingFacePipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+
+from src.agent import Agent
+from config import MODEL_WEIGHTS_DIR
+from src.mechanisms.base import Mechanism
+
+
+from src.registry import AGENT_REGISTRY
 
 # Let us require that the payoff tensor is symmetric, that is, payoff_pl_i[k-th agent_type for player 1, ..., l-th agent_type for player i, ...] = payoff_pl_1[l-th agent_type for player 1, ..., k-th agent_type for player i, ...]. Hence, we only need to keep track of one tensor (of player 1).
 
-class Population_Payoffs:
-    def __init__(self, agent_types, payoff_tensor):
-        """
-        Initialize the payoffs of agent types vs other agent types, from the perspective of player 1 in the underlying game.
-        
-        Args:
-            agent_types: List of agent types (e.g., ['chatgpt', 'claude', 'deepseek'])
-            payoff_tensor: kD numpy array representing payoffs, where k is the number of agent types
-        """
-        assert all(dim == len(agent_types) for dim in payoff_tensor.shape), "Each dimension of payoff tensor must have size equal to number of agent types"
-        self.agent_types = agent_types
-        self.payoff_tensor = payoff_tensor
+class PopulationPayoffs:
+    """
+    n-player game payoffs.
+    """
 
-    def update_payoff_tensor(self, new_payoff_tensor):
-        assert all(dim == len(self.agent_types) for dim in new_payoff_tensor.shape), "Each dimension of payoff tensor must have size equal to number of agent types"
-        self.payoff_tensor = new_payoff_tensor
+    def __init__(self, agent_types: list[str]) -> None:
+        self.agent_types = list(agent_types)
+        # profile_key: sorted tuple of length n -> np.ndarray of length k
+        self._table: dict[tuple[str, ...], np.ndarray] = {}
 
-    def get_expected_payoffs(self, population):
+    def reset(self) -> None:
+        """Clear all stored payoffs."""
+        self._table.clear()
+
+    def _normalize(self, profile: list[str]) -> tuple[str, ...]:
         """
-        Compute expected payoffs for player 1 when all other player types are sampled from the same population distribution.
-        
-        Args:
-            population: numpy array of length len(agent_types)
-        
-        Returns:
-            expected_payoffs: numpy array of length len(agent_types)
+        Sorts the profile to make order irrelevant.
         """
-        
-        # Create einsum subscript string
-        # payoff_tensor has payoff_tensor.ndim indices, we keep the first one (player 1) and contract the rest
-        
-        # Create einsum expression: 'abcd...,b,c,d,...->a'
-        tensor_indices = ''.join(chr(ord('a') + i) for i in range(self.payoff_tensor.ndim))
-        strategy_indices = tensor_indices[1:]  # indices for other players
-        einsum_expr = tensor_indices + ',' + ','.join(strategy_indices) + '->' + 'a'
-        
-        # Input: tensor + (num_players-1) copies of the same mixed strategy
-        inputs = [self.payoff_tensor] + [population] * (self.payoff_tensor.ndim - 1)
-        
-        return np.einsum(einsum_expr, *inputs)
+        return tuple(sorted(profile))
+
+    def add_profile_payoffs(self, payoffs: dict[str, float]) -> None:
+        """
+        Add the payoffs from one combination of agent game results.
+        """
+        profile = list(payoffs.keys())
+        key = self._normalize(profile)
+
+        # build payoff vector aligned with agent_types
+        k = len(self.agent_types)
+        vector = np.zeros(k, dtype=float)
+        for name, value in payoffs.items():
+            try:
+                idx = self.agent_types.index(name)
+            except ValueError as exc:
+                raise KeyError(f"Unknown agent type: {name}") from exc
+            vector[idx] = value
+
+        self._table[key] = vector
+
+    def expected_payoffs(self, population: Sequence[float]) -> np.ndarray:
+        k = len(self.agent_types)
+
+        # build a quick name→index map for lookups
+        idx_map = {name: i for i, name in enumerate(self.agent_types)}
+
+        expected = np.zeros(k, dtype=float)
+        for profile_key, vector in self._table.items():
+            # profile_key is a tuple of n *distinct* names
+            idxs = [idx_map[name] for name in profile_key]
+            # just multiply the probabilities for those names
+            prob = np.prod(population[idxs])
+            # accumulate the weighted payoff vector
+            expected += prob * vector
+
+        return expected
+
+def build_huggingface_agent(
+    agent_config: dict[str, Any],
+) -> list[Agent]:
+    """
+    Instantiate an LLM-based Agent using HuggingFace pipeline.
+    """
+    model_path = MODEL_WEIGHTS_DIR / agent_config['llm']['model']
+
+    llm_kwargs = agent_config['llm'].get("kwargs", {})
+
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        device_map="auto",
+        torch_dtype="auto"
+    )
+    tokenizer.pad_token = tokenizer.eos_token
+    model.config.pad_token_id = tokenizer.eos_token_id
+
+    pipe = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        return_full_text=False,
+        **llm_kwargs
+    )
+
+    llm = HuggingFacePipeline(pipeline=pipe)
+
+    chat_model = ChatHuggingFace(llm=llm, model_id=str(model_path))
 
 
-class Discrete_Replicator_Dynamics:
+
+    agent_class = AGENT_REGISTRY.get(agent_config['type'])
+
+    if agent_class is None:
+        raise ValueError(f"Unknown agent type: {agent_config['type']}")
+
+    agent = agent_class(name=agent_config['llm']['model'], llm=chat_model)
+
+    return agent
+
+
+class DiscreteReplicatorDynamics:
     """
     Discrete-time replicator dynamics using exponential weight updates.
-    
+
     This implements the update rule:
     x_i(t+1) = x_i(t) * exp(η * (f_i - f_avg)) / Z(t)
-    
+
     where η is the learning rate and Z(t) is the normalization constant. For learning rate going to zero, this approaches the continuous-time replicator dynamics.
     """
-    def __init__(self, pop_payoffs, payoffs_updating=False):
-        self.population_payoffs = pop_payoffs
+    def __init__(
+        self,
+        agent_cfgs: list[dict[str, Any]],
+        mechanism: Mechanism,
+        population_payoffs: PopulationPayoffs | None = None,
+        payoffs_updating: bool =False
+    ) -> None:
+        self.agent_cfgs = agent_cfgs
+        self.mechanism = mechanism
+
+        self.population_payoffs = (
+            population_payoffs
+            if population_payoffs is not None
+            else PopulationPayoffs(agent_types=[config['llm']['model'] for config in agent_cfgs])
+        )
+
         if payoffs_updating:
             raise NotImplementedError("Payoff updates in between the dynamics is not implemented yet!")
 
-    def replicator_dynamics_update(self, current_pop, fitness, avg_fitness, lr):
+    def population_update(
+        self,
+        current_pop: np.ndarray,
+        expected_payoffs: np.ndarray,
+        weighted_mean_payoff: float,
+        lr: float
+    ) -> np.ndarray:
         """
         Args:
             current_dist: numpy array, current probability distribution over agent types
-            fitness: numpy array, fitness of each agent type against current distribution  
+            fitness: numpy array, fitness of each agent type against current distribution
             avg_fitness: float, current average performance
             t: int, current time step (must be > 0)
-        
+
         Returns:
             numpy array, next step's probability distribution over agent types
         """
-        weights = current_pop * np.exp(lr * (fitness - avg_fitness))
+        weights = current_pop * np.exp(lr * (expected_payoffs - weighted_mean_payoff))
         next_pop = weights / np.sum(weights)
-        
+
         return next_pop
-    
-    def run_mw_dynamics(self, initial_population="uniform", steps=1000, tol=1e-6, learning_rate={"method": "constant", "nu": 0.1}):
+
+    def run_dynamics(
+        self,
+        initial_population: np.ndarray | str = "uniform",
+        steps: int = 1000,
+        tol: float = 1e-6,
+        learning_rate: dict[str, float | str] | None = None
+    ):
         """
         Run the multiplicative weights dynamics for a specified number of steps.
         """
+        if learning_rate is None:
+            learning_rate = {"method": "constant", "nu": 0.1}
 
         # Initialize learning rate function
         if learning_rate["method"] == "constant":
@@ -99,23 +198,73 @@ class Discrete_Replicator_Dynamics:
             population = np.ones(len(self.population_payoffs.agent_types))
         else:
             raise ValueError("initial_population must be a numpy array or 'uniform'")
-        population = population / np.sum(population)
-        expected_payoffs = self.population_payoffs.get_expected_payoffs(population)
-        avg_payoff = np.dot(population, expected_payoffs)    
+
+        # Normalize to ensure it is a probability distribution
+        population /= population.sum()
 
         # Run the dynamics
-        population_history = [population.copy()]
-        payoff_history = [avg_payoff]
-        for t in range(1, steps + 1):
-            if np.all(expected_payoffs - avg_payoff < tol):
+        population_history = []
+        payoff_history = []
+
+        for _ in range(steps):
+            # Simulate one tournament
+            for agents_cfg in itertools.combinations(
+                self.agent_cfgs,
+                self.mechanism.base_game.num_players
+            ):
+                agents = [build_huggingface_agent(
+                    config,
+                ) for config in agents_cfg]
+
+                tournament_payoffs = self.mechanism.run(
+                    agents=agents,
+                )
+                self.population_payoffs.add_profile_payoffs(tournament_payoffs)
+
+                # Free GPU memory
+                for agent in agents:
+                    del agent
+
+                torch.cuda.empty_cache()
+                gc.collect()
+
+            expected_payoffs = self.population_payoffs.expected_payoffs(population)
+            weighted_mean_payoff = np.dot(population, expected_payoffs)
+            population_history.append(population.copy())
+            payoff_history.append(weighted_mean_payoff)
+
+            if self.mechanism.logger:
+                self.mechanism.logger.info(
+                    f"Population: {population}, "
+                    f"Expected Payoffs: {expected_payoffs}, "
+                    f"Weighted Mean Payoff: {weighted_mean_payoff}"
+                )
+
+            if np.max(np.abs(expected_payoffs - weighted_mean_payoff)) < tol:
+                print("Converged: approximate equilibrium reached")
                 status = "converged: approximate equilibrium reached"
                 return population_history, payoff_history, status
-            lr = lr_fct(t)
-            population = self.replicator_dynamics_update(population, expected_payoffs, avg_payoff, lr)
-            expected_payoffs = self.population_payoffs.get_expected_payoffs(population)
-            avg_payoff = np.dot(population, expected_payoffs)
-            population_history.append(population.copy())
-            payoff_history.append(avg_payoff)
-        
+
+            population = self.population_update(
+                current_pop=population,
+                expected_payoffs=expected_payoffs,
+                weighted_mean_payoff=weighted_mean_payoff,
+                lr=lr_fct(len(population_history) + 1)
+            )
+
+        # TODO, improve the logger so it is not so hardcoded
+        if self.mechanism.logger:
+            self.mechanism.logger.info(
+                '-' * 50 + '\n' +
+                f"Step {len(population_history)}: "
+                f"Population: {population}, "
+                f"Expected Payoffs: {expected_payoffs}, "
+                f"Weighted Mean Payoff: {weighted_mean_payoff}"
+                + '\n' +
+                '-' * 50
+            )
+
         status = "steps limit reached"
+        print("Steps limit reached")
+        # TODO: improve this return statements
         return population_history, payoff_history, status

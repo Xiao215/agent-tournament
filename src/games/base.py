@@ -1,47 +1,36 @@
 from dataclasses import dataclass
 from logging import Logger
+from enum import Enum
 from abc import ABC, abstractmethod
-from typing import ClassVar
 
-from src.utils import register_classes
 from src.agent import Agent
 
-game_registry: dict[str, type] = {}
-register_game = register_classes(game_registry)
-
-@dataclass(frozen=True)
-class Move:
-    """
-    A record of one player's action in a single round.
-
-    Attributes:
-        name: The name of the player.
-        value: The action taken by the player.
-        points: The points scored by the player in this round.
-    """
-    name: str
-    value: str
-    points: float
-
 class Game(ABC):
-    num_players: ClassVar[int]
+    """
+    Base class for all games in the tournament.
+    """
 
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if not hasattr(cls, 'num_players'):
-            raise TypeError(f"{cls.__name__} must define num_players")
+    @dataclass(frozen=True)
+    class Move:
+        """
+        A record of one player's action in a single round.
 
-    def __init__(self, debugger: Logger, agents: list[Agent]):
+        Attributes:
+            name: The name of the player.
+            action: The action taken by the player.
+            points: The points scored by the player in this round.
+        """
+        name: str
+        action: str
+        points: float
+
+
+    Action = Enum("Action", {})
+    def __init__(self, debugger: Logger | None = None):
         self.debugger = debugger
-        self.agents = agents
-
-        assert len(self.agents) == self.num_players, (
-            f"Game {self.__class__.__name__} requires exactly {self.num_players} agents, "
-            f"but got {len(self.agents)}."
-        )
 
     @abstractmethod
-    def play(self, additional_info: str) -> list[Move]:
+    def play(self, additional_info: str, agents: list[Agent]) -> list[Move]:
         """Play the game."""
         raise NotImplementedError
 

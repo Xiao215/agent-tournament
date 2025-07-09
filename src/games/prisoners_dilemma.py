@@ -2,37 +2,35 @@ from enum import Enum
 from logging import Logger
 
 from src.agent import Agent
-from src.games.base import Game, Move, register_game
+from src.games.base import Game
 
-class PDAction(Enum):
-    """Possible actions in the Prisoner's Dilemma"""
-    COOPERATE = "C"
-    DEFECT = "D"
-
-    def __str__(self) -> str:
-        return self.value
-
-@register_game
 class PrisonersDilemma(Game):
-    num_players = 2
-
     """
     Prisoner's Dilemma environment that allows for one rounds of interaction
     between two LLM agents.
     """
+
+    class Action(Enum):
+        """Possible actions in the Prisoner's Dilemma"""
+        COOPERATE = "C"
+        DEFECT = "D"
+
+        def __str__(self) -> str:
+            return self.value
+
     def __init__(
         self,
         payoff_matrix: dict[str, list[float]],
-        agents: list[Agent],
         *,
         debugger: Logger | None = None,
     ):
-        super().__init__(debugger=debugger, agents=agents)
+        super().__init__(debugger=debugger)
 
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
+        self.num_players = 2  # Fixed for Prisoner's Dilemma
 
         self.prompt = f"""
-        You are an expert called '{{agent_name}}' at playing Iterated Prisoner's Dilemma.
+        You are an expert called {{agent_name}} at playing Prisoner's Dilemma.
 
         Your goal is to maximize your score of the game.
         Both players choose simultaneously; choices are revealed after both commit.
@@ -46,6 +44,7 @@ class PrisonersDilemma(Game):
         {self._payoff_description()}
 
         Additional information:
+        Note, any of the following information related to {{agent_name}} is refering to yourself.
         {{additional_info}}
         """
 
@@ -58,12 +57,14 @@ class PrisonersDilemma(Game):
             )
         return "\n".join(lines)
 
-    def play(self, additional_info: str) -> list[Move]:
+    def play(self, additional_info: str, agents: list[Agent]) -> list[Game.Move]:
         """
         Play the Iterated Prisoner's Dilemma for the specified number of rounds.
         """
-        agent1 = self.agents[0]
-        agent2 = self.agents[1]
+        assert len(agents) == self.num_players, (
+            f"Expected {self.num_players} agents, got {len(agents)}."
+        )
+        agent1, agent2 = agents
 
         response1 = agent1.chat(self.prompt.format(
             agent_name= agent1.name,
@@ -82,21 +83,29 @@ class PrisonersDilemma(Game):
         if self.debugger:
             self.debugger.info(
                 "-" * 20 + "\n"
+                + "Example prompt:\n"
+                + self.prompt.format(
+                    agent_name=agent1.name,
+                    additional_info=additional_info,
+                )
+                + "\n" + " " * 5 + "+" * 10 + "\n"
+            )
+            self.debugger.info(
                 f"{agent1.name} chose {action1}: {response1}\n"
                 f"{agent2.name} chose {action2}: {response2}\n"
             )
 
-        return [Move(
+        return [Game.Move(
             name=agent1.name,
-            value=action1,
+            action=str(action1),
             points=pts1,
-        ), Move(
+        ), Game.Move(
             name=agent2.name,
-            value=action2,
+            action=str(action2),
             points=pts2,
         )]
 
-    def _parse_action(self, response: str) -> PDAction:
+    def _parse_action(self, response: str) -> Action:
         """
         Extract the choice action made by the LLM.
         """
@@ -107,18 +116,32 @@ class PrisonersDilemma(Game):
         last_defect = response.rfind(defect_token)
 
         if last_coop == -1 and last_defect == -1:
-            raise ValueError(f"Could not find '<Cooperate>' or '<Defect>' in response:\n{response}")
+            raise ValueError(
+                "Could not find '<Cooperate>' or '<Defect>' in response:\n"
+                f"{response}"
+            )
 
-        return PDAction.COOPERATE if last_coop > last_defect else PDAction.DEFECT
+        return (
+            type(self).Action.COOPERATE
+            if last_coop > last_defect
+            else type(self).Action.DEFECT
+        )
 
-    @staticmethod
+    @classmethod
     def _parse_payoff_matrix(
+        cls,
         raw_payoff: dict[str, list[float]],
-    ) -> dict[tuple[PDAction, PDAction], tuple[float, float]]:
+    ) -> dict[
+        tuple[Action, Action],
+        tuple[float, float]
+    ]:
+        """
+        Convert a raw payoff matrix with string keys into typed action pairs.
+        """
         payoff = {}
         for actions, reward in raw_payoff.items():
             assert len(actions) == 2, f"Invalid payoff actions: {actions}"
-            a1 = PDAction(actions[0])
-            a2 = PDAction(actions[1])
+            a1 = cls.Action(actions[0])
+            a2 = cls.Action(actions[1])
             payoff[(a1, a2)] = tuple(reward)
         return payoff

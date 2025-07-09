@@ -11,4 +11,4 @@
 source venv/bin/activate
 export PYTHONPATH=.
 
-python3 script/run_game.py --config prisoner_dilemma_toy.yaml --log
+python3 script/run_evolution.py --config prisoner_dilemma.yaml --log

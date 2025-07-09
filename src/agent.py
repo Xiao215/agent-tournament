@@ -2,11 +2,6 @@ from abc import ABC, abstractmethod
 
 from langchain_core.language_models import BaseChatModel
 
-from src.utils import register_classes
-
-agent_registry: dict[str, type] = {}
-register_agent = register_classes(agent_registry)
-
 class Agent(ABC):
     """
     Abstract base class for an LLM-based agent.
@@ -26,7 +21,6 @@ class Agent(ABC):
     def __str__(self):
         return f"{self.name}({self.__class__.__name__})"
 
-@register_agent
 class IOAgent(Agent):
     """Input/Output Agent.
     This agent is designed to be the most basic llm agent. Given a message, answer it.
@@ -44,7 +38,6 @@ class IOAgent(Agent):
         response = self.llm.invoke(messages)
         return response.content.strip()
 
-@register_agent
 class CoTAgent(Agent):
     """Chain-of-Thought Agent.
 

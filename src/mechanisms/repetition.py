@@ -2,12 +2,14 @@ from logging import Logger
 from collections import defaultdict
 from tqdm import tqdm
 
-from src.mechanisms.base import Mechanism, register_mechanism
+from src.mechanisms.base import Mechanism
 from src.games.base import Game
+from src.agent import Agent
 
-@register_mechanism
 class Repetition(Mechanism):
-    """"""
+    """
+    Repetition mechanism that allows for multiple rounds of the same game.
+    """
     def __init__(
             self,
             base_game: Game,
@@ -27,14 +29,14 @@ class Repetition(Mechanism):
         for i, (players_moves) in enumerate(self.history):
             history_str = f"  Round {i + 1}: "
             for move in players_moves:
-                history_str += f"{move.name}: {move.value}, "
+                history_str += f"{move.name}: {move.action}, "
             history_str = history_str[:-2]
             history_str += "\n"
 
         return history_str.strip()
 
 
-    def run(self) -> dict[str, float]:
+    def run(self, agents: list[Agent]) -> dict[str, float]:
         """Repeat the base game for a specified number of repetitions.
 
         Returns:
@@ -51,7 +53,8 @@ class Repetition(Mechanism):
             desc=f"Running Repetition Mechanism for {self.base_game.__class__.__name__}"
         ):
             players_moves = self.base_game.play(
-                additional_info=self._parse_history()
+                additional_info=self._parse_history(),
+                agents=agents
             )
             self.history.append(players_moves)
             for move in players_moves:
