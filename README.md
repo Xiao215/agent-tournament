@@ -1,48 +1,49 @@
-# 🧠 LLM Tournament
+# 🧠 LLM Evolution Tournament
 
-**LLM Tournament** is a research framework to explore the mechanisms that enable cooperative behavior among LLM-based agents. It allows experiments on multi-agent cooperation using a variety of game environments, mechanism designs, and LLM agent architectures.
-
----
-
-## Project Goals
-
-This project enables:
-
-- Testing LLM agent cooperation in strategic games.
-- Comparing the effects of different game types and mechanism structures.
-- Evaluating various LLM models under controlled cooperative tasks.
+**LLM Evolution Tournament** is a research framework for studying how large-language-model (LLM) agents learn to cooperate.
+It supports evolutionary-style simulations in which each agent’s population share adapts over repeated game rounds according to performance.
 
 ---
 
-## Setup Instructions
+## Key Objectives
+- **Measure cooperation** Quantify how LLM agents behave in classic strategic-game settings.
+- **Compare mechanisms** Swap in different game rules or incentive structures to see what fosters cooperation.
+- **Benchmark models** Evaluate any LLM (OpenAI, Anthropic, Qwen, etc.) under identical, reproducible tasks.
 
-Before running the project, follow these steps:
+---
 
-### 1. Use Python 3.10
+## Quick-start
 
-Make sure you're using Python **3.10**. You can check your version with:
+> **Requires Python 3.10**
 
-```bash
-python3 --version
 ```
-
-### 2. Virtual Environment
-
-```bash
+# 1  Activate a virtual environment
 python3.10 -m venv venv
-source venv/bin/activate   # On Windows use: venv\Scripts\activate
-```
+source venv/bin/activate      # Windows: venv\Scripts\activate
 
-### 3. Install Dependencies
-```bash
+# 2  Install dependencies
 pip install -r requirements.txt
 ```
-### 4. Install Additional Packages
+
+---
 
 ## Running Experiments
-You can use predefined experiment configurations located in the configs/ folder, or define your own in the following YAML format:
 
-```yaml
+1. **Choose or create a config** (YAML) in `configs/`.
+2. **Launch the run script:**
+
+```
+python script/run_evolution.py --config your_experiment.yaml --log
+```
+
+
+### Sample configuration
+
+```
+evolution:
+  initial_population: "uniform"  # or "random"
+  steps: <RoundsOfEvolution>
+
 game:
   type: <GameClassName>
   kwargs:
@@ -67,29 +68,29 @@ agents:
   # Add more agents as needed
 ```
 
-### Run an experiment locally
-Use the following command to run a configuration and log the outputs:
-```bash
-python3 script/run_game.py --config <your_config>.yaml --log
-```
 
-### For Vector Server ONLY
-To run your experiment as a job on a vector server:
-1.	Edit the configuration parameters in run_job.sh and submit.sh.
-2.	Submit your job:
-```bash
+### Running on a Vector server
+
+1. Edit `run_job.sh` and `submit.sh` with your parameters.
+2. Submit the job:
+
+```
 ./submit.sh
 ```
 
-## Folder Structure
-```plaintext
+
+---
+
+## Repository Layout
+```
 llm-tournament/
-├── configs/                # Configuration yaml files for experiments
-├── script/                 # Scripts for running tournaments
-├── src/                    # Source code for the project
-│   └── games/              # Game environments and logic used in experiments
-│   └── mechanisms/         # Mechanism designs
-│   └── agents.py           # LLM agent implementations
+├── configs/          # YAML experiment files
+├── script/           # CLI entry points
+├── src/
+│   ├── evolution/    # Replicator-dynamics algorithms
+│   ├── games/        # Game definitions
+│   ├── mechanisms/   # Incentive / payoff modifiers
+│   └── agents.py     # LLM-agent wrappers
 ├── run_job.sh
 └── submit.sh
 ```
