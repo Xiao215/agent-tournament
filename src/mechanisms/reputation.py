@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from src.mechanisms.base import Mechanism
 from src.games.base import Game
+from src.games.prisoners_dilemma import PrisonersDilemma
 from src.agent import Agent
 
 class Reputation(Mechanism, ABC):
@@ -60,6 +61,18 @@ class ReputationPrisonersDilemma(Reputation):
     # Mapping player names to tuples of (event occur count, total event count)
     cooperation_rate: defaultdict[str, list[int, int]] = defaultdict(lambda: [0, 0])
     betrayal_rate: defaultdict[str, list[int, int]] = defaultdict(lambda: [0, 0])
+
+    def __init__(
+            self,
+            base_game: Game,
+            logger: Logger | None = None,
+        ):
+        super().__init__(base_game, logger)
+        if not isinstance(self.base_game, PrisonersDilemma):
+            raise TypeError(
+                f"ReputationPrisonersDilemma can only be used with Prisoner's Dilemma games, "
+                f"but got {self.base_game.__class__.__name__}."
+            )
 
     def _parse_reputation(self, agents: list[Agent]) -> str:
         """Parse the reputation information of the given agents into a string."""
