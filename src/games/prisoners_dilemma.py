@@ -1,5 +1,6 @@
 from enum import Enum
 from logging import Logger
+from concurrent.futures import ThreadPoolExecutor
 
 from src.agent import Agent
 from src.games.base import Game
@@ -23,13 +24,10 @@ class PrisonersDilemma(Game):
         payoff_matrix: dict[str, list[float]],
         *,
         debugger: Logger | None = None,
-    ):
-        super().__init__(debugger=debugger)
-
+    ) -> None:
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
-        self.num_players = 2  # Fixed for Prisoner's Dilemma
 
-        self.prompt = f"""
+        prompt = f"""
         You are an expert called {{agent_name}} at playing Prisoner's Dilemma.
 
         Your goal is to maximize your score of the game.
@@ -48,6 +46,13 @@ class PrisonersDilemma(Game):
         {{additional_info}}
         """
 
+        super().__init__(
+            debugger=debugger,
+            prompt=prompt,
+            num_players=2
+        )
+
+
     def _payoff_description(self) -> str:
         lines = []
         for (a, b), (pts_a, pts_b) in self.payoff_matrix.items():
@@ -58,52 +63,25 @@ class PrisonersDilemma(Game):
         return "\n".join(lines)
 
     def play(self, additional_info: str, agents: list[Agent]) -> list[Game.Move]:
-        """
-        Play the Iterated Prisoner's Dilemma for the specified number of rounds.
-        """
-        assert len(agents) == self.num_players, (
-            f"Expected {self.num_players} agents, got {len(agents)}."
-        )
+        assert len(agents) == 2
         agent1, agent2 = agents
-
-        response1 = agent1.chat(self.prompt.format(
-            agent_name= agent1.name,
-            additional_info=additional_info,
-        ))
-        action1 = self._parse_action(response1)
-
-        response2 = agent2.chat(self.prompt.format(
-            agent_name=agent2.name,
-            additional_info=additional_info,
-        ))
-        action2 = self._parse_action(response2)
-
-        pts1, pts2 = self.payoff_matrix[(action1, action2)]
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            fut1 = pool.submit(self._chat_and_parse, agent1, additional_info)
+            fut2 = pool.submit(self._chat_and_parse, agent2, additional_info)
+            resp1, act1 = fut1.result()
+            resp2, act2 = fut2.result()
 
         if self.debugger:
             self.debugger.info(
-                "-" * 20 + "\n"
-                + "Example prompt:\n"
-                + self.prompt.format(
-                    agent_name=agent1.name,
-                    additional_info=additional_info,
-                )
-                + "\n" + " " * 5 + "+" * 10 + "\n"
-            )
-            self.debugger.info(
-                f"{agent1.name} chose {action1}: {response1}\n"
-                f"{agent2.name} chose {action2}: {response2}\n"
+                f"{agent1.name} chose {act1}: {resp1}\n"
+                f"{agent2.name} chose {act2}: {resp2}\n"
             )
 
-        return [Game.Move(
-            name=agent1.name,
-            action=str(action1),
-            points=pts1,
-        ), Game.Move(
-            name=agent2.name,
-            action=str(action2),
-            points=pts2,
-        )]
+        pts1, pts2 = self.payoff_matrix[(act1, act2)]
+        return [
+            Game.Move(name=agent1.name, action=str(act1), points=pts1),
+            Game.Move(name=agent2.name, action=str(act2), points=pts2),
+        ]
 
     def _parse_action(self, response: str) -> Action:
         """

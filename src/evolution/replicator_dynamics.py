@@ -1,22 +1,25 @@
-from typing import Any, Sequence
 import gc
 import itertools
+from typing import Any, Sequence
+import math
 
-import torch
 import numpy as np
+import torch
+from tqdm import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer, logging as hf_logging, pipeline
 from langchain_huggingface.chat_models import ChatHuggingFace
 from langchain_huggingface.llms import HuggingFacePipeline
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
-from src.agent import Agent
 from config import MODEL_WEIGHTS_DIR
+from src.agent import Agent
 from src.mechanisms.base import Mechanism
-
-
 from src.registry import AGENT_REGISTRY
 
-# Let us require that the payoff tensor is symmetric, that is, payoff_pl_i[k-th agent_type for player 1, ..., l-th agent_type for player i, ...] = payoff_pl_1[l-th agent_type for player 1, ..., k-th agent_type for player i, ...]. Hence, we only need to keep track of one tensor (of player 1).
+# Suppress HF warnings and progress bars
+hf_logging.set_verbosity_error()
+hf_logging.disable_progress_bar()
 
+# Let us require that the payoff tensor is symmetric, that is, payoff_pl_i[k-th agent_type for player 1, ..., l-th agent_type for player i, ...] = payoff_pl_1[l-th agent_type for player 1, ..., k-th agent_type for player i, ...]. Hence, we only need to keep track of one tensor (of player 1).
 class PopulationPayoffs:
     """
     n-player game payoffs.
@@ -104,8 +107,6 @@ def build_huggingface_agent(
     llm = HuggingFacePipeline(pipeline=pipe)
 
     chat_model = ChatHuggingFace(llm=llm, model_id=str(model_path))
-
-
 
     agent_class = AGENT_REGISTRY.get(agent_config['type'])
 
@@ -207,15 +208,24 @@ class DiscreteReplicatorDynamics:
         population_history = [population.copy()]
         payoff_history = []
 
-        for _ in range(steps):
-            # Simulate one tournament
-            for agents_cfg in itertools.combinations(
-                self.agent_cfgs,
-                self.mechanism.base_game.num_players
-            ):
+        n = len(self.agent_cfgs)
+        k = self.mechanism.base_game.num_players
+        total_matches = math.comb(n, k)
+        for _ in tqdm(range(steps), desc="Evolution Steps"):
+            combo_iter = itertools.combinations(self.agent_cfgs, k)
+            inner_tqdm_bar = tqdm(
+                combo_iter,
+                desc="Tournaments",
+                total=total_matches,
+                leave=False,
+                position=1,
+            )
+            for agents_cfg in inner_tqdm_bar:
                 agents = [build_huggingface_agent(
                     config,
                 ) for config in agents_cfg]
+                names = [cfg["llm"]["model"] for cfg in agents_cfg]
+                inner_tqdm_bar.set_postfix(match=" vs ".join(names))
 
                 tournament_payoffs = self.mechanism.run(
                     agents=agents,

@@ -56,7 +56,12 @@ def plot_probability_evolution(
     # Validate that probabilities sum to 1 (approximately)
     sums = np.sum(prob_matrix, axis=1)
     if not np.allclose(sums, 1.0, rtol=1e-3):
-        print(f"Warning: Some probability distributions don't sum to 1. Sums range from {sums.min():.4f} to {sums.max():.4f}")
+        print(
+            (
+                "Warning: Some probability distributions don't sum to 1. "
+                f"Sums range from {sums.min():.4f} to {sums.max():.4f}"
+            )
+        )
 
     # Compute cumulative sums for each time step
     cumsum_matrix = np.cumsum(prob_matrix, axis=1)

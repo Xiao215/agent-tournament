@@ -19,15 +19,14 @@ class PublicGoods(Game):
         *,
         debugger: Logger | None = None,
     ):
-        super().__init__(debugger=debugger)
+
         assert num_players > 1, "Public Goods must have at least 2 players."
         assert 1.0 <= multiplier <= num_players, "Multiplier should be between 1 and num_players."
 
-        self.num_players = num_players
         self.endowment = endowment
         self.multiplier = multiplier
 
-        self.prompt = f"""
+        prompt = f"""
         You are an expert called '{{agent_name}}' playing Public Goods game with {self.num_players} players.
 
         Each player starts with an endowment of {self.endowment}.
@@ -46,6 +45,8 @@ class PublicGoods(Game):
         {{additional_info}}
         """
 
+        super().__init__(debugger=debugger, prompt=prompt, num_players=num_players)
+
     def play(self, additional_info: str, agents: list[Agent]) -> list[Game.Move]:
         """
         Runs the Public Goods game: collects all actions, computes payoffs,
@@ -58,6 +59,7 @@ class PublicGoods(Game):
         contributions: list[float] = []
         names: list[str] = []
 
+        # TODO: Might not have enough GPU to run 2+ agents in parallel. Need to come up with a better way to handle this.
         for agent in agents:
             resp = agent.chat(self.prompt.format(
                 agent_name=agent.name,
