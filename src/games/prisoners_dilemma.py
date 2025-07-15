@@ -71,11 +71,11 @@ class PrisonersDilemma(Game):
             resp1, act1 = fut1.result()
             resp2, act2 = fut2.result()
 
-        if self.debugger:
-            self.debugger.info(
-                f"{agent1.name} chose {act1}: {resp1}\n"
-                f"{agent2.name} chose {act2}: {resp2}\n"
-            )
+            if self.debugger:
+                self.debugger.info(
+                    f"{agent1.name} chose {act1}: {resp1}\n"
+                    f"{agent2.name} chose {act2}: {resp2}\n"
+                )
 
         pts1, pts2 = self.payoff_matrix[(act1, act2)]
         return [

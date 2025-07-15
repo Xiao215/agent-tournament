@@ -1,10 +1,8 @@
-import gc
 import itertools
 from typing import Any, Sequence
 import math
 
 import numpy as np
-import torch
 from tqdm import tqdm
 
 from src.mechanisms.base import Mechanism
@@ -182,13 +180,6 @@ class DiscreteReplicatorDynamics:
                     agents=agents,
                 )
                 self.population_payoffs.add_profile_payoffs(tournament_payoffs)
-
-                # # Free GPU memory
-                # for agent in agents:
-                #     del agent
-
-                # torch.cuda.empty_cache()
-                # gc.collect()
 
             expected_payoffs = self.population_payoffs.expected_payoffs(population)
             weighted_mean_payoff = np.dot(population, expected_payoffs)

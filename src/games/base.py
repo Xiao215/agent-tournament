@@ -52,8 +52,8 @@ class Game(ABC):
             agent_name=agent.name,
             additional_info=additional_info,
         )
-        if self.debugger:
-            self.debugger.info(f"Example prompt:\n{prompt}\n{' ' * 5}+{'-' * 10}\n")
+        # if self.debugger:
+        #     self.debugger.info(f"Example prompt:\n{prompt}\n{' ' * 5}+{'-' * 10}\n")
         resp = agent.chat(prompt)
         return resp, self._parse_action(resp)
 

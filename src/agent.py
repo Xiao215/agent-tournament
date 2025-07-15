@@ -1,64 +1,73 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, logging as hf_logging
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, logging as hf_logging
+from langchain_huggingface.llms import HuggingFacePipeline
+from langchain_huggingface.chat_models import ChatHuggingFace
 
 from config import MODEL_WEIGHTS_DIR
 
-# Suppress HF warnings and progress bars
+# Suppress HF warnings
 hf_logging.set_verbosity_error()
-# hf_logging.disable_progress_bar()
 
-
-class LLMManager():
+class LLMInstance():
     """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
-    def __init__(self, model_name: str) -> None:
-        # self.name = agent_config['llm']['name']
-        # self.model = None
-        # self.tokenizer = None
+    def __init__(self, model_name: str):
+        self.model_path = MODEL_WEIGHTS_DIR / model_name
 
-        model_path = MODEL_WEIGHTS_DIR /  model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
+            self.model_path,
             torch_dtype=torch.float16,      # use float16 for better performance on GPU
             device_map="auto",              # automatically shards layers across GPU/CPU
             offload_folder="hf_offload",
             offload_state_dict=True
         )
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.model.config.pad_token_id = self.tokenizer.eos_token_id
 
-        """Use the following for models that should live in GPU memory.
-        dispatch_model(
-            model,
-            device_map="auto",         # now re-shard layers to maximize GPU use
-            offload_folder=None,       # disable further offload
-            offload_state_dict=False
+    # def invoke(self, prompt: str, **generation_kwargs: Any) -> str:
+    #     """
+    #     prompts: str or List[str]
+    #     generation_kwargs: e.g. max_new_tokens=50, temperature=0.7, etc.
+    #     """
+    #     return self.llm.invoke(prompt, **generation_kwargs).content.strip()
+
+
+class LLMManager():
+    """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
+    def __init__(self) -> None:
+        self.llms = dict()
+
+    def get_pipeline(self, model_name: str, **kwargs: Any) -> ChatHuggingFace:
+        """Get an LLM instance for the given model name."""
+        if model_name not in self.llms:
+            self.llms[model_name] = LLMInstance(model_name)
+
+        llm = self.llms[model_name]
+        pipe = pipeline(
+            "text-generation",
+            model=llm.model,
+            tokenizer=llm.tokenizer,
+            return_full_text=False,        # only returns new tokens
+            **kwargs
         )
-        """
-
-    def invoke(self, prompts: str | list[str]) -> str | list[str]:
-        """Invoke the LLM with the given prompts."""
-        single = isinstance(prompts, str)
-        batch   = [prompts] if single else prompts
-
-        inputs = self.tokenizer(batch, return_tensors="pt", padding=True, truncation=True)
-        inputs = inputs.to(self.model.device)
-        with torch.no_grad():
-            outputs = self.model.generate(**inputs)
-
-        decoded = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
-        return decoded[0] if single else decoded
+        hf_pipe = HuggingFacePipeline(pipeline=pipe)
+        chat_pipe = ChatHuggingFace(llm=hf_pipe, model_id=str(llm.model_path))
+        return chat_pipe
 
 
 class Agent(ABC):
     """
     Abstract base class for an LLM-based agent.
     """
+    llm_manager = LLMManager()
 
     def __init__(self, llm_config: dict) -> None:
         self.name = llm_config['model']
-        self.llm = LLMManager(self.name)
+        kwargs = llm_config.get('kwargs', {})
+        self.chat_pipe = type(self).llm_manager.get_pipeline(self.name, **kwargs)
 
     @abstractmethod
     def chat(self,
@@ -84,8 +93,8 @@ class IOAgent(Agent):
             "DO NOT provide any additional text or explanation.\n"
             "Action:"
         )
-        response = self.llm.invoke(messages)
-        return response
+        response = self.chat_pipe.invoke(messages)
+        return response.content.strip()
 
 class CoTAgent(Agent):
     """Chain-of-Thought Agent.
@@ -109,5 +118,5 @@ class CoTAgent(Agent):
         Your action wrapped in angles brackets, for example: <Action>
         """
 
-        response = self.llm.invoke(messages)
-        return response
+        response = self.chat_pipe.invoke(messages)
+        return response.content.strip()
