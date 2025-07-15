@@ -6,18 +6,11 @@ import math
 import numpy as np
 import torch
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer, logging as hf_logging, pipeline
-from langchain_huggingface.chat_models import ChatHuggingFace
-from langchain_huggingface.llms import HuggingFacePipeline
 
-from config import MODEL_WEIGHTS_DIR
-from src.agent import Agent
 from src.mechanisms.base import Mechanism
-from src.registry import AGENT_REGISTRY
+from src.registry import create_agent
 
-# Suppress HF warnings and progress bars
-hf_logging.set_verbosity_error()
-hf_logging.disable_progress_bar()
+
 
 # Let us require that the payoff tensor is symmetric, that is, payoff_pl_i[k-th agent_type for player 1, ..., l-th agent_type for player i, ...] = payoff_pl_1[l-th agent_type for player 1, ..., k-th agent_type for player i, ...]. Hence, we only need to keep track of one tensor (of player 1).
 class PopulationPayoffs:
@@ -76,46 +69,6 @@ class PopulationPayoffs:
             expected += prob * vector
 
         return expected
-
-def build_huggingface_agent(
-    agent_config: dict[str, Any],
-) -> list[Agent]:
-    """
-    Instantiate an LLM-based Agent using HuggingFace pipeline.
-    """
-    model_path = MODEL_WEIGHTS_DIR / agent_config['llm']['model']
-
-    llm_kwargs = agent_config['llm'].get("kwargs", {})
-
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        device_map="auto",
-        torch_dtype="auto"
-    )
-    tokenizer.pad_token = tokenizer.eos_token
-    model.config.pad_token_id = tokenizer.eos_token_id
-
-    pipe = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        return_full_text=False,
-        **llm_kwargs
-    )
-
-    llm = HuggingFacePipeline(pipeline=pipe)
-
-    chat_model = ChatHuggingFace(llm=llm, model_id=str(model_path))
-
-    agent_class = AGENT_REGISTRY.get(agent_config['type'])
-
-    if agent_class is None:
-        raise ValueError(f"Unknown agent type: {agent_config['type']}")
-
-    agent = agent_class(name=agent_config['llm']['model'], llm=chat_model)
-
-    return agent
 
 
 class DiscreteReplicatorDynamics:
@@ -212,7 +165,8 @@ class DiscreteReplicatorDynamics:
         k = self.mechanism.base_game.num_players
         total_matches = math.comb(n, k)
         for _ in tqdm(range(steps), desc="Evolution Steps"):
-            combo_iter = itertools.combinations(self.agent_cfgs, k)
+            agents = [create_agent(cfg) for cfg in self.agent_cfgs]
+            combo_iter = itertools.combinations(agents, k)
             inner_tqdm_bar = tqdm(
                 combo_iter,
                 desc="Tournaments",
@@ -220,11 +174,8 @@ class DiscreteReplicatorDynamics:
                 leave=False,
                 position=1,
             )
-            for agents_cfg in inner_tqdm_bar:
-                agents = [build_huggingface_agent(
-                    config,
-                ) for config in agents_cfg]
-                names = [cfg["llm"]["model"] for cfg in agents_cfg]
+            for agents in combo_iter:
+                names = [agent.name for agent in agents]
                 inner_tqdm_bar.set_postfix(match=" vs ".join(names))
 
                 tournament_payoffs = self.mechanism.run(
@@ -232,12 +183,12 @@ class DiscreteReplicatorDynamics:
                 )
                 self.population_payoffs.add_profile_payoffs(tournament_payoffs)
 
-                # Free GPU memory
-                for agent in agents:
-                    del agent
+                # # Free GPU memory
+                # for agent in agents:
+                #     del agent
 
-                torch.cuda.empty_cache()
-                gc.collect()
+                # torch.cuda.empty_cache()
+                # gc.collect()
 
             expected_payoffs = self.population_payoffs.expected_payoffs(population)
             weighted_mean_payoff = np.dot(population, expected_payoffs)

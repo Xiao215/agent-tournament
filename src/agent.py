@@ -1,15 +1,64 @@
 from abc import ABC, abstractmethod
 
-from langchain_core.language_models import BaseChatModel
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, logging as hf_logging
+
+from config import MODEL_WEIGHTS_DIR
+
+# Suppress HF warnings and progress bars
+hf_logging.set_verbosity_error()
+# hf_logging.disable_progress_bar()
+
+
+class LLMManager():
+    """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
+    def __init__(self, model_name: str) -> None:
+        # self.name = agent_config['llm']['name']
+        # self.model = None
+        # self.tokenizer = None
+
+        model_path = MODEL_WEIGHTS_DIR /  model_name
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            torch_dtype=torch.float16,      # use float16 for better performance on GPU
+            device_map="auto",              # automatically shards layers across GPU/CPU
+            offload_folder="hf_offload",
+            offload_state_dict=True
+        )
+
+        """Use the following for models that should live in GPU memory.
+        dispatch_model(
+            model,
+            device_map="auto",         # now re-shard layers to maximize GPU use
+            offload_folder=None,       # disable further offload
+            offload_state_dict=False
+        )
+        """
+
+    def invoke(self, prompts: str | list[str]) -> str | list[str]:
+        """Invoke the LLM with the given prompts."""
+        single = isinstance(prompts, str)
+        batch   = [prompts] if single else prompts
+
+        inputs = self.tokenizer(batch, return_tensors="pt", padding=True, truncation=True)
+        inputs = inputs.to(self.model.device)
+        with torch.no_grad():
+            outputs = self.model.generate(**inputs)
+
+        decoded = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        return decoded[0] if single else decoded
+
 
 class Agent(ABC):
     """
     Abstract base class for an LLM-based agent.
     """
 
-    def __init__(self, llm: BaseChatModel, name: str):
-        self.llm = llm
-        self.name = name
+    def __init__(self, llm_config: dict) -> None:
+        self.name = llm_config['model']
+        self.llm = LLMManager(self.name)
 
     @abstractmethod
     def chat(self,
@@ -36,7 +85,7 @@ class IOAgent(Agent):
             "Action:"
         )
         response = self.llm.invoke(messages)
-        return response.content.strip()
+        return response
 
 class CoTAgent(Agent):
     """Chain-of-Thought Agent.
@@ -59,5 +108,6 @@ class CoTAgent(Agent):
         Action:
         Your action wrapped in angles brackets, for example: <Action>
         """
+
         response = self.llm.invoke(messages)
-        return response.content.strip()
+        return response
