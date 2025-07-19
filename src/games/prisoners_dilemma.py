@@ -28,10 +28,13 @@ class PrisonersDilemma(Game):
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
 
         prompt = f"""
-        You are an expert called {{agent_name}} at playing Prisoner's Dilemma.
+        You are an autonomous decision-making agent named {agent_name}.
+        Your single objective is to maximise your cumulative score.
 
-        Your goal is to maximize your score of the game.
-        Both players choose simultaneously; choices are revealed after both commit.
+        Rule:
+        1. You and an unseen opponent each choose exactly one action, simultaneously.
+        2. After both commitments are locked in, the two actions are revealed.
+        3. Both players receive the points specified in the payoff table below.
 
         Actions (choose exactly one per round):
         • <Cooperate>
