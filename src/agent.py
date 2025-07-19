@@ -27,14 +27,6 @@ class LLMInstance():
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.model.config.pad_token_id = self.tokenizer.eos_token_id
 
-    # def invoke(self, prompt: str, **generation_kwargs: Any) -> str:
-    #     """
-    #     prompts: str or List[str]
-    #     generation_kwargs: e.g. max_new_tokens=50, temperature=0.7, etc.
-    #     """
-    #     return self.llm.invoke(prompt, **generation_kwargs).content.strip()
-
-
 class LLMManager():
     """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
     def __init__(self) -> None:
@@ -76,6 +68,10 @@ class Agent(ABC):
         """Chat with the agent using the provided messages."""
         raise NotImplementedError
 
+    def invoke(self, messages: str) -> str:
+        """Invoke the agent using the provided messages. No prompting added."""
+        return self.chat_pipe.invoke(messages).content.strip()
+
     def __str__(self):
         return f"{self.name}({self.__class__.__name__})"
 
@@ -89,7 +85,7 @@ class IOAgent(Agent):
     ) -> str:
         """Chat with the agent using the provided messages."""
         messages += (
-            "\nPlease ONLY provide the action you want to take. "
+            "\nPlease ONLY provide the action you want to take, for example: <Action1>.\n"
             "DO NOT provide any additional text or explanation.\n"
             "Action:"
         )
@@ -115,7 +111,7 @@ class CoTAgent(Agent):
         Your thought.
 
         Action:
-        Your action wrapped in angles brackets, for example: <Action>
+        Your action wrapped in angles brackets, for example: <Action1>
         """
 
         response = self.chat_pipe.invoke(messages)

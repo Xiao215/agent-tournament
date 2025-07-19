@@ -126,6 +126,7 @@ class ReputationPrisonersDilemma(Reputation):
                     betray_count += 1
                 type(self).betrayal_rate[name] = [betray_count, opp_coop_count]
 
+
 class ReputationPublicGoods(Reputation):
     """
     Reputation mechanism for the Prisoner's Dilemma game.

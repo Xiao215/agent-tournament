@@ -65,6 +65,12 @@ class PrisonersDilemma(Game):
     def play(self, additional_info: str, agents: list[Agent]) -> list[Game.Move]:
         assert len(agents) == 2
         agent1, agent2 = agents
+
+        if self.debugger:
+            self.debugger.info(
+                "-"* 50 + "\n"
+                f"Additional info: {additional_info}\n"
+            )
         with ThreadPoolExecutor(max_workers=2) as pool:
             fut1 = pool.submit(self._chat_and_parse, agent1, additional_info)
             fut2 = pool.submit(self._chat_and_parse, agent2, additional_info)
@@ -83,27 +89,32 @@ class PrisonersDilemma(Game):
             Game.Move(name=agent2.name, action=str(act2), points=pts2),
         ]
 
-    def _parse_action(self, response: str) -> Action:
+    def _parse_action(self, agent: Agent, response: str) -> Action:
         """
         Extract the choice action made by the LLM.
         """
         coop_token = "<Cooperate>"
         defect_token = "<Defect>"
 
-        last_coop = response.rfind(coop_token)
-        last_defect = response.rfind(defect_token)
+        def pick_from(text: str) -> Action:
+            if coop_token in text and defect_token not in text:
+                return type(self).Action.COOPERATE
+            if defect_token in text and coop_token not in text:
+                return type(self).Action.DEFECT
+            raise ValueError(f"Ambiguous or missing tokens in: {text!r}")
 
-        if last_coop == -1 and last_defect == -1:
-            raise ValueError(
-                "Could not find '<Cooperate>' or '<Defect>' in response:\n"
-                f"{response}"
+        try:
+            # first regex match
+            return pick_from(response)
+        except ValueError:
+            # build a clarifying prompt
+            clarification = (
+                "Based on the previous output, please reply with **exactly one** of the following tokens, wrapped in angle brackets "
+                f"and nothing else:\n\n  {coop_token}\n  {defect_token}\n\n"
+                "Do not include any other text."
             )
-
-        return (
-            type(self).Action.COOPERATE
-            if last_coop > last_defect
-            else type(self).Action.DEFECT
-        )
+            clarified = agent.invoke(clarification + "\n\nOriginal response:\n" + response)
+            return pick_from(clarified)
 
     @classmethod
     def _parse_payoff_matrix(

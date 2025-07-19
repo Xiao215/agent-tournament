@@ -52,12 +52,10 @@ class Game(ABC):
             agent_name=agent.name,
             additional_info=additional_info,
         )
-        # if self.debugger:
-        #     self.debugger.info(f"Example prompt:\n{prompt}\n{' ' * 5}+{'-' * 10}\n")
         resp = agent.chat(prompt)
-        return resp, self._parse_action(resp)
+        return resp, self._parse_action(agent, resp)
 
     @abstractmethod
-    def _parse_action(self, response: str) -> Enum:
-        """Base on the game type, extract the decision made by the llm agent."""
+    def _parse_action(self, agent: Agent, response: str) -> Enum:
+        """Base on the game type, extract the decision made by the llm agent. If decision is not valid with regex, use the agent to generate a valid action."""
         raise NotImplementedError
