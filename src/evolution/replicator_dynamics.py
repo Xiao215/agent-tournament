@@ -1,13 +1,13 @@
 import itertools
 from typing import Any, Sequence
 import math
+import random
 
 import numpy as np
 from tqdm import tqdm
 
 from src.mechanisms.base import Mechanism
 from src.registry import create_agent
-
 
 
 # Let us require that the payoff tensor is symmetric, that is, payoff_pl_i[k-th agent_type for player 1, ..., l-th agent_type for player i, ...] = payoff_pl_1[l-th agent_type for player 1, ..., k-th agent_type for player i, ...]. Hence, we only need to keep track of one tensor (of player 1).
@@ -165,6 +165,7 @@ class DiscreteReplicatorDynamics:
         for _ in tqdm(range(steps), desc="Evolution Steps"):
             agents = [create_agent(cfg) for cfg in self.agent_cfgs]
             combo_iter = itertools.combinations(agents, k)
+            random.shuffle(all_combos)
             inner_tqdm_bar = tqdm(
                 combo_iter,
                 desc="Tournaments",

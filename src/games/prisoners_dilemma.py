@@ -62,7 +62,11 @@ class PrisonersDilemma(Game):
             )
         return "\n".join(lines)
 
-    def play(self, additional_info: str, agents: list[Agent]) -> list[Game.Move]:
+    def play(
+        self,
+        additional_info: str,
+        agents: list[Agent]
+    ) -> list[Game.Move]:
         assert len(agents) == 2
         agent1, agent2 = agents
 
@@ -89,14 +93,18 @@ class PrisonersDilemma(Game):
             Game.Move(name=agent2.name, action=str(act2), points=pts2),
         ]
 
-    def _parse_action(self, agent: Agent, response: str) -> Action:
+    def _parse_action(
+        self,
+        agent: Agent,
+        response: str
+    ) -> Action:
         """
         Extract the choice action made by the LLM.
         """
         coop_token = "<Cooperate>"
         defect_token = "<Defect>"
 
-        def pick_from(text: str) -> Action:
+        def pick_action(text: str) -> Action:
             if coop_token in text and defect_token not in text:
                 return type(self).Action.COOPERATE
             if defect_token in text and coop_token not in text:
@@ -105,7 +113,7 @@ class PrisonersDilemma(Game):
 
         try:
             # first regex match
-            return pick_from(response)
+            return pick_action(response)
         except ValueError:
             # build a clarifying prompt
             clarification = (
@@ -114,7 +122,7 @@ class PrisonersDilemma(Game):
                 "Do not include any other text."
             )
             clarified = agent.invoke(clarification + "\n\nOriginal response:\n" + response)
-            return pick_from(clarified)
+            return pick_action(clarified)
 
     @classmethod
     def _parse_payoff_matrix(
