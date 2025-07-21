@@ -20,18 +20,14 @@ class PopulationPayoffs:
         self.agent_types = list(agent_types)
         k = len(agent_types)
         # key -> ( totals[k] , counts[k] )  both float/ints
-        self._table: dict[tuple[str, ...], tuple[np.ndarray, np.ndarray]] = {}  # NEW
+        self._table: dict[tuple[str, ...], tuple[np.ndarray, np.ndarray]] = {}
 
-    # ------------------------------------------------------------------
     def reset(self) -> None:
         self._table.clear()
 
-    # ------------------------------------------------------------------
-    # helper – canonical key keeps duplicates but not order
     def _normalize(self, names: Sequence[str]) -> tuple[str, ...]:
-        return tuple(sorted(names))        # duplicates preserved
+        return tuple(sorted(names))
 
-    # ------------------------------------------------------------------
     def add_profile_payoffs(
         self,
         scores: dict[str, float],
@@ -44,7 +40,6 @@ class PopulationPayoffs:
 
         key = self._normalize(names)
 
-        # tot up payoffs *per type* for this single match
         totals = np.zeros(k, float)
         counts = np.zeros(k, int)
 
@@ -57,14 +52,13 @@ class PopulationPayoffs:
             counts[i] += 1
 
         # accumulate into storage
-        if key in self._table:             # CHANGED
+        if key in self._table:
             old_tot, old_cnt = self._table[key]
             totals += old_tot
             counts += old_cnt
 
         self._table[key] = (totals, counts)
 
-    # ------------------------------------------------------------------
     def expected_payoffs(self, population: Sequence[float]) -> np.ndarray:
         """
         Expected fitness f_i(x) under random matching of n players
@@ -93,7 +87,7 @@ class PopulationPayoffs:
             with np.errstate(divide="ignore", invalid="ignore"):
                 per_capita = np.where(m, totals / m, 0.0)
 
-            expected += prob_multiset * per_capita   # CHANGED
+            expected += prob_multiset * per_capita
 
         return expected
 
@@ -214,12 +208,12 @@ class DiscreteReplicatorDynamics:
             weighted_mean_payoff = np.dot(population, expected_payoffs)
             payoff_history.append(weighted_mean_payoff)
 
-            if self.mechanism.logger:
-                self.mechanism.logger.info(
-                    f"Population: {population}, "
-                    f"Expected Payoffs: {expected_payoffs}, "
-                    f"Weighted Mean Payoff: {weighted_mean_payoff}"
-                )
+            # if self.mechanism.logger:
+            #     self.mechanism.logger.info(
+            #         f"Population: {population}, "
+            #         f"Expected Payoffs: {expected_payoffs}, "
+            #         f"Weighted Mean Payoff: {weighted_mean_payoff}"
+            #     )
 
             if np.max(np.abs(expected_payoffs - weighted_mean_payoff)) < tol:
                 print("Converged: approximate equilibrium reached")
@@ -237,16 +231,16 @@ class DiscreteReplicatorDynamics:
             self.population_payoffs.reset()
 
         # TODO, improve the logger so it is not so hardcoded
-        if self.mechanism.logger:
-            self.mechanism.logger.info(
-                '-' * 50 + '\n' +
-                f"Step {len(population_history)}: "
-                f"Population: {population}, "
-                f"Expected Payoffs: {expected_payoffs}, "
-                f"Weighted Mean Payoff: {weighted_mean_payoff}"
-                + '\n' +
-                '-' * 50
-            )
+        # if self.mechanism.logger:
+        #     self.mechanism.logger.info(
+        #         '-' * 50 + '\n' +
+        #         f"Step {len(population_history)}: "
+        #         f"Population: {population}, "
+        #         f"Expected Payoffs: {expected_payoffs}, "
+        #         f"Weighted Mean Payoff: {weighted_mean_payoff}"
+        #         + '\n' +
+        #         '-' * 50
+        #     )
 
         status = "steps limit reached"
         print("Steps limit reached")

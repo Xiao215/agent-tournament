@@ -1,5 +1,4 @@
 from enum import Enum
-from logging import Logger
 from concurrent.futures import ThreadPoolExecutor
 
 from src.agent import Agent
@@ -48,8 +47,6 @@ class PrisonersDilemma(Game):
     def __init__(
         self,
         payoff_matrix: dict[str, list[float]],
-        *,
-        debugger: Logger | None = None,
     ) -> None:
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
 
@@ -78,7 +75,6 @@ class PrisonersDilemma(Game):
         """
 
         super().__init__(
-            debugger=debugger,
             prompt=prompt,
             num_players=2
         )
@@ -101,25 +97,25 @@ class PrisonersDilemma(Game):
         assert len(agents) == 2
         agent1, agent2 = agents
 
-        if self.debugger:
-            self.debugger.info(
-                "-"* 50 + "\n"
-                f"Additional info: {additional_info}\n"
-            )
+        # if self.debugger:
+        #     self.debugger.info(
+        #         "-"* 50 + "\n"
+        #         f"Additional info: {additional_info}\n"
+        #     )
         with ThreadPoolExecutor(max_workers=2) as pool:
             fut1 = pool.submit(self._chat_and_parse, agent1, additional_info)
             fut2 = pool.submit(self._chat_and_parse, agent2, additional_info)
             resp1, act1 = fut1.result()
             resp2, act2 = fut2.result()
 
-            if self.debugger:
-                resp1_i = resp1.replace("\n", "\n\t")
-                resp2_i = resp2.replace("\n", "\n\t")
+            # if self.debugger:
+            #     resp1_i = resp1.replace("\n", "\n\t")
+            #     resp2_i = resp2.replace("\n", "\n\t")
 
-                self.debugger.info(
-                    f"{str(agent1)} chose {act1}: {resp1_i}\n"
-                    f"{str(agent2)} chose {act2}: {resp2_i}\n"
-                )
+            #     self.debugger.info(
+            #         f"{str(agent1)} chose {act1}: {resp1_i}\n"
+            #         f"{str(agent2)} chose {act2}: {resp2_i}\n"
+            #     )
 
         pts1, pts2 = self.payoff_matrix[(act1, act2)]
         return [

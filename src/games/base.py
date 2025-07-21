@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from logging import Logger
 from enum import Enum
 from abc import ABC, abstractmethod
 
@@ -28,11 +27,9 @@ class Game(ABC):
         self,
         prompt: str,
         num_players: int,
-        debugger: Logger | None = None
     ) -> None:
         self.prompt = prompt
         self.num_players = num_players
-        self.debugger = debugger
 
     @abstractmethod
     def play(
@@ -52,7 +49,6 @@ class Game(ABC):
             agent_name=str(agent),
             additional_info=additional_info,
         )
-        print(prompt)
         resp = agent.chat(prompt)
         return resp, self._parse_action(agent, resp)
 

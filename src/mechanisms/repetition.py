@@ -1,4 +1,3 @@
-from logging import Logger
 from collections import defaultdict
 from tqdm import tqdm
 
@@ -14,9 +13,8 @@ class Repetition(Mechanism):
             self,
             base_game: Game,
             num_rounds: int,
-            logger: Logger | None = None
         ) -> None:
-        super().__init__(base_game, logger)
+        super().__init__(base_game)
         self.num_rounds = num_rounds
         self.history = []
 
@@ -42,10 +40,10 @@ class Repetition(Mechanism):
         Returns:
             final_score (dict[str, float]): A dictionary mapping player names to their final scores after all rounds.
         """
-        if self.logger:
-            self.logger.info(
-                f"{'='*5} Repetition ({self.num_rounds}) @ {self.base_game.__class__.__name__} {'='*5}"
-            )
+        # if self.logger:
+        #     self.logger.info(
+        #         f"{'='*5} Repetition ({self.num_rounds}) @ {self.base_game.__class__.__name__} {'='*5}"
+        #     )
 
         final_score = defaultdict(float)
         for _ in tqdm(
@@ -60,10 +58,10 @@ class Repetition(Mechanism):
             for move in players_moves:
                 final_score[move.name] = final_score[move.name] + move.points
 
-        if self.logger:
-            self.logger.info(
-                f"{'='*5} Final Score {'='*5}\n"
-                + "\n".join(f"{name}: {score}" for name, score in final_score.items())
-            )
+        # if self.logger:
+        #     self.logger.info(
+        #         f"{'='*5} Final Score {'='*5}\n"
+        #         + "\n".join(f"{name}: {score}" for name, score in final_score.items())
+        #     )
 
         return final_score

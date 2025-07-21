@@ -1,4 +1,3 @@
-from logging import Logger
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
@@ -14,9 +13,8 @@ class Reputation(Mechanism, ABC):
     def __init__(
             self,
             base_game: Game,
-            logger: Logger | None = None,
         ):
-        super().__init__(base_game, logger)
+        super().__init__(base_game)
 
     def run(self, agents: list[Agent]) -> dict[str, float]:
         """Repeat the base game for a specified number of repetitions."""
@@ -30,11 +28,11 @@ class Reputation(Mechanism, ABC):
         for move in players_moves:
             final_score[move.name] += move.points
 
-        if self.logger:
-            self.logger.info(
-                f"\t Final Score \n"
-                + "\n\t\t".join(f"{name}: {score}" for name, score in final_score.items())
-            )
+        # if self.logger:
+        #     self.logger.info(
+        #         f"\t Final Score \n"
+        #         + "\n\t\t".join(f"{name}: {score}" for name, score in final_score.items())
+        #     )
         return final_score
 
     @abstractmethod
@@ -60,9 +58,8 @@ class ReputationPrisonersDilemma(Reputation):
     def __init__(
             self,
             base_game: Game,
-            logger: Logger | None = None,
         ):
-        super().__init__(base_game, logger)
+        super().__init__(base_game)
         if not isinstance(self.base_game, PrisonersDilemma):
             raise TypeError(
                 f"ReputationPrisonersDilemma can only be used with Prisoner's Dilemma games, "
@@ -99,10 +96,9 @@ class ReputationPrisonersDilemma(Reputation):
                 )
 
             lines.append(f"{name}: " + "; ".join(parts))
-
         return "\n\tReputation:\n\t\t" + "\n\t\t".join(lines) + "\n\tNote: Your chosen action will affect your reputation score."
 
-    def _update_reputation(self, players_moves: list[Game.Move]):
+    def _update_reputation(self, players_moves: list[Game.Move]) -> None:
         for i, move in enumerate(players_moves):
             name = move.name
             opp = players_moves[1 - i]

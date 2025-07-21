@@ -1,4 +1,3 @@
-from logging import Logger
 
 from src.mechanisms.base import Mechanism
 from src.games.base import Game
@@ -14,9 +13,8 @@ class Mediation(Mechanism):
     def __init__(
             self,
             base_game: Game,
-            logger: Logger | None = None
         ) -> None:
-        super().__init__(base_game, logger)
+        super().__init__(base_game)
 
 
     def run(self, agents: list[Agent]) -> dict[str, float]:
