@@ -13,11 +13,37 @@ class PrisonersDilemma(Game):
 
     class Action(Enum):
         """Possible actions in the Prisoner's Dilemma"""
-        COOPERATE = "C"
-        DEFECT = "D"
+        COOPERATE = "A1"
+        DEFECT = "A2"
 
         def __str__(self) -> str:
             return self.value
+
+        @property
+        def token(self) -> str:
+            """The exact string we expect the model to emit."""
+            return f"<{self.value}>"
+
+        @classmethod
+        def from_token(cls, token: str) -> "Action":
+            """Convert '<A1>' → Action.COOPERATE, '<A2>' → Action.DEFECT."""
+            alias = token.strip("<>")
+            try:
+                return cls(alias)
+            except ValueError:
+                raise ValueError(f"Unknown action token {token!r}")
+
+        @property
+        def symbol(self) -> str:
+            # "C" for COOPERATE, "D" for DEFECT
+            return self.name[0]
+
+        @classmethod
+        def from_symbol(cls, sym: str) -> "Action":
+            for member in cls:
+                if member.symbol == sym:
+                    return member
+            raise KeyError(f"Unknown symbol {sym!r}")
 
     def __init__(
         self,
@@ -27,9 +53,12 @@ class PrisonersDilemma(Game):
     ) -> None:
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
 
+        self.actions_token = [f'<{action}>' for action in type(self).Action]
+        actions_block = "\n\t".join([f"\t• {act_tok}" for act_tok in self.actions_token])
+
         prompt = f"""
-        You are a decision-making player named {{agent_name}}.
-        Your single objective is to maximise your cumulative score in the game described below.
+        You are a player named {{agent_name}} who plays in a decision-making game.
+        Your objective is to maximise your cumulative score in the game described below.
 
         Rule:
         1. You and the opponent each choose exactly one action, simultaneously.
@@ -37,9 +66,8 @@ class PrisonersDilemma(Game):
         3. Both players receive the points specified in the payoff table below.
 
         Actions (choose exactly one per round):
-        • <Cooperate>
-        • <Defect>
-        IMPORTANT: Your final printed action must be wrapped by <>, for example: <Cooperate> or <Defect>.
+        {actions_block}
+        IMPORTANT: Your final printed action must be wrapped by <>, for example: <A1>.
 
         Payoff matrix:
         {self._payoff_description()}
@@ -60,8 +88,8 @@ class PrisonersDilemma(Game):
         lines = []
         for (a, b), (pts_a, pts_b) in self.payoff_matrix.items():
             lines.append(
-                f"  • If you={a} and opponent={b}: "
-                f"you get {pts_a}, opponent gets {pts_b}."
+                f"  • If you choose {a} and opponent chooses {b}: "
+                f"you get {pts_a} points, opponent gets {pts_b} points."
             )
         return "\n".join(lines)
 
@@ -100,22 +128,20 @@ class PrisonersDilemma(Game):
         ]
 
     def _parse_action(
-        self,
+        cls,
         agent: Agent,
         response: str
     ) -> "Action":
         """
         Extract the choice action made by the LLM.
         """
-        coop_token = "<Cooperate>"
-        defect_token = "<Defect>"
-
         def pick_action(text: str) -> "Action":
-            if coop_token in text and defect_token not in text:
-                return type(self).Action.COOPERATE
-            if defect_token in text and coop_token not in text:
-                return type(self).Action.DEFECT
-            raise ValueError(f"Ambiguous or missing tokens in: {text!r}")
+            matches = [action for action in cls.Action if action.token in text]
+            if len(matches) == 1:
+                return matches[0]
+            if not matches:
+                raise ValueError(f"No action token found in {text!r}")
+            raise ValueError(f"Multiple action tokens {matches!r} in {text!r}")
 
         try:
             # first regex match
@@ -142,10 +168,11 @@ class PrisonersDilemma(Game):
         """
         Convert a raw payoff matrix with string keys into typed action pairs.
         """
-        payoff = {}
-        for actions, reward in raw_payoff.items():
-            assert len(actions) == 2, f"Invalid payoff actions: {actions}"
-            a1 = cls.Action(actions[0])
-            a2 = cls.Action(actions[1])
-            payoff[(a1, a2)] = tuple(reward)
-        return payoff
+        payoffs = {}
+        for sym_pair, (p1, p2) in raw_payoff.items():
+            # e.g. "C","D"
+            a_sym, b_sym = sym_pair
+            a = cls.Action.from_symbol(a_sym)
+            b = cls.Action.from_symbol(b_sym)
+            payoffs[(a, b)] = (p1, p2)
+        return payoffs

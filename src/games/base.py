@@ -52,6 +52,7 @@ class Game(ABC):
             agent_name=str(agent),
             additional_info=additional_info,
         )
+        print(prompt)
         resp = agent.chat(prompt)
         return resp, self._parse_action(agent, resp)
 
