@@ -20,11 +20,6 @@ class Reputation(Mechanism, ABC):
 
     def run(self, agents: list[Agent]) -> dict[str, float]:
         """Repeat the base game for a specified number of repetitions."""
-        if self.logger:
-            self.logger.info(
-                f"{'='*5} Reputation @ {self.base_game.__class__.__name__} {'='*5}"
-            )
-
         players_moves = self.base_game.play(
             additional_info=self._parse_reputation(agents),
             agents=agents
@@ -37,8 +32,8 @@ class Reputation(Mechanism, ABC):
 
         if self.logger:
             self.logger.info(
-                f"{'='*5} Final Score {'='*5}\n"
-                + "\n".join(f"{name}: {score}" for name, score in final_score.items())
+                f"\t Final Score \n"
+                + "\n\t\t".join(f"{name}: {score}" for name, score in final_score.items())
             )
         return final_score
 
@@ -78,7 +73,7 @@ class ReputationPrisonersDilemma(Reputation):
         """Parse the reputation information of the given agents into a string."""
         lines = []
         for agent in agents:
-            name = agent.name
+            name = str(agent)
 
             # Look up coop history
             coop_entry = type(self).cooperation_rate.get(name)
@@ -105,7 +100,7 @@ class ReputationPrisonersDilemma(Reputation):
 
             lines.append(f"{name}: " + "; ".join(parts))
 
-        return "Reputation:\n" + "\n".join(lines)
+        return "\n\tReputation:\n\t\t" + "\n\t\t".join(lines) + "\n\tNote: Your chosen action will affect your reputation score."
 
     def _update_reputation(self, players_moves: list[Game.Move]):
         for i, move in enumerate(players_moves):

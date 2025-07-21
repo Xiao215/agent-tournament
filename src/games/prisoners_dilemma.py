@@ -28,11 +28,11 @@ class PrisonersDilemma(Game):
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
 
         prompt = f"""
-        You are an autonomous decision-making agent named {agent_name}.
-        Your single objective is to maximise your cumulative score.
+        You are a decision-making player named {{agent_name}}.
+        Your single objective is to maximise your cumulative score in the game described below.
 
         Rule:
-        1. You and an unseen opponent each choose exactly one action, simultaneously.
+        1. You and the opponent each choose exactly one action, simultaneously.
         2. After both commitments are locked in, the two actions are revealed.
         3. Both players receive the points specified in the payoff table below.
 
@@ -85,29 +85,32 @@ class PrisonersDilemma(Game):
             resp2, act2 = fut2.result()
 
             if self.debugger:
+                resp1_i = resp1.replace("\n", "\n\t")
+                resp2_i = resp2.replace("\n", "\n\t")
+
                 self.debugger.info(
-                    f"{agent1.name} chose {act1}: {resp1}\n"
-                    f"{agent2.name} chose {act2}: {resp2}\n"
+                    f"{str(agent1)} chose {act1}: {resp1_i}\n"
+                    f"{str(agent2)} chose {act2}: {resp2_i}\n"
                 )
 
         pts1, pts2 = self.payoff_matrix[(act1, act2)]
         return [
-            Game.Move(name=agent1.name, action=str(act1), points=pts1),
-            Game.Move(name=agent2.name, action=str(act2), points=pts2),
+            Game.Move(name=str(agent1), action=str(act1), points=pts1),
+            Game.Move(name=str(agent2), action=str(act2), points=pts2),
         ]
 
     def _parse_action(
         self,
         agent: Agent,
         response: str
-    ) -> Action:
+    ) -> "Action":
         """
         Extract the choice action made by the LLM.
         """
         coop_token = "<Cooperate>"
         defect_token = "<Defect>"
 
-        def pick_action(text: str) -> Action:
+        def pick_action(text: str) -> "Action":
             if coop_token in text and defect_token not in text:
                 return type(self).Action.COOPERATE
             if defect_token in text and coop_token not in text:
@@ -120,8 +123,9 @@ class PrisonersDilemma(Game):
         except ValueError:
             # build a clarifying prompt
             clarification = (
-                "Based on the previous output, please reply with **exactly one** of the following tokens, wrapped in angle brackets "
-                f"and nothing else:\n\n  {coop_token}\n  {defect_token}\n\n"
+                "According to the original response below, what is the action chosen?\n"
+                "Please ONLY reply with **exactly one** of the following actions, wrapped in angle brackets:\n"
+                f"{coop_token} or {defect_token}\n"
                 "Do not include any other text."
             )
             clarified = agent.invoke(clarification + "\n\nOriginal response:\n" + response)

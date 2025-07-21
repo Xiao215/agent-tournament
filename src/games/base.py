@@ -49,7 +49,7 @@ class Game(ABC):
         additional_info: str,
     ) -> tuple[str, Enum]:
         prompt = self.prompt.format(
-            agent_name=agent.name,
+            agent_name=str(agent),
             additional_info=additional_info,
         )
         resp = agent.chat(prompt)

@@ -64,6 +64,9 @@ def main():
         debugger_handler.setFormatter(logging.Formatter("%(message)s"))
         debugger.addHandler(debugger_handler)
 
+        logger.info("-"*80)
+        logger.info("*"*5 + f" {mechanism_class.__class__.__name__} @ {game_class.__class__.__name__}\n")
+
     game = game_class(
         debugger=debugger,
         **config["game"].get("kwargs", {})

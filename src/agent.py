@@ -73,7 +73,7 @@ class Agent(ABC):
         return self.chat_pipe.invoke(messages).content.strip()
 
     def __str__(self):
-        return f"{self.name}({self.__class__.__name__})"
+        return f"{self.name}"
 
 class IOAgent(Agent):
     """Input/Output Agent.
@@ -91,6 +91,9 @@ class IOAgent(Agent):
         )
         response = self.chat_pipe.invoke(messages)
         return response.content.strip()
+
+    def __str__(self):
+        return f"{self.name}(IO)"
 
 class CoTAgent(Agent):
     """Chain-of-Thought Agent.
@@ -116,3 +119,6 @@ class CoTAgent(Agent):
 
         response = self.chat_pipe.invoke(messages)
         return response.content.strip()
+
+    def __str__(self):
+        return f"{self.name}(CoT)"

@@ -62,15 +62,15 @@ class PublicGoods(Game):
         # TODO: Might not have enough GPU to run 2+ agents in parallel. Need to come up with a better way to handle this.
         for agent in agents:
             resp = agent.chat(self.prompt.format(
-                agent_name=agent.name,
+                agent_name=str(agent),
                 additional_info=additional_info,
             ))
             c = self._parse_action(resp)
-            names.append(agent.name)
+            names.append(str(agent))
             contributions.append(c)
 
             if self.debugger:
-                self.debugger.info(f"{agent.name} responded '{resp}', parsed contribution = {c}")
+                self.debugger.info(f"{str(agent)} responded '{resp}', parsed contribution = {c}")
 
         payoffs = self._calculate_payoff(contributions)
 

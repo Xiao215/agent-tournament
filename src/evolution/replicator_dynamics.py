@@ -9,62 +9,91 @@ from tqdm import tqdm
 from src.mechanisms.base import Mechanism
 from src.registry import create_agent
 
-
-# Let us require that the payoff tensor is symmetric, that is, payoff_pl_i[k-th agent_type for player 1, ..., l-th agent_type for player i, ...] = payoff_pl_1[l-th agent_type for player 1, ..., k-th agent_type for player i, ...]. Hence, we only need to keep track of one tensor (of player 1).
 class PopulationPayoffs:
     """
-    n-player game payoffs.
+    Stores payoffs compactly by aggregating over *unordered* strategy
+    profiles (multisets).  A key like ('A','A','B') represents every
+    seating permutation of two A-players and one B-player.
     """
 
     def __init__(self, agent_types: list[str]) -> None:
         self.agent_types = list(agent_types)
-        # profile_key: sorted tuple of length n -> np.ndarray of length k
-        self._table: dict[tuple[str, ...], np.ndarray] = {}
+        k = len(agent_types)
+        # key -> ( totals[k] , counts[k] )  both float/ints
+        self._table: dict[tuple[str, ...], tuple[np.ndarray, np.ndarray]] = {}  # NEW
 
+    # ------------------------------------------------------------------
     def reset(self) -> None:
-        """Clear all stored payoffs."""
         self._table.clear()
 
-    def _normalize(self, profile: list[str]) -> tuple[str, ...]:
-        """
-        Sorts the profile to make order irrelevant.
-        """
-        return tuple(sorted(profile))
+    # ------------------------------------------------------------------
+    # helper – canonical key keeps duplicates but not order
+    def _normalize(self, names: Sequence[str]) -> tuple[str, ...]:
+        return tuple(sorted(names))        # duplicates preserved
 
-    def add_profile_payoffs(self, payoffs: dict[str, float]) -> None:
-        """
-        Add the payoffs from one combination of agent game results.
-        """
-        profile = list(payoffs.keys())
-        key = self._normalize(profile)
+    # ------------------------------------------------------------------
+    def add_profile_payoffs(
+        self,
+        scores: dict[str, float],
+    ) -> None:
+        names = scores.keys()
+        payoffs = scores.values()
 
-        # build payoff vector aligned with agent_types
         k = len(self.agent_types)
-        vector = np.zeros(k, dtype=float)
-        for name, value in payoffs.items():
+        idx_of = {n: i for i, n in enumerate(self.agent_types)}
+
+        key = self._normalize(names)
+
+        # tot up payoffs *per type* for this single match
+        totals = np.zeros(k, float)
+        counts = np.zeros(k, int)
+
+        for name, p in zip(names, payoffs):
             try:
-                idx = self.agent_types.index(name)
-            except ValueError as exc:
-                raise KeyError(f"Unknown agent type: {name}") from exc
-            vector[idx] = value
+                i = idx_of[name]
+            except KeyError:
+                raise KeyError(f"Unknown agent type: {name}")
+            totals[i] += p
+            counts[i] += 1
 
-        self._table[key] = vector
+        # accumulate into storage
+        if key in self._table:             # CHANGED
+            old_tot, old_cnt = self._table[key]
+            totals += old_tot
+            counts += old_cnt
 
+        self._table[key] = (totals, counts)
+
+    # ------------------------------------------------------------------
     def expected_payoffs(self, population: Sequence[float]) -> np.ndarray:
+        """
+        Expected fitness f_i(x) under random matching of n players
+        (n = len(key)) and a population state x.
+        """
         k = len(self.agent_types)
-        print(self._table)
+        x = np.asarray(population, float)
+        if x.shape != (k,):
+            raise ValueError("population vector has wrong length")
 
-        # build a quick name→index map for lookups
-        idx_map = {name: i for i, name in enumerate(self.agent_types)}
+        expected = np.zeros(k)
 
-        expected = np.zeros(k, dtype=float)
-        for profile_key, vector in self._table.items():
-            # profile_key is a tuple of n *distinct* names
-            idxs = [idx_map[name] for name in profile_key]
-            # just multiply the probabilities for those names
-            prob = np.prod(population[idxs])
-            # accumulate the weighted payoff vector
-            expected += prob * vector
+        for key, (totals, counts) in self._table.items():
+            # probability mass of *this* multiset being drawn
+            #   Pr(key) =  n! / (m1! m2! …) ·  Π_j x_j^m_j
+            # We can ignore the multinomial front-factor because it
+            # cancels when we divide by m_i below (see derivation).
+            #
+            # m_j = multiplicity of type j in the multiset
+            m = np.zeros(k, int)
+            for name in key:
+                m[self.agent_types.index(name)] += 1
+            prob_multiset = np.prod(np.where(m, x**m, 1.0))
+
+            # convert aggregated totals into *per-individual* payoff
+            with np.errstate(divide="ignore", invalid="ignore"):
+                per_capita = np.where(m, totals / m, 0.0)
+
+            expected += prob_multiset * per_capita   # CHANGED
 
         return expected
 
@@ -85,13 +114,12 @@ class DiscreteReplicatorDynamics:
         population_payoffs: PopulationPayoffs | None = None,
         payoffs_updating: bool =False
     ) -> None:
-        self.agent_cfgs = agent_cfgs
         self.mechanism = mechanism
-
+        self.agents = [create_agent(cfg) for cfg in agent_cfgs]
         self.population_payoffs = (
             population_payoffs
             if population_payoffs is not None
-            else PopulationPayoffs(agent_types=[config['llm']['model'] for config in agent_cfgs])
+            else PopulationPayoffs(agent_types=[str(agent) for agent in self.agents])
         )
 
         if payoffs_updating:
@@ -159,13 +187,12 @@ class DiscreteReplicatorDynamics:
         population_history = [population.copy()]
         payoff_history = []
 
-        n = len(self.agent_cfgs)
+        n = len(self.agents)
         k = self.mechanism.base_game.num_players
         total_matches = math.comb(n, k)
         for _ in tqdm(range(steps), desc="Evolution Steps"):
-            agents = [create_agent(cfg) for cfg in self.agent_cfgs]
-            combo_iter = itertools.combinations(agents, k)
-            random.shuffle(all_combos)
+            combo_iter = list(itertools.combinations(self.agents, k))
+            random.shuffle(combo_iter)
             inner_tqdm_bar = tqdm(
                 combo_iter,
                 desc="Tournaments",
@@ -173,8 +200,9 @@ class DiscreteReplicatorDynamics:
                 leave=False,
                 position=1,
             )
+
             for agents in combo_iter:
-                names = [agent.name for agent in agents]
+                names = [str(agent) for agent in agents]
                 inner_tqdm_bar.set_postfix(match=" vs ".join(names))
 
                 tournament_payoffs = self.mechanism.run(
@@ -205,6 +233,7 @@ class DiscreteReplicatorDynamics:
                 lr=lr_fct(len(population_history) + 1)
             )
             population_history.append(population.copy())
+            print(self.population_payoffs._table)
             self.population_payoffs.reset()
 
         # TODO, improve the logger so it is not so hardcoded
