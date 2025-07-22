@@ -1,23 +1,23 @@
 import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import yaml
 
 from config import CONFIG_DIR, OUTPUTS_DIR
-
 from src.evolution.replicator_dynamics import DiscreteReplicatorDynamics
-from src.registry import GAME_REGISTRY, MECHANISM_REGISTRY
 from src.plot import plot_probability_evolution
+from src.registry import GAME_REGISTRY, MECHANISM_REGISTRY
 
-def load_config(path: str) -> dict:
+
+def load_config(filename: str) -> dict:
     """
     Load and parse a YAML configuration file.
     """
-    path = Path(CONFIG_DIR / path)
-    if not path.exists():
-        raise FileNotFoundError(f"Config file {path} not found.")
-    with open(path, "r", encoding="utf-8") as f:
+    config_path = Path(CONFIG_DIR) / filename
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config file {config_path} not found.")
+    with open(config_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -31,11 +31,10 @@ def main():
 
     args = parser.parse_args()
 
-    config = load_config(args.config)
+    config = load_config(filename=args.config)
 
-
-    game_class = GAME_REGISTRY.get(config["game"]["type"])
-    mechanism_class = MECHANISM_REGISTRY.get(config["mechanism"]["type"])
+    game_class = GAME_REGISTRY[config["game"]["type"]]
+    mechanism_class = MECHANISM_REGISTRY[config["mechanism"]["type"]]
 
     game = game_class(
         **config["game"].get("kwargs", {})

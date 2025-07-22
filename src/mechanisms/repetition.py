@@ -1,9 +1,12 @@
 from collections import defaultdict
+from typing import Sequence
+
 from tqdm import tqdm
 
-from src.mechanisms.base import Mechanism
-from src.games.base import Game
 from src.agent import Agent
+from src.games.base import Game
+from src.mechanisms.base import Mechanism
+
 
 class Repetition(Mechanism):
     """
@@ -31,10 +34,13 @@ class Repetition(Mechanism):
             history_str = history_str[:-2]
             history_str += "\n"
 
-        return history_str.strip() + "\n\nNote: This game is repetitive so your chosen action will be visible to your opponents in future rounds."
+        return (
+            history_str.strip()
+            + "\n\nNote: This game is repetitive so your chosen action "
+            "will be visible to your opponents in future rounds."
+        )
 
-
-    def run(self, agents: list[Agent]) -> dict[str, float]:
+    def run(self, agents: Sequence[Agent]) -> dict[str, float]:
         """Repeat the base game for a specified number of repetitions.
 
         Returns:

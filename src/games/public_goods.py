@@ -1,4 +1,6 @@
 import re
+from typing import Sequence
+
 from src.agent import Agent
 from src.games.base import Game
 
@@ -42,26 +44,28 @@ class PublicGoods(Game):
         {{additional_info}}
         """
 
-        super().__init__(debugger=debugger, prompt=prompt, num_players=num_players)
+        super().__init__(prompt=prompt, num_players=num_players)
 
-    def play(self, additional_info: str, agents: list[Agent]) -> list[Game.Move]:
+    def play(self, additional_info: str, agents: Sequence[Agent]) -> list[Game.Move]:
         """
         Runs the Public Goods game: collects all actions, computes payoffs,
         and returns a list of Moves with each agent's action and points earned.
         """
-        assert len(agents) == self.num_players, (
-            f"Expected {self.num_players} agents, got {len(agents)}."
-        )
+        assert (
+            len(agents) == self.num_players
+        ), f"Expected {self.num_players} agents, got {len(agents)}."
 
         contributions: list[float] = []
         names: list[str] = []
 
         # TODO: Might not have enough GPU to run 2+ agents in parallel. Need to come up with a better way to handle this.
         for agent in agents:
-            resp = agent.chat(self.prompt.format(
-                agent_name=str(agent),
-                additional_info=additional_info,
-            ))
+            resp = agent.chat(
+                self.prompt.format(
+                    agent_name=str(agent),
+                    additional_info=additional_info,
+                )
+            )
             c = self._parse_action(resp)
             names.append(str(agent))
             contributions.append(c)
@@ -79,8 +83,6 @@ class PublicGoods(Game):
                 points=payoff,
             ))
         return moves
-
-
 
     def _calculate_payoff(self, contributions: list[float]) -> list[float]:
         """

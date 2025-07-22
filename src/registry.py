@@ -1,9 +1,8 @@
-from src.mechanisms.repetition import Repetition
-from src.mechanisms.base import NoMechanism
-from src.mechanisms.reputation import ReputationPrisonersDilemma
+from src.agent import Agent, CoTAgent, IOAgent
 from src.games.prisoners_dilemma import PrisonersDilemma
-from src.agent import IOAgent, CoTAgent, Agent
-
+from src.mechanisms.base import NoMechanism
+from src.mechanisms.repetition import Repetition
+from src.mechanisms.reputation import ReputationPrisonersDilemma
 
 GAME_REGISTRY = {
     "PrisonersDilemma": PrisonersDilemma

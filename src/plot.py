@@ -1,11 +1,12 @@
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
 
 from config import FIGURE_DIR
+
 
 def save_figure(fig, filename: str) -> Path:
     """

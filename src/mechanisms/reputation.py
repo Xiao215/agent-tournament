@@ -1,22 +1,19 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from typing import Sequence
 
-from src.mechanisms.base import Mechanism, logger
+from src.agent import Agent
 from src.games.base import Game
 from src.games.prisoners_dilemma import PrisonersDilemma
-from src.agent import Agent
+from src.mechanisms.base import Mechanism, logger
+
 
 class Reputation(Mechanism, ABC):
     """
     Reputation mechanism that makes each players' reputation visible to all players.
     """
-    def __init__(
-            self,
-            base_game: Game,
-        ):
-        super().__init__(base_game)
 
-    def run(self, agents: list[Agent]) -> dict[str, float]:
+    def run(self, agents: Sequence[Agent]) -> dict[str, float]:
         """Repeat the base game for a specified number of repetitions."""
         reputation_information = self._parse_reputation(agents)
         players_moves = self.base_game.play(
@@ -30,14 +27,13 @@ class Reputation(Mechanism, ABC):
             final_score[move.name] += move.points
 
         logger.info(
-            "\n" + "=" * 30 +
-            f"Reputation Info:\n{reputation_information.strip()}\n\n"
-            f"Moves:\n" +
-            "\n".join(
-                f"  {move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
+            "======== Reputation Info ========\n%s\n\nMoves:\n%s",
+            reputation_information.strip(),
+            "\n\n".join(
+                f"\t{move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
                 + move.response.replace("\n", "\n\t\t")
                 for move in players_moves
-            )
+            ),
         )
 
         print(
@@ -58,9 +54,10 @@ class Reputation(Mechanism, ABC):
         raise NotImplementedError("`_update_reputation` should be implemented in subclasses.")
 
     @abstractmethod
-    def _parse_reputation(self, agents: list[Agent]) -> str:
+    def _parse_reputation(self, agents: Sequence[Agent]) -> str:
         """Parse the reputation information into a string."""
         raise NotImplementedError("`_parse_reputation` should be implemented in subclasses.")
+
 
 class ReputationPrisonersDilemma(Reputation):
     """
@@ -69,13 +66,13 @@ class ReputationPrisonersDilemma(Reputation):
     """
     # A global static variable to store cooperation and betrayal rates
     # Mapping player names to tuples of (event occur count, total event count)
-    cooperation_rate: defaultdict[str, list[int, int]] = defaultdict(lambda: [0, 0])
-    betrayal_rate: defaultdict[str, list[int, int]] = defaultdict(lambda: [0, 0])
+    cooperation_rate: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
+    betrayal_rate: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
 
     def __init__(
-            self,
-            base_game: Game,
-        ):
+        self,
+        base_game: PrisonersDilemma,
+    ):
         super().__init__(base_game)
         if not isinstance(self.base_game, PrisonersDilemma):
             raise TypeError(
@@ -83,7 +80,7 @@ class ReputationPrisonersDilemma(Reputation):
                 f"but got {self.base_game.__class__.__name__}."
             )
 
-    def _parse_reputation(self, agents: list[Agent]) -> str:
+    def _parse_reputation(self, agents: Sequence[Agent]) -> str:
         """Parse the reputation information of the given agents into a string."""
         lines = []
         for agent in agents:
@@ -123,14 +120,14 @@ class ReputationPrisonersDilemma(Reputation):
             # 1) Update cooperation counts
             coop_count, total_count = type(self).cooperation_rate[name]
             total_count += 1
-            if move.action == self.base_game.Action.COOPERATE.value:
+            if move.action == PrisonersDilemma.Action.COOPERATE.value:
                 coop_count += 1
             type(self).cooperation_rate[name] = [coop_count, total_count]
 
-            if opp.action == self.base_game.Action.COOPERATE.value:
+            if opp.action == PrisonersDilemma.Action.COOPERATE.value:
                 betray_count, opp_coop_count = type(self).betrayal_rate[name]
                 opp_coop_count += 1
-                if move.action == self.base_game.Action.DEFECT.value:
+                if move.action == PrisonersDilemma.Action.DEFECT.value:
                     betray_count += 1
                 type(self).betrayal_rate[name] = [betray_count, opp_coop_count]
 

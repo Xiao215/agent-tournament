@@ -2,14 +2,17 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, logging as hf_logging
-from langchain_huggingface.llms import HuggingFacePipeline
 from langchain_huggingface.chat_models import ChatHuggingFace
+from langchain_huggingface.llms import HuggingFacePipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import logging as hf_logging
+from transformers import pipeline
 
 from config import MODEL_WEIGHTS_DIR
 
 # Suppress HF warnings
 hf_logging.set_verbosity_error()
+torch.set_float32_matmul_precision("high")
 
 class LLMInstance():
     """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
@@ -70,7 +73,8 @@ class Agent(ABC):
 
     def invoke(self, messages: str) -> str:
         """Invoke the agent using the provided messages. No prompting added."""
-        return self.chat_pipe.invoke(messages).content.strip()
+        response = str(self.chat_pipe.invoke(messages).content)
+        return response.strip()
 
     def __str__(self):
         return f"{self.name}"
@@ -89,8 +93,8 @@ class IOAgent(Agent):
             "DO NOT provide any additional text or explanation.\n"
             "Action:"
         )
-        response = self.chat_pipe.invoke(messages)
-        return response.content.strip()
+        response = str(self.chat_pipe.invoke(messages).content)
+        return response.strip()
 
     def __str__(self):
         return f"{self.name}(IO)"
@@ -117,8 +121,8 @@ class CoTAgent(Agent):
         Your action wrapped in angles brackets.
         """
 
-        response = self.chat_pipe.invoke(messages)
-        return response.content.strip()
+        response = str(self.chat_pipe.invoke(messages).content)
+        return response.strip()
 
     def __str__(self):
         return f"{self.name}(CoT)"

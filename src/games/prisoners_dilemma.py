@@ -1,8 +1,9 @@
 from enum import Enum
-from concurrent.futures import ThreadPoolExecutor
+from typing import Sequence
 
 from src.agent import Agent
 from src.games.base import Game
+
 
 class PrisonersDilemma(Game):
     """
@@ -24,21 +25,22 @@ class PrisonersDilemma(Game):
             return f"<{self.value}>"
 
         @classmethod
-        def from_token(cls, token: str) -> "Action":
+        def from_token(cls, token: str) -> Enum:
             """Convert '<A1>' → Action.COOPERATE, '<A2>' → Action.DEFECT."""
             alias = token.strip("<>")
             try:
                 return cls(alias)
-            except ValueError:
-                raise ValueError(f"Unknown action token {token!r}")
+            except ValueError as e:
+                raise ValueError(f"Unknown action token {token!r}") from e
 
         @property
         def symbol(self) -> str:
-            # "C" for COOPERATE, "D" for DEFECT
+            """The single character symbol for the action, e.g. "C" for COOPERATE, "D" for DEFECT."""
             return self.name[0]
 
         @classmethod
-        def from_symbol(cls, sym: str) -> "Action":
+        def from_symbol(cls, sym: str) -> Enum:
+            """Convert 'C' → Action.COOPERATE, 'D' → Action.DEFECT."""
             for member in cls:
                 if member.symbol == sym:
                     return member
@@ -50,8 +52,10 @@ class PrisonersDilemma(Game):
     ) -> None:
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
 
-        self.actions_token = [f'<{action}>' for action in type(self).Action]
-        actions_block = "\n\t".join([f"\t• {act_tok}" for act_tok in self.actions_token])
+        self.action_tokens = [act.token for act in self.Action]
+        actions_block = "\n\t".join(
+            [f"\t• {act_tok}" for act_tok in self.action_tokens]
+        )
 
         prompt = f"""
         You are a player named {{agent_name}} who plays in a decision-making game.
@@ -79,7 +83,6 @@ class PrisonersDilemma(Game):
             num_players=2
         )
 
-
     def _payoff_description(self) -> str:
         lines = []
         for (a, b), (pts_a, pts_b) in self.payoff_matrix.items():
@@ -89,30 +92,12 @@ class PrisonersDilemma(Game):
             )
         return "\n".join(lines)
 
-    def play(
-        self,
-        additional_info: str,
-        agents: list[Agent]
-    ) -> list[Game.Move]:
+    def play(self, additional_info: str, agents: Sequence[Agent]) -> list[Game.Move]:
         assert len(agents) == 2
         agent1, agent2 = agents
 
-        # if self.debugger:
-        #     self.debugger.info(
-        #         "-"* 50 + "\n"
-        #         f"Additional info: {additional_info}\n"
-        #     )
         resp1, act1 = self._chat_and_parse(agent1, additional_info)
         resp2, act2 = self._chat_and_parse(agent2, additional_info)
-
-            # if self.debugger:
-            #     resp1_i = resp1.replace("\n", "\n\t")
-            #     resp2_i = resp2.replace("\n", "\n\t")
-
-            #     self.debugger.info(
-            #         f"{str(agent1)} chose {act1}: {resp1_i}\n"
-            #         f"{str(agent2)} chose {act2}: {resp2_i}\n"
-            #     )
 
         pts1, pts2 = self.payoff_matrix[(act1, act2)]
         return [
@@ -130,16 +115,12 @@ class PrisonersDilemma(Game):
             ),
         ]
 
-    def _parse_action(
-        cls,
-        agent: Agent,
-        response: str
-    ) -> "Action":
+    def _parse_action(self, agent: Agent, response: str) -> Enum:
         """
         Extract the choice action made by the LLM.
         """
-        def pick_action(text: str) -> "Action":
-            matches = [action for action in cls.Action if action.token in text]
+        def pick_action(text: str) -> Enum:
+            matches = [action for action in self.Action if action.token in text]
             if len(matches) == 1:
                 return matches[0]
             if not matches:
@@ -154,8 +135,8 @@ class PrisonersDilemma(Game):
             clarification = (
                 "According to the original response below, what is the action chosen?\n"
                 "Please ONLY reply with **exactly one** of the following actions, wrapped in angle brackets:\n"
-                f"{coop_token} or {defect_token}\n"
-                "Do not include any other text."
+                f"{', '.join(self.action_tokens)}\n"
+                + "\nDo not include any other text."
             )
             clarified = agent.invoke(clarification + "\n\nOriginal response:\n" + response)
             return pick_action(clarified)
@@ -164,10 +145,7 @@ class PrisonersDilemma(Game):
     def _parse_payoff_matrix(
         cls,
         raw_payoff: dict[str, list[float]],
-    ) -> dict[
-        tuple[Action, Action],
-        tuple[float, float]
-    ]:
+    ) -> dict[tuple[Enum, Enum], tuple[float, float]]:
         """
         Convert a raw payoff matrix with string keys into typed action pairs.
         """

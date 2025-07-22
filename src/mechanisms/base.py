@@ -1,11 +1,12 @@
+import os
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
-import os
+from typing import Sequence
 
-from abc import ABC, abstractmethod
+from config import OUTPUTS_DIR
 from src.agent import Agent
 from src.games.base import Game
-from config import OUTPUTS_DIR
 from src.logging_config import setup_logger
 
 now = datetime.now()
@@ -23,16 +24,17 @@ class Mechanism(ABC):
         self.base_game = base_game
 
     @abstractmethod
-    def run(self, agents: list[Agent]) -> dict[str, float]:
+    def run(self, agents: Sequence[Agent]) -> dict[str, float]:
         """Run the mechanism over the base game."""
         raise NotImplementedError
+
 
 class NoMechanism(Mechanism):
     """A mechanism that does nothing."""
     def __init__(self, base_game: Game):
         super().__init__(base_game)
 
-    def run(self, agents: list[Agent]) -> dict[str, float]:
+    def run(self, agents: Sequence[Agent]) -> dict[str, float]:
         """Run the base game without any modifications."""
         # if self.logger:
         #     self.logger.info(

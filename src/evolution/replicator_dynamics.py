@@ -1,95 +1,27 @@
 import itertools
-from typing import Any, Sequence
 import math
+import os
 import random
+from datetime import datetime
+from typing import Any, Literal
 
 import numpy as np
 from tqdm import tqdm
 
+from config import OUTPUTS_DIR
+from src.evolution.population_payoffs import PopulationPayoffs
+from src.logging_config import setup_logger
 from src.mechanisms.base import Mechanism
 from src.registry import create_agent
 
-class PopulationPayoffs:
-    """
-    Stores payoffs compactly by aggregating over *unordered* strategy
-    profiles (multisets).  A key like ('A','A','B') represents every
-    seating permutation of two A-players and one B-player.
-    """
+now = datetime.now()
+log_dir = OUTPUTS_DIR / f"{now.year}" / f"{now.month:02}" / f"{now.day:02}"
+os.makedirs(log_dir, exist_ok=True)
 
-    def __init__(self, agent_types: list[str]) -> None:
-        self.agent_types = list(agent_types)
-        k = len(agent_types)
-        # key -> ( totals[k] , counts[k] )  both float/ints
-        self._table: dict[tuple[str, ...], tuple[np.ndarray, np.ndarray]] = {}
-
-    def reset(self) -> None:
-        self._table.clear()
-
-    def _normalize(self, names: Sequence[str]) -> tuple[str, ...]:
-        return tuple(sorted(names))
-
-    def add_profile_payoffs(
-        self,
-        scores: dict[str, float],
-    ) -> None:
-        names = scores.keys()
-        payoffs = scores.values()
-
-        k = len(self.agent_types)
-        idx_of = {n: i for i, n in enumerate(self.agent_types)}
-
-        key = self._normalize(names)
-
-        totals = np.zeros(k, float)
-        counts = np.zeros(k, int)
-
-        for name, p in zip(names, payoffs):
-            try:
-                i = idx_of[name]
-            except KeyError:
-                raise KeyError(f"Unknown agent type: {name}")
-            totals[i] += p
-            counts[i] += 1
-
-        # accumulate into storage
-        if key in self._table:
-            old_tot, old_cnt = self._table[key]
-            totals += old_tot
-            counts += old_cnt
-
-        self._table[key] = (totals, counts)
-
-    def expected_payoffs(self, population: Sequence[float]) -> np.ndarray:
-        """
-        Expected fitness f_i(x) under random matching of n players
-        (n = len(key)) and a population state x.
-        """
-        k = len(self.agent_types)
-        x = np.asarray(population, float)
-        if x.shape != (k,):
-            raise ValueError("population vector has wrong length")
-
-        expected = np.zeros(k)
-
-        for key, (totals, counts) in self._table.items():
-            # probability mass of *this* multiset being drawn
-            #   Pr(key) =  n! / (m1! m2! …) ·  Π_j x_j^m_j
-            # We can ignore the multinomial front-factor because it
-            # cancels when we divide by m_i below (see derivation).
-            #
-            # m_j = multiplicity of type j in the multiset
-            m = np.zeros(k, int)
-            for name in key:
-                m[self.agent_types.index(name)] += 1
-            prob_multiset = np.prod(np.where(m, x**m, 1.0))
-
-            # convert aggregated totals into *per-individual* payoff
-            with np.errstate(divide="ignore", invalid="ignore"):
-                per_capita = np.where(m, totals / m, 0.0)
-
-            expected += prob_multiset * per_capita
-
-        return expected
+logger = setup_logger(
+    name="evolution_logger",
+    log_file=str(log_dir / f"evolution_{now.hour:02}_{now.minute:02}.log"),
+)
 
 
 class DiscreteReplicatorDynamics:
@@ -99,7 +31,8 @@ class DiscreteReplicatorDynamics:
     This implements the update rule:
     x_i(t+1) = x_i(t) * exp(η * (f_i - f_avg)) / Z(t)
 
-    where η is the learning rate and Z(t) is the normalization constant. For learning rate going to zero, this approaches the continuous-time replicator dynamics.
+    where η is the learning rate and Z(t) is the normalization constant.
+    For learning rate going to zero, this approaches the continuous-time replicator dynamics.
     """
     def __init__(
         self,
@@ -117,7 +50,9 @@ class DiscreteReplicatorDynamics:
         )
 
         if payoffs_updating:
-            raise NotImplementedError("Payoff updates in between the dynamics is not implemented yet!")
+            raise NotImplementedError(
+                "Payoff updates in between the dynamics is not implemented yet!"
+            )
 
     def population_update(
         self,
@@ -146,19 +81,18 @@ class DiscreteReplicatorDynamics:
         initial_population: np.ndarray | str = "uniform",
         steps: int = 1000,
         tol: float = 1e-6,
-        learning_rate: dict[str, float | str] | None = None
+        *,
+        lr_method: Literal["constant", "sqrt"] = "constant",
+        lr_nu: float = 0.1,
     ):
         """
         Run the multiplicative weights dynamics for a specified number of steps.
         """
-        if learning_rate is None:
-            learning_rate = {"method": "constant", "nu": 0.1}
 
-        # Initialize learning rate function
-        if learning_rate["method"] == "constant":
-            lr_fct = lambda t: learning_rate["nu"]
-        elif learning_rate["method"] == "sqrt":
-            lr_fct = lambda t: learning_rate["nu"] / np.sqrt(t)
+        if lr_method == "constant":
+            lr_fct = lambda t: lr_nu
+        elif lr_method == "sqrt":
+            lr_fct = lambda t: lr_nu / np.sqrt(t)
         else:
             raise ValueError("learning_rate method must be 'constant' or 'sqrt'")
 

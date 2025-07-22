@@ -1,8 +1,10 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from abc import ABC, abstractmethod
+from typing import Sequence
 
 from src.agent import Agent
+
 
 class Game(ABC):
     """
@@ -34,11 +36,7 @@ class Game(ABC):
         self.num_players = num_players
 
     @abstractmethod
-    def play(
-        self,
-        additional_info: str,
-        agents: list[Agent]
-    ) -> list[Move]:
+    def play(self, additional_info: str, agents: Sequence[Agent]) -> list[Move]:
         """Play the game."""
         raise NotImplementedError
 
