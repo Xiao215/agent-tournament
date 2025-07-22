@@ -16,12 +16,14 @@ It supports evolutionary-style simulations in which each agent’s population sh
 
 > **Requires Python 3.10**
 
-```
+```bash
 # 1  Activate a virtual environment
 python3.10 -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 
 # 2  Install dependencies
+```bash
+module load rust
 pip install -r requirements.txt
 ```
 
@@ -32,7 +34,7 @@ pip install -r requirements.txt
 1. **Choose or create a config** (YAML) in `configs/`.
 2. **Launch the run script:**
 
-```
+```bash
 python script/run_evolution.py --config your_experiment.yaml --log
 ```
 
@@ -74,7 +76,7 @@ agents:
 1. Edit `run_job.sh` and `submit.sh` with your parameters.
 2. Submit the job:
 
-```
+```bash
 ./submit.sh
 ```
 
