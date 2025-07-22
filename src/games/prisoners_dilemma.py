@@ -102,11 +102,8 @@ class PrisonersDilemma(Game):
         #         "-"* 50 + "\n"
         #         f"Additional info: {additional_info}\n"
         #     )
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            fut1 = pool.submit(self._chat_and_parse, agent1, additional_info)
-            fut2 = pool.submit(self._chat_and_parse, agent2, additional_info)
-            resp1, act1 = fut1.result()
-            resp2, act2 = fut2.result()
+        resp1, act1 = self._chat_and_parse(agent1, additional_info)
+        resp2, act2 = self._chat_and_parse(agent2, additional_info)
 
             # if self.debugger:
             #     resp1_i = resp1.replace("\n", "\n\t")
