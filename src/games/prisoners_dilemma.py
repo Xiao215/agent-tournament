@@ -119,8 +119,18 @@ class PrisonersDilemma(Game):
 
         pts1, pts2 = self.payoff_matrix[(act1, act2)]
         return [
-            Game.Move(name=str(agent1), action=str(act1), points=pts1),
-            Game.Move(name=str(agent2), action=str(act2), points=pts2),
+            Game.Move(
+                name=str(agent1),
+                action=str(act1),
+                points=pts1,
+                response=resp1
+            ),
+            Game.Move(
+                name=str(agent2),
+                action=str(act2),
+                points=pts2,
+                response=resp2
+            ),
         ]
 
     def _parse_action(

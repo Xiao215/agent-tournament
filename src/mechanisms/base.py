@@ -1,8 +1,22 @@
 from collections import defaultdict
+from datetime import datetime
+import os
 
 from abc import ABC, abstractmethod
 from src.agent import Agent
 from src.games.base import Game
+from config import OUTPUTS_DIR
+from src.logging_config import setup_logger
+
+now = datetime.now()
+log_dir = OUTPUTS_DIR / f"{now.year}" / f"{now.month:02}" / f"{now.day:02}"
+os.makedirs(log_dir, exist_ok=True)
+
+logger = setup_logger(
+    name="tournament_logger",
+    log_file=str(log_dir / f"tournament_{now.hour:02}_{now.minute:02}.log"),
+)
+
 
 class Mechanism(ABC):
     def __init__(self, base_game: Game):

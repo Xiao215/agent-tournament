@@ -1,4 +1,3 @@
-from logging import Logger
 import re
 from src.agent import Agent
 from src.games.base import Game
@@ -16,8 +15,6 @@ class PublicGoods(Game):
         num_players: int,
         endowment: float,
         multiplier: float,
-        *,
-        debugger: Logger | None = None,
     ):
 
         assert num_players > 1, "Public Goods must have at least 2 players."
@@ -69,8 +66,8 @@ class PublicGoods(Game):
             names.append(str(agent))
             contributions.append(c)
 
-            if self.debugger:
-                self.debugger.info(f"{str(agent)} responded '{resp}', parsed contribution = {c}")
+            # if self.debugger:
+            #     self.debugger.info(f"{str(agent)} responded '{resp}', parsed contribution = {c}")
 
         payoffs = self._calculate_payoff(contributions)
 
@@ -93,9 +90,9 @@ class PublicGoods(Game):
         public_pool = total_contribution * self.multiplier
         share = public_pool / self.num_players
 
-        self.debugger.info(
-            f"Each player's share: {share}"
-        )
+        # self.debugger.info(
+        #     f"Each player's share: {share}"
+        # )
 
         payoffs = []
         for contribution in contributions:

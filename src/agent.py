@@ -106,7 +106,7 @@ class CoTAgent(Agent):
     ) -> str:
         """Chat with the agent using the provided messages."""
         messages += """
-        First reason about the strategy you are taking **step by step, then you must choose one action from legal actions.
+        First reason about the strategy you are taking step by step, then you must choose one action from legal actions.
 
         Your output must be in the following format strictly:
 
@@ -114,7 +114,7 @@ class CoTAgent(Agent):
         Your thought.
 
         Action:
-        Your action wrapped in angles brackets, for example: <Action1>
+        Your action wrapped in angles brackets.
         """
 
         response = self.chat_pipe.invoke(messages)

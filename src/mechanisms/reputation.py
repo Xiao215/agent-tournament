@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
-from src.mechanisms.base import Mechanism
+from src.mechanisms.base import Mechanism, logger
 from src.games.base import Game
 from src.games.prisoners_dilemma import PrisonersDilemma
 from src.agent import Agent
@@ -18,8 +18,9 @@ class Reputation(Mechanism, ABC):
 
     def run(self, agents: list[Agent]) -> dict[str, float]:
         """Repeat the base game for a specified number of repetitions."""
+        reputation_information = self._parse_reputation(agents)
         players_moves = self.base_game.play(
-            additional_info=self._parse_reputation(agents),
+            additional_info=reputation_information,
             agents=agents
         )
         self._update_reputation(players_moves)
@@ -28,11 +29,27 @@ class Reputation(Mechanism, ABC):
         for move in players_moves:
             final_score[move.name] += move.points
 
-        # if self.logger:
-        #     self.logger.info(
-        #         f"\t Final Score \n"
-        #         + "\n\t\t".join(f"{name}: {score}" for name, score in final_score.items())
-        #     )
+        logger.info(
+            "\n" + "=" * 30 +
+            f"Reputation Info:\n{reputation_information.strip()}\n\n"
+            f"Moves:\n" +
+            "\n".join(
+                f"  {move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
+                + move.response.replace("\n", "\n\t\t")
+                for move in players_moves
+            )
+        )
+
+        print(
+            "\n" + "=" * 30 +
+            f"Reputation Info:\n{reputation_information.strip()}\n\n"
+            f"Moves:\n" +
+            "\n".join(
+                f"  {move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
+                + move.response.replace("\n", "\n\t\t")
+                for move in players_moves
+            )
+        )
         return final_score
 
     @abstractmethod
