@@ -9,7 +9,7 @@ game:
 
 evolution:
   initial_population: uniform
-  steps: 50
+  steps: 30
 
 mechanism:
   type: ReputationPrisonersDilemma
@@ -34,25 +34,20 @@ agents:
     type: CoTAgent
 
   - llm:
-      model: gemma-3-12b-it
+      model: Llama-3.2-11B-Vision-Instruct
       kwargs:
-        max_new_tokens: 1024
-    type: CoTAgent
+        max_new_tokens: 2048
+    type: IOAgent
 
   - llm:
-      model: gemma-3-12b-it
+      model: gemma-2-9b-it
       kwargs:
         max_new_tokens: 1024
     type: IOAgent
 
+  # Deepseek is always a chain of thought agent. It will always think.
   - llm:
       model: DeepSeek-R1-Distill-Llama-8B
       kwargs:
         max_new_tokens: 4096
     type: CoTAgent
-
-  # - llm:
-  #     model: DeepSeek-R1-Distill-Llama-8B
-  #     kwargs:
-  #       max_new_tokens: 2048
-  #   type: IOAgent

@@ -1,13 +1,12 @@
 import argparse
-from datetime import datetime
 from pathlib import Path
 
 import yaml
 
-from config import CONFIG_DIR, OUTPUTS_DIR
+from config import CONFIG_DIR
 from src.evolution.replicator_dynamics import DiscreteReplicatorDynamics
 from src.plot import plot_probability_evolution
-from src.registry import GAME_REGISTRY, MECHANISM_REGISTRY
+from src.registry import GAME_REGISTRY, MECHANISM_REGISTRY, create_agent
 
 
 def load_config(filename: str) -> dict:
@@ -44,8 +43,10 @@ def main():
         **config["mechanism"].get("kwargs", {})
     )
 
+    agents = [create_agent(agent_cfg) for agent_cfg in config["agents"]]
+
     replicator_dynamics = DiscreteReplicatorDynamics(
-        agent_cfgs=config["agents"],
+        agents=agents,
         mechanism=mechanism,
     )
 
@@ -57,7 +58,7 @@ def main():
 
     plot_probability_evolution(
         trajectory=population_history,
-        labels=[agent['llm']['model'] for agent in config['agents']],
+        labels=[str(agent) for agent in agents],
     )
 
 if __name__ == "__main__":

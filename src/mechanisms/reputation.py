@@ -27,7 +27,9 @@ class Reputation(Mechanism, ABC):
             final_score[move.name] += move.points
 
         logger.info(
-            "======== Reputation Info ========\n%s\n\nMoves:\n%s",
+            "%s Reputation Info %s\n%s\n\nMoves:\n%s\n",
+            "=" * 10,
+            "=" * 10,
             reputation_information.strip(),
             "\n\n".join(
                 f"\t{move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
@@ -36,16 +38,6 @@ class Reputation(Mechanism, ABC):
             ),
         )
 
-        print(
-            "\n" + "=" * 30 +
-            f"Reputation Info:\n{reputation_information.strip()}\n\n"
-            f"Moves:\n" +
-            "\n".join(
-                f"  {move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
-                + move.response.replace("\n", "\n\t\t")
-                for move in players_moves
-            )
-        )
         return final_score
 
     @abstractmethod
@@ -104,20 +96,28 @@ class ReputationPrisonersDilemma(Reputation):
             if betray_entry is not None:
                 betray_count, opp_coop_count = betray_entry
                 betray_pct = betray_count / opp_coop_count * 100
+
+                coop_tok = PrisonersDilemma.Action.COOPERATE.token
+                defect_tok = PrisonersDilemma.Action.DEFECT.token
                 parts.append(
-                    f"When opponent cooperated, betrayed in "
-                    f"{betray_count}/{opp_coop_count} rounds ({betray_pct:.2f}%)"
+                    f"Of the times opponent played {coop_tok}, they replied with "
+                    f"{defect_tok} in {betray_count}/{opp_coop_count} "
+                    f"rounds ({betray_pct:.2f}%)."
                 )
 
             lines.append(f"{name}: " + "; ".join(parts))
-        return "\n\tReputation:\n\t\t" + "\n\t\t".join(lines) + "\n\tNote: Your chosen action will affect your reputation score."
+        lines = [f"\n\t{line}" for line in lines]
+        return (
+            "\nReputation:"
+            + "".join(lines)
+            + "\n\tNote: Your chosen action will affect your reputation score."
+        )
 
     def _update_reputation(self, players_moves: list[Game.Move]) -> None:
         for i, move in enumerate(players_moves):
             name = move.name
             opp = players_moves[1 - i]
 
-            # 1) Update cooperation counts
             coop_count, total_count = type(self).cooperation_rate[name]
             total_count += 1
             if move.action == PrisonersDilemma.Action.COOPERATE.value:

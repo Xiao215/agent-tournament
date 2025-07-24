@@ -9,7 +9,7 @@ game:
 
 evolution:
   initial_population: uniform
-  steps: 5
+  steps: 20
 
 mechanism:
   type: ReputationPrisonersDilemma
@@ -25,4 +25,10 @@ agents:
       model: gemma-2-9b-it
       kwargs:
         max_new_tokens: 1024
+    type: CoTAgent
+
+  - llm:
+      model: DeepSeek-R1-Distill-Llama-8B
+      kwargs:
+        max_new_tokens: 2048
     type: IOAgent

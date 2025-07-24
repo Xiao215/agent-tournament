@@ -2,11 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import torch
-from langchain_huggingface.chat_models import ChatHuggingFace
-from langchain_huggingface.llms import HuggingFacePipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import logging as hf_logging
-from transformers import pipeline
 
 from config import MODEL_WEIGHTS_DIR
 
@@ -30,27 +27,39 @@ class LLMInstance():
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.model.config.pad_token_id = self.tokenizer.eos_token_id
 
+    def invoke(self, prompt: str, **kwargs: Any) -> str:
+        """Invoke the model with the given messages."""
+
+        messages = [
+            {"role": "user", "content": prompt},
+        ]
+        prompt_ids = self.tokenizer.apply_chat_template(
+            messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
+        ).to(self.model.device)
+        prompt_len = prompt_ids.shape[1]
+        out_ids = self.model.generate(
+            input_ids=prompt_ids,
+            # cache_implementation="offloaded_static",
+            **kwargs,
+        )
+        gen_id = out_ids[:, prompt_len:]
+        response = self.tokenizer.batch_decode(
+            gen_id,
+            skip_special_tokens=True,
+        )[0]
+        return response.strip()
+
+
 class LLMManager():
     """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
     def __init__(self) -> None:
         self.llms = dict()
 
-    def get_pipeline(self, model_name: str, **kwargs: Any) -> ChatHuggingFace:
+    def get_llm(self, model_name: str) -> LLMInstance:
         """Get an LLM instance for the given model name."""
         if model_name not in self.llms:
             self.llms[model_name] = LLMInstance(model_name)
-
-        llm = self.llms[model_name]
-        pipe = pipeline(
-            "text-generation",
-            model=llm.model,
-            tokenizer=llm.tokenizer,
-            return_full_text=False,        # only returns new tokens
-            **kwargs
-        )
-        hf_pipe = HuggingFacePipeline(pipeline=pipe)
-        chat_pipe = ChatHuggingFace(llm=hf_pipe, model_id=str(llm.model_path))
-        return chat_pipe
+        return self.llms[model_name]
 
 
 class Agent(ABC):
@@ -61,8 +70,8 @@ class Agent(ABC):
 
     def __init__(self, llm_config: dict) -> None:
         self.name = llm_config['model']
-        kwargs = llm_config.get('kwargs', {})
-        self.chat_pipe = type(self).llm_manager.get_pipeline(self.name, **kwargs)
+        self.kwargs = llm_config.get("kwargs", {})
+        self.pipeline = type(self).llm_manager.get_llm(self.name)
 
     @abstractmethod
     def chat(self,
@@ -73,8 +82,8 @@ class Agent(ABC):
 
     def invoke(self, messages: str) -> str:
         """Invoke the agent using the provided messages. No prompting added."""
-        response = str(self.chat_pipe.invoke(messages).content)
-        return response.strip()
+        response = self.pipeline.invoke(messages, **self.kwargs)
+        return response
 
     def __str__(self):
         return f"{self.name}"
@@ -83,18 +92,21 @@ class IOAgent(Agent):
     """Input/Output Agent.
     This agent is designed to be the most basic llm agent. Given a message, answer it.
     """
+    def __init__(self, llm_config: dict) -> None:
+        """Initialize the IOAgent with the given LLM configuration."""
+        super().__init__(llm_config)
 
     def chat(self,
         messages: str,
     ) -> str:
         """Chat with the agent using the provided messages."""
         messages += (
-            "\nPlease ONLY provide the action you want to take, for example: <Action1>.\n"
+            "\nPlease ONLY provide the action you want to take, for example: <A1>.\n"
             "DO NOT provide any additional text or explanation.\n"
             "Action:"
         )
-        response = str(self.chat_pipe.invoke(messages).content)
-        return response.strip()
+        response = self.pipeline.invoke(messages, **self.kwargs)
+        return response
 
     def __str__(self):
         return f"{self.name}(IO)"
@@ -118,11 +130,11 @@ class CoTAgent(Agent):
         Your thought.
 
         Action:
-        Your action wrapped in angles brackets.
+        Your action wrapped in angles brackets, for example: <A1>.
         """
 
-        response = str(self.chat_pipe.invoke(messages).content)
-        return response.strip()
+        response = self.pipeline.invoke(messages, **self.kwargs)
+        return response
 
     def __str__(self):
         return f"{self.name}(CoT)"

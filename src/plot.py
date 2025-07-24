@@ -10,18 +10,24 @@ from config import FIGURE_DIR
 
 def save_figure(fig, filename: str) -> Path:
     """
-    Save a Matplotlib figure under FIGURE_DIR/yyyy/mm/dd/<filename>.
+    Save a Matplotlib figure under FIGURE_DIR/yyyy/mm/dd/<hh_mm_filename>.
     """
     # Build date‐based subfolder
     now = datetime.now()
-    date_path = Path(FIGURE_DIR) / now.strftime("%Y") / now.strftime("%m") / now.strftime("%d")
+    date_path = (
+        Path(FIGURE_DIR) / now.strftime("%Y") / now.strftime("%m") / now.strftime("%d")
+    )
     date_path.mkdir(parents=True, exist_ok=True)
 
+    # Prepend hour and minute to filename
+    time_prefix = now.strftime("%H_%M")
+    new_filename = f"{time_prefix}_{filename}"
+
     # Full filepath
-    filepath = date_path / filename
+    filepath = date_path / new_filename
 
     # Save with tight layout
-    fig.savefig(filepath, bbox_inches='tight')
+    fig.savefig(filepath, bbox_inches="tight")
     return filepath
 
 def plot_probability_evolution(
@@ -105,7 +111,6 @@ def plot_probability_evolution(
 
     saved_path = save_figure(fig, "population_evolution.png")
     print(f"Population evolution plot saved to {saved_path}")
-
 
 
 def plot_share_progression(pop_payoff, dynamics_results):

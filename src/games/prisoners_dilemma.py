@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Sequence
+import sys
 
 from src.agent import Agent
 from src.games.base import Game
@@ -115,31 +116,42 @@ class PrisonersDilemma(Game):
             ),
         ]
 
-    def _parse_action(self, agent: Agent, response: str) -> Enum:
+    def _parse_action(self, agent: Agent, response: str, max_retries: int = 5) -> Enum:
         """
-        Extract the choice action made by the LLM.
+        Extract the chosen action from the LLM's response, retrying up to max_retries
+        with a clarifying prompt if parsing fails.
         """
         def pick_action(text: str) -> Enum:
+            # Find all actions whose token appears at least once
             matches = [action for action in self.Action if action.token in text]
-            if len(matches) == 1:
-                return matches[0]
             if not matches:
-                raise ValueError(f"No action token found in {text!r}")
-            raise ValueError(f"Multiple action tokens {matches!r} in {text!r}")
+                raise ValueError(f"[{agent}] No action token found in {text!r}")
+
+            rightmost = max(matches, key=lambda act: text.rfind(act.token))
+            return rightmost
 
         try:
-            # first regex match
             return pick_action(response)
         except ValueError:
-            # build a clarifying prompt
-            clarification = (
-                "According to the original response below, what is the action chosen?\n"
-                "Please ONLY reply with **exactly one** of the following actions, wrapped in angle brackets:\n"
-                f"{', '.join(self.action_tokens)}\n"
-                + "\nDo not include any other text."
-            )
-            clarified = agent.invoke(clarification + "\n\nOriginal response:\n" + response)
-            return pick_action(clarified)
+            pass
+
+        clarification = (
+            "Based on the action chosen in the original response below, output exactly one action token wrapped in angle brackets:\n"
+            f"{', '.join(self.action_tokens)}\n\n"
+            "Do NOT include explanations, `<think>` tags, or whitespace inside the brackets.\n"
+            "Example valid response: `<A2>`\n\n"
+            "Original response:\n"
+            f"{response}"
+        )
+        for i in range(max_retries):
+            response = agent.invoke(clarification + "\n\n")
+            try:
+                return pick_action(response)
+            except ValueError:
+                print(f"[{agent}] Retry {i+1} failed: {response!r}", file=sys.stderr)
+                # feed back the new bad response for the next retry
+                clarification = "The response still wasn't one of the exact tokens. Please output only `<A1>`, `<A2>`, etc., with no spaces."
+        raise ValueError(f"All retries failed to parse action from {agent}")
 
     @classmethod
     def _parse_payoff_matrix(

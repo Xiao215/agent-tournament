@@ -15,7 +15,7 @@ os.makedirs(log_dir, exist_ok=True)
 
 logger = setup_logger(
     name="tournament_logger",
-    log_file=str(log_dir / f"tournament_{now.hour:02}_{now.minute:02}.log"),
+    log_file=str(log_dir / f"{now.hour:02}_{now.minute:02}_tournament.log"),
 )
 
 
