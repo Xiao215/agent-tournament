@@ -28,6 +28,10 @@ class Mechanism(ABC):
         """Run the mechanism over the base game."""
         raise NotImplementedError
 
+    def post_tournament(self) -> None:
+        """Most mechanisms do not need to implement this, but Reputation needs it to update reputation scores."""
+        pass
+
 
 class NoMechanism(Mechanism):
     """A mechanism that does nothing."""

@@ -56,10 +56,6 @@ class ReputationPrisonersDilemma(Reputation):
     Reputation mechanism for the Prisoner's Dilemma game.
     This mechanism tracks the cooperation and betrayal rates of players.
     """
-    # A global static variable to store cooperation and betrayal rates
-    # Mapping player names to tuples of (event occur count, total event count)
-    cooperation_rate: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
-    betrayal_rate: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
 
     def __init__(
         self,
@@ -72,15 +68,21 @@ class ReputationPrisonersDilemma(Reputation):
                 f"but got {self.base_game.__class__.__name__}."
             )
 
+        # Mapping player names to tuples of (event occur count, total event count)
+        self.coop_rate: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
+        self.betray_rate: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
+
+        self.coop_rate_live: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
+        self.betray_rate_live: defaultdict[str, list[int]] = defaultdict(lambda: [0, 0])
+
     def _parse_reputation(self, agents: Sequence[Agent]) -> str:
         """Parse the reputation information of the given agents into a string."""
         lines = []
         for agent in agents:
             name = str(agent)
 
-            # Look up coop history
-            coop_entry = type(self).cooperation_rate.get(name)
-            betray_entry = type(self).betrayal_rate.get(name)
+            coop_entry = self.coop_rate.get(name)
+            betray_entry = self.betray_rate.get(name)
 
             if coop_entry is None and betray_entry is None:
                 lines.append(f"{name}: no reputation yet")
@@ -118,18 +120,23 @@ class ReputationPrisonersDilemma(Reputation):
             name = move.name
             opp = players_moves[1 - i]
 
-            coop_count, total_count = type(self).cooperation_rate[name]
+            coop_count, total_count = self.coop_rate_live[name]
             total_count += 1
             if move.action == PrisonersDilemma.Action.COOPERATE.value:
                 coop_count += 1
-            type(self).cooperation_rate[name] = [coop_count, total_count]
+            self.coop_rate_live[name] = [coop_count, total_count]
 
             if opp.action == PrisonersDilemma.Action.COOPERATE.value:
-                betray_count, opp_coop_count = type(self).betrayal_rate[name]
+                betray_count, opp_coop_count = self.betray_rate_live[name]
                 opp_coop_count += 1
                 if move.action == PrisonersDilemma.Action.DEFECT.value:
                     betray_count += 1
-                type(self).betrayal_rate[name] = [betray_count, opp_coop_count]
+                self.betray_rate_live[name] = [betray_count, opp_coop_count]
+
+    def post_tournament(self, history) -> None:
+        """Update the global reputation rates based on the live rates."""
+        self.coop_rate = self.coop_rate_live.copy()
+        self.betray_rate = self.betray_rate_live.copy()
 
 
 class ReputationPublicGoods(Reputation):

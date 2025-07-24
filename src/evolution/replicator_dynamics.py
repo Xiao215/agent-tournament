@@ -169,13 +169,6 @@ class DiscreteReplicatorDynamics:
             weighted_mean_payoff = np.dot(population, expected_payoffs)
             payoff_history.append(weighted_mean_payoff)
 
-            # if self.mechanism.logger:
-            #     self.mechanism.logger.info(
-            #         f"Population: {population}, "
-            #         f"Expected Payoffs: {expected_payoffs}, "
-            #         f"Weighted Mean Payoff: {weighted_mean_payoff}"
-            #     )
-
             if np.max(np.abs(expected_payoffs - weighted_mean_payoff)) < tol:
                 print("Converged: approximate equilibrium reached")
                 status = "converged: approximate equilibrium reached"
@@ -193,10 +186,9 @@ class DiscreteReplicatorDynamics:
                 for i, agent in enumerate(self.agents)
             )
 
-            # log it lazily
             logger.info("\n\tPopulation distribution at step %d: %s", step, pop_str)
-            print(self.population_payoffs._table)
             self.population_payoffs.reset()
+            self.mechanism.post_tournament()
 
         status = "steps limit reached"
         print("Steps limit reached")

@@ -92,9 +92,6 @@ class IOAgent(Agent):
     """Input/Output Agent.
     This agent is designed to be the most basic llm agent. Given a message, answer it.
     """
-    def __init__(self, llm_config: dict) -> None:
-        """Initialize the IOAgent with the given LLM configuration."""
-        super().__init__(llm_config)
 
     def chat(self,
         messages: str,

@@ -1,0 +1,599 @@
++---------------------------------------+
+| Mechanism: ReputationPrisonersDilemma |
+| Base game: PrisonersDilemma           |
+| Agents:                               |
+| 	Qwen2.5-7B-Instruct(CoT)             |
+| 	Mistral-7B-Instruct-v0.3(CoT)        |
+| 	Llama-3.2-3B-Instruct(CoT)           |
+| 	Llama-3.2-11B-Vision-Instruct(IO)    |
+| 	gemma-2-9b-it(IO)                    |
+| 	DeepSeek-R1-Distill-Llama-8B(CoT)    |
+| 	DeepSeek-R1-Distill-Llama-8B(IO)     |
++---------------------------------------+
+
+========== Evolution Step 1/50 ==========
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 5.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 5.00
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+
+	Population distribution at step 1: Qwen2.5-7B-Instruct(CoT): 0.1436, Mistral-7B-Instruct-v0.3(CoT): 0.1422, Llama-3.2-3B-Instruct(CoT): 0.1419, Llama-3.2-11B-Vision-Instruct(IO): 0.1425, gemma-2-9b-it(IO): 0.1436, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1425, DeepSeek-R1-Distill-Llama-8B(IO): 0.1436
+========== Evolution Step 2/50 ==========
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 5.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 0.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		Llama-3.2-11B-Vision-Instruct(IO): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+
+	Population distribution at step 2: Qwen2.5-7B-Instruct(CoT): 0.1442, Mistral-7B-Instruct-v0.3(CoT): 0.1415, Llama-3.2-3B-Instruct(CoT): 0.1415, Llama-3.2-11B-Vision-Instruct(IO): 0.1433, gemma-2-9b-it(IO): 0.1445, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1418, DeepSeek-R1-Distill-Llama-8B(IO): 0.1433
+========== Evolution Step 3/50 ==========
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+
+	Population distribution at step 3: Qwen2.5-7B-Instruct(CoT): 0.1439, Mistral-7B-Instruct-v0.3(CoT): 0.1407, Llama-3.2-3B-Instruct(CoT): 0.1413, Llama-3.2-11B-Vision-Instruct(IO): 0.1430, gemma-2-9b-it(IO): 0.1454, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1415, DeepSeek-R1-Distill-Llama-8B(IO): 0.1442
+========== Evolution Step 4/50 ==========
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 0.00
+		Llama-3.2-11B-Vision-Instruct(IO): 5.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 5.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+
+	Population distribution at step 4: Qwen2.5-7B-Instruct(CoT): 0.1433, Mistral-7B-Instruct-v0.3(CoT): 0.1400, Llama-3.2-3B-Instruct(CoT): 0.1406, Llama-3.2-11B-Vision-Instruct(IO): 0.1438, gemma-2-9b-it(IO): 0.1451, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1423, DeepSeek-R1-Distill-Llama-8B(IO): 0.1450
+========== Evolution Step 5/50 ==========
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 5.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 0.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 5.00
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+
+	Population distribution at step 5: Qwen2.5-7B-Instruct(CoT): 0.1452, Mistral-7B-Instruct-v0.3(CoT): 0.1390, Llama-3.2-3B-Instruct(CoT): 0.1402, Llama-3.2-11B-Vision-Instruct(IO): 0.1434, gemma-2-9b-it(IO): 0.1459, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1416, DeepSeek-R1-Distill-Llama-8B(IO): 0.1446
+========== Evolution Step 6/50 ==========
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 0.00
+		Llama-3.2-11B-Vision-Instruct(IO): 5.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 0.00
+		Llama-3.2-3B-Instruct(CoT): 5.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 5.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+
+	Population distribution at step 6: Qwen2.5-7B-Instruct(CoT): 0.1434, Mistral-7B-Instruct-v0.3(CoT): 0.1376, Llama-3.2-3B-Instruct(CoT): 0.1399, Llama-3.2-11B-Vision-Instruct(IO): 0.1437, gemma-2-9b-it(IO): 0.1486, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1419, DeepSeek-R1-Distill-Llama-8B(IO): 0.1449
+========== Evolution Step 7/50 ==========
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 5.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+
+	Population distribution at step 7: Qwen2.5-7B-Instruct(CoT): 0.1430, Mistral-7B-Instruct-v0.3(CoT): 0.1374, Llama-3.2-3B-Instruct(CoT): 0.1397, Llama-3.2-11B-Vision-Instruct(IO): 0.1436, gemma-2-9b-it(IO): 0.1486, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1417, DeepSeek-R1-Distill-Llama-8B(IO): 0.1460
+========== Evolution Step 8/50 ==========
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 0.00
+		Llama-3.2-11B-Vision-Instruct(IO): 5.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-3B-Instruct(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+
+	Population distribution at step 8: Qwen2.5-7B-Instruct(CoT): 0.1428, Mistral-7B-Instruct-v0.3(CoT): 0.1371, Llama-3.2-3B-Instruct(CoT): 0.1389, Llama-3.2-11B-Vision-Instruct(IO): 0.1445, gemma-2-9b-it(IO): 0.1484, DeepSeek-R1-Distill-Llama-8B(CoT): 0.1426, DeepSeek-R1-Distill-Llama-8B(IO): 0.1458
+========== Evolution Step 9/50 ==========
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs gemma-2-9b-it(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs gemma-2-9b-it(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		Llama-3.2-3B-Instruct(CoT): 5.00
+	DeepSeek-R1-Distill-Llama-8B(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Mistral-7B-Instruct-v0.3(CoT):
+		Qwen2.5-7B-Instruct(CoT): 5.00
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+	Qwen2.5-7B-Instruct(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+	Llama-3.2-11B-Vision-Instruct(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(CoT):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		DeepSeek-R1-Distill-Llama-8B(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs Llama-3.2-3B-Instruct(CoT):
+		Qwen2.5-7B-Instruct(CoT): 1.00
+		Llama-3.2-3B-Instruct(CoT): 1.00
+	Qwen2.5-7B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Qwen2.5-7B-Instruct(CoT): 0.00
+		gemma-2-9b-it(IO): 5.00
+	Mistral-7B-Instruct-v0.3(CoT) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 0.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 5.00
+	gemma-2-9b-it(IO) vs DeepSeek-R1-Distill-Llama-8B(IO):
+		gemma-2-9b-it(IO): 1.00
+		DeepSeek-R1-Distill-Llama-8B(IO): 1.00
+	Llama-3.2-3B-Instruct(CoT) vs gemma-2-9b-it(IO):
+		Llama-3.2-3B-Instruct(CoT): 1.00
+		gemma-2-9b-it(IO): 1.00
+	Mistral-7B-Instruct-v0.3(CoT) vs Llama-3.2-11B-Vision-Instruct(IO):
+		Mistral-7B-Instruct-v0.3(CoT): 1.00
+		Llama-3.2-11B-Vision-Instruct(IO): 1.00

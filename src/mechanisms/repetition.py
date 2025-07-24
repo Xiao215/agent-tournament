@@ -30,7 +30,7 @@ class Repetition(Mechanism):
         for i, (players_moves) in enumerate(self.history):
             history_str = f"  Round {i + 1}: "
             for move in players_moves:
-                history_str += f"{move.name}: {move.action}, "
+                history_str += f"{move.name}: {move.action.token}, "
             history_str = history_str[:-2]
             history_str += "\n"
 
