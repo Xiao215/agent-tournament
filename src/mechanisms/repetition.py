@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from src.agent import Agent
 from src.games.base import Game
-from src.mechanisms.base import Mechanism
+from src.mechanisms.base import Mechanism, logger
 
 
 class Repetition(Mechanism):
@@ -46,28 +46,29 @@ class Repetition(Mechanism):
         Returns:
             final_score (dict[str, float]): A dictionary mapping player names to their final scores after all rounds.
         """
-        # if self.logger:
-        #     self.logger.info(
-        #         f"{'='*5} Repetition ({self.num_rounds}) @ {self.base_game.__class__.__name__} {'='*5}"
-        #     )
-
         final_score = defaultdict(float)
         for _ in tqdm(
             range(self.num_rounds),
             desc=f"Running Repetition Mechanism for {self.base_game.__class__.__name__}"
         ):
+            repetition_information = self._parse_history()
             players_moves = self.base_game.play(
-                additional_info=self._parse_history(),
-                agents=agents
+                additional_info=repetition_information, agents=agents
             )
             self.history.append(players_moves)
             for move in players_moves:
                 final_score[move.name] = final_score[move.name] + move.points
 
-        # if self.logger:
-        #     self.logger.info(
-        #         f"{'='*5} Final Score {'='*5}\n"
-        #         + "\n".join(f"{name}: {score}" for name, score in final_score.items())
-        #     )
+            logger.info(
+                "%s Repetition Info %s\n%s\n\nMoves:\n%s\n",
+                "=" * 10,
+                "=" * 10,
+                repetition_information.strip(),
+                "\n\n".join(
+                    f"\t{move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
+                    + move.response.replace("\n", "\n\t\t")
+                    for move in players_moves
+                ),
+            )
 
         return final_score
