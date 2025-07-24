@@ -27,6 +27,9 @@ class LLMInstance():
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.model.config.pad_token_id = self.tokenizer.eos_token_id
 
+        # Gemma models have some issue with cache in long generation, temporarily disable it
+        self.use_cache = False if "gemma" in model_name else True
+
     def invoke(self, prompt: str, **kwargs: Any) -> str:
         """Invoke the model with the given messages."""
 
@@ -39,7 +42,7 @@ class LLMInstance():
         prompt_len = prompt_ids.shape[1]
         out_ids = self.model.generate(
             input_ids=prompt_ids,
-            # cache_implementation="offloaded_static",
+            use_cache=self.use_cache,
             **kwargs,
         )
         gen_id = out_ids[:, prompt_len:]
@@ -69,9 +72,9 @@ class Agent(ABC):
     llm_manager = LLMManager()
 
     def __init__(self, llm_config: dict) -> None:
-        self.name = llm_config['model']
+        self.model_type = llm_config["model"]
         self.kwargs = llm_config.get("kwargs", {})
-        self.pipeline = type(self).llm_manager.get_llm(self.name)
+        self.pipeline = type(self).llm_manager.get_llm(self.model_type)
 
     @abstractmethod
     def chat(self,
@@ -86,7 +89,14 @@ class Agent(ABC):
         return response
 
     def __str__(self):
-        return f"{self.name}"
+        return self.name
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Return the name of the agent."""
+        raise NotImplementedError
+
 
 class IOAgent(Agent):
     """Input/Output Agent.
@@ -105,8 +115,11 @@ class IOAgent(Agent):
         response = self.pipeline.invoke(messages, **self.kwargs)
         return response
 
-    def __str__(self):
-        return f"{self.name}(IO)"
+    @property
+    def name(self) -> str:
+        """Return the name of the agent."""
+        return f"{self.model_type}(IO)"
+
 
 class CoTAgent(Agent):
     """Chain-of-Thought Agent.
@@ -133,5 +146,7 @@ class CoTAgent(Agent):
         response = self.pipeline.invoke(messages, **self.kwargs)
         return response
 
-    def __str__(self):
-        return f"{self.name}(CoT)"
+    @property
+    def name(self) -> str:
+        """Return the name of the agent."""
+        return f"{self.model_type}(CoT)"

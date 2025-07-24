@@ -9,10 +9,10 @@ import numpy as np
 from tqdm import tqdm
 
 from config import OUTPUTS_DIR
+from src.agent import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
 from src.logging_config import setup_logger
 from src.mechanisms.base import Mechanism
-from src.agent import Agent
 
 now = datetime.now()
 log_dir = OUTPUTS_DIR / f"{now.year}" / f"{now.month:02}" / f"{now.day:02}"
@@ -160,7 +160,7 @@ class DiscreteReplicatorDynamics:
                 ]
                 payoff_block = "\n".join(payoff_lines)
                 logger.info(
-                    "\t%s:\n%s",
+                    "\t-> %s:\n%s",
                     match_label,
                     payoff_block,
                 )

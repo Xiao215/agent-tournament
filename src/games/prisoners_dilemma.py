@@ -1,6 +1,6 @@
+import sys
 from enum import Enum
 from typing import Sequence
-import sys
 
 from src.agent import Agent
 from src.games.base import Game

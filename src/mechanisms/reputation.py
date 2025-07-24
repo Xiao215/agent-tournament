@@ -133,7 +133,7 @@ class ReputationPrisonersDilemma(Reputation):
                     betray_count += 1
                 self.betray_rate_live[name] = [betray_count, opp_coop_count]
 
-    def post_tournament(self, history) -> None:
+    def post_tournament(self) -> None:
         """Update the global reputation rates based on the live rates."""
         self.coop_rate = self.coop_rate_live.copy()
         self.betray_rate = self.betray_rate_live.copy()
