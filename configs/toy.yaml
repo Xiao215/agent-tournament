@@ -9,7 +9,7 @@ game:
 
 evolution:
   initial_population: uniform
-  steps: 20
+  steps: 3
 
 mechanism:
   type: ReputationPrisonersDilemma

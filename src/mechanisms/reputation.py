@@ -4,7 +4,7 @@ from typing import Sequence
 
 from src.agent import Agent
 from src.games.base import Game
-from src.games.prisoners_dilemma import PrisonersDilemma
+from src.games.prisoners_dilemma import PrisonersDilemma, PrisonersDilemmaAction
 from src.mechanisms.base import Mechanism, logger
 
 
@@ -78,14 +78,15 @@ class ReputationPrisonersDilemma(Reputation):
     def _parse_reputation(self, agents: Sequence[Agent]) -> str:
         """Parse the reputation information of the given agents into a string."""
         lines = []
-        for agent in agents:
-            name = str(agent)
+        coop_tok = PrisonersDilemmaAction.COOPERATE.to_token()
+        defect_tok = PrisonersDilemmaAction.DEFECT.to_token()
 
-            coop_entry = self.coop_rate.get(name)
-            betray_entry = self.betray_rate.get(name)
+        for agent in agents:
+            coop_entry = self.coop_rate.get(agent.name)
+            betray_entry = self.betray_rate.get(agent.name)
 
             if coop_entry is None and betray_entry is None:
-                lines.append(f"{name}: no reputation yet")
+                lines.append(f"{agent.name}: no reputation yet")
                 continue
 
             parts = []
@@ -93,21 +94,21 @@ class ReputationPrisonersDilemma(Reputation):
             if coop_entry is not None:
                 coop_count, total_count = coop_entry
                 coop_pct = coop_count / total_count * 100
-                parts.append(f"Cooperated in {coop_count}/{total_count} rounds ({coop_pct:.2f}%)")
+                parts.append(
+                    f"They played {coop_tok} in {coop_count}/{total_count} rounds ({coop_pct:.2f}%)"
+                )
 
             if betray_entry is not None:
                 betray_count, opp_coop_count = betray_entry
                 betray_pct = betray_count / opp_coop_count * 100
 
-                coop_tok = PrisonersDilemma.Action.COOPERATE.token
-                defect_tok = PrisonersDilemma.Action.DEFECT.token
                 parts.append(
                     f"Of the times opponent played {coop_tok}, they replied with "
                     f"{defect_tok} in {betray_count}/{opp_coop_count} "
                     f"rounds ({betray_pct:.2f}%)."
                 )
 
-            lines.append(f"{name}: " + "; ".join(parts))
+            lines.append(f"{agent.name}: " + "; ".join(parts))
         lines = [f"\n\t{line}" for line in lines]
         return (
             "\nReputation:"
@@ -122,14 +123,14 @@ class ReputationPrisonersDilemma(Reputation):
 
             coop_count, total_count = self.coop_rate_live[name]
             total_count += 1
-            if move.action == PrisonersDilemma.Action.COOPERATE.value:
+            if move.action == PrisonersDilemmaAction.COOPERATE:
                 coop_count += 1
             self.coop_rate_live[name] = [coop_count, total_count]
 
-            if opp.action == PrisonersDilemma.Action.COOPERATE.value:
+            if opp.action == PrisonersDilemmaAction.COOPERATE:
                 betray_count, opp_coop_count = self.betray_rate_live[name]
                 opp_coop_count += 1
-                if move.action == PrisonersDilemma.Action.DEFECT.value:
+                if move.action == PrisonersDilemmaAction.DEFECT:
                     betray_count += 1
                 self.betray_rate_live[name] = [betray_count, opp_coop_count]
 

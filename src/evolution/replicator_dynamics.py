@@ -45,7 +45,7 @@ class DiscreteReplicatorDynamics:
         self.population_payoffs = (
             population_payoffs
             if population_payoffs is not None
-            else PopulationPayoffs(agent_types=[str(agent) for agent in self.agents])
+            else PopulationPayoffs(agent_types=[agent.name for agent in self.agents])
         )
 
         # Log the initial pipeline setup information
@@ -145,8 +145,7 @@ class DiscreteReplicatorDynamics:
             )
 
             for agents in inner_tqdm_bar:
-                names = [str(agent) for agent in agents]
-                match_label = " vs ".join(names)
+                match_label = " vs ".join(agent.name for agent in agents)
                 inner_tqdm_bar.set_postfix(match=match_label)
 
                 tournament_payoffs = self.mechanism.run(
@@ -182,7 +181,7 @@ class DiscreteReplicatorDynamics:
             )
             population_history.append(population.copy())
             pop_str = ", ".join(
-                f"{str(agent)}: {population[i]:.4f}"
+                f"{agent.name}: {population[i]:.4f}"
                 for i, agent in enumerate(self.agents)
             )
 

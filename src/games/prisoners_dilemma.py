@@ -6,46 +6,33 @@ from src.agent import Agent
 from src.games.base import Game
 
 
+class PrisonersDilemmaAction(Enum):
+    """Possible actions in the Prisoner's Dilemma"""
+
+    COOPERATE = "C"
+    DEFECT = "D"
+
+    def to_token(self) -> str:
+        # list(Action) is ordered by definition
+        idx = list(type(self)).index(self)
+        return f"<A{idx}>"
+
+    @classmethod
+    def from_token(cls, token: str) -> Enum:
+        """Parse an action from a token like "<A1>" or "<A2>"."""
+        try:
+            idx = int(token.strip("<>").lstrip("A"))
+            action = list(cls)[idx]
+        except Exception as exp:
+            raise ValueError(f"Unknown action token {token!r}") from exp
+        return action
+
+
 class PrisonersDilemma(Game):
     """
     Prisoner's Dilemma environment that allows for one rounds of interaction
     between two LLM agents.
     """
-
-    class Action(Enum):
-        """Possible actions in the Prisoner's Dilemma"""
-        COOPERATE = "A1"
-        DEFECT = "A2"
-
-        def __str__(self) -> str:
-            return self.value
-
-        @property
-        def token(self) -> str:
-            """The exact string we expect the model to emit."""
-            return f"<{self.value}>"
-
-        @classmethod
-        def from_token(cls, token: str) -> Enum:
-            """Convert '<A1>' → Action.COOPERATE, '<A2>' → Action.DEFECT."""
-            alias = token.strip("<>")
-            try:
-                return cls(alias)
-            except ValueError as e:
-                raise ValueError(f"Unknown action token {token!r}") from e
-
-        @property
-        def symbol(self) -> str:
-            """The single character symbol for the action, e.g. "C" for COOPERATE, "D" for DEFECT."""
-            return self.name[0]
-
-        @classmethod
-        def from_symbol(cls, sym: str) -> Enum:
-            """Convert 'C' → Action.COOPERATE, 'D' → Action.DEFECT."""
-            for member in cls:
-                if member.symbol == sym:
-                    return member
-            raise KeyError(f"Unknown symbol {sym!r}")
 
     def __init__(
         self,
@@ -53,7 +40,7 @@ class PrisonersDilemma(Game):
     ) -> None:
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
 
-        self.action_tokens = [act.token for act in self.Action]
+        self.action_tokens = [act.to_token() for act in PrisonersDilemmaAction]
         actions_block = "\n\t".join(
             [f"\t• {act_tok}" for act_tok in self.action_tokens]
         )
@@ -88,7 +75,7 @@ class PrisonersDilemma(Game):
         lines = []
         for (a, b), (pts_a, pts_b) in self.payoff_matrix.items():
             lines.append(
-                f"  • If you choose {a} and opponent chooses {b}: "
+                f"  • If you choose {a.to_token()} and opponent chooses {b.to_token()}: "
                 f"you get {pts_a} points, opponent gets {pts_b} points."
             )
         return "\n".join(lines)
@@ -97,37 +84,34 @@ class PrisonersDilemma(Game):
         assert len(agents) == 2
         agent1, agent2 = agents
 
-        resp1, act1 = self._chat_and_parse(agent1, additional_info)
-        resp2, act2 = self._chat_and_parse(agent2, additional_info)
+        resp1 = self._prompt_agent(agent1, additional_info)
+        resp2 = self._prompt_agent(agent2, additional_info)
+
+        act1 = self._parse_action(agent1, resp1)
+        act2 = self._parse_action(agent2, resp2)
 
         pts1, pts2 = self.payoff_matrix[(act1, act2)]
         return [
-            Game.Move(
-                name=str(agent1),
-                action=str(act1),
-                points=pts1,
-                response=resp1
-            ),
-            Game.Move(
-                name=str(agent2),
-                action=str(act2),
-                points=pts2,
-                response=resp2
-            ),
+            Game.Move(name=agent1.name, action=act1, points=pts1, response=resp1),
+            Game.Move(name=agent2.name, action=act2, points=pts2, response=resp2),
         ]
 
-    def _parse_action(self, agent: Agent, response: str, max_retries: int = 5) -> Enum:
+    def _parse_action(
+        self, agent: Agent, response: str, max_retries: int = 5
+    ) -> PrisonersDilemmaAction:
         """
         Extract the chosen action from the LLM's response, retrying up to max_retries
         with a clarifying prompt if parsing fails.
         """
-        def pick_action(text: str) -> Enum:
+        def pick_action(text: str) -> PrisonersDilemmaAction:
             # Find all actions whose token appears at least once
-            matches = [action for action in self.Action if action.token in text]
+            matches = [
+                action for action in PrisonersDilemmaAction if action.to_token() in text
+            ]
             if not matches:
                 raise ValueError(f"[{agent}] No action token found in {text!r}")
 
-            rightmost = max(matches, key=lambda act: text.rfind(act.token))
+            rightmost = max(matches, key=lambda act: text.rfind(act.to_token()))
             return rightmost
 
         try:
@@ -157,15 +141,15 @@ class PrisonersDilemma(Game):
     def _parse_payoff_matrix(
         cls,
         raw_payoff: dict[str, list[float]],
-    ) -> dict[tuple[Enum, Enum], tuple[float, float]]:
+    ) -> dict[
+        tuple[PrisonersDilemmaAction, PrisonersDilemmaAction], tuple[float, float]
+    ]:
         """
         Convert a raw payoff matrix with string keys into typed action pairs.
         """
         payoffs = {}
-        for sym_pair, (p1, p2) in raw_payoff.items():
-            # e.g. "C","D"
-            a_sym, b_sym = sym_pair
-            a = cls.Action.from_symbol(a_sym)
-            b = cls.Action.from_symbol(b_sym)
-            payoffs[(a, b)] = (p1, p2)
+        for key, (p1, p2) in raw_payoff.items():
+            a1 = PrisonersDilemmaAction(key[0])
+            a2 = PrisonersDilemmaAction(key[1])
+            payoffs[(a1, a2)] = (p1, p2)
         return payoffs

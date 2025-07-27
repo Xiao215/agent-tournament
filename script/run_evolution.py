@@ -58,7 +58,7 @@ def main():
 
     plot_probability_evolution(
         trajectory=population_history,
-        labels=[str(agent) for agent in agents],
+        labels=[agent.name for agent in agents],
     )
 
 if __name__ == "__main__":

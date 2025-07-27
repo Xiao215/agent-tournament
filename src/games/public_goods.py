@@ -62,16 +62,13 @@ class PublicGoods(Game):
         for agent in agents:
             resp = agent.chat(
                 self.prompt.format(
-                    agent_name=str(agent),
+                    agent_name=agent.name,
                     additional_info=additional_info,
                 )
             )
             c = self._parse_action(resp)
-            names.append(str(agent))
+            names.append(agent.name)
             contributions.append(c)
-
-            # if self.debugger:
-            #     self.debugger.info(f"{str(agent)} responded '{resp}', parsed contribution = {c}")
 
         payoffs = self._calculate_payoff(contributions)
 
