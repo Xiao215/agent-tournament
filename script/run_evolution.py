@@ -1,5 +1,8 @@
 import argparse
 from pathlib import Path
+import json
+import os
+from datetime import datetime
 
 import yaml
 
@@ -7,6 +10,17 @@ from config import CONFIG_DIR
 from src.evolution.replicator_dynamics import DiscreteReplicatorDynamics
 from src.plot import plot_probability_evolution
 from src.registry import GAME_REGISTRY, MECHANISM_REGISTRY, create_agent
+from config import OUTPUTS_DIR
+
+now = datetime.now()
+log_dir = OUTPUTS_DIR / f"{now.year}" / f"{now.month:02}" / f"{now.day:02}"
+os.makedirs(log_dir, exist_ok=True)
+
+
+def record_config(config: dict) -> None:
+    out_path = log_dir / f"{now.hour:02}{now.minute:02}_config.json"
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2)
 
 
 def load_config(filename: str) -> dict:
@@ -31,6 +45,9 @@ def main():
     args = parser.parse_args()
 
     config = load_config(filename=args.config)
+
+    # Record the configuration as JSON
+    record_config(config)
 
     game_class = GAME_REGISTRY[config["game"]["type"]]
     mechanism_class = MECHANISM_REGISTRY[config["mechanism"]["type"]]

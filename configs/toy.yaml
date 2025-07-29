@@ -28,7 +28,7 @@ agents:
     type: CoTAgent
 
   - llm:
-      model: DeepSeek-R1-Distill-Llama-8B
+      model: Qwen2.5-7B-Instruct
       kwargs:
         max_new_tokens: 2048
     type: IOAgent

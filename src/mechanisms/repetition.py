@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from src.agent import Agent
 from src.games.base import Game
-from src.mechanisms.base import Mechanism, logger
+from src.mechanisms.base import Mechanism
 
 
 class Repetition(Mechanism):
@@ -59,16 +59,5 @@ class Repetition(Mechanism):
             for move in players_moves:
                 final_score[move.name] = final_score[move.name] + move.points
 
-            logger.info(
-                "%s Repetition Info %s\n%s\n\nMoves:\n%s\n",
-                "=" * 10,
-                "=" * 10,
-                repetition_information.strip(),
-                "\n\n".join(
-                    f"\t{move.name} → Action: {move.action}, Points: {move.points}\n\t\t"
-                    + move.response.replace("\n", "\n\t\t")
-                    for move in players_moves
-                ),
-            )
 
         return final_score
