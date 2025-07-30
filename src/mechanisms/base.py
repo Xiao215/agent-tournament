@@ -1,44 +1,36 @@
-from collections import defaultdict
-from logging import Logger
-
+import os
 from abc import ABC, abstractmethod
-from src.games.base import Game
-from src.utils import register_classes
+from collections import defaultdict
+from typing import Any, Sequence
 
-mechanism_registry: dict[str, type] = {}
-register_mechanism = register_classes(mechanism_registry)
+from src.agent import Agent
+from src.games.base import Game
+
 
 class Mechanism(ABC):
-    def __init__(self, base_game: Game, logger: Logger | None):
+    def __init__(self, base_game: Game):
         self.base_game = base_game
-        self.logger = logger
 
     @abstractmethod
-    def run(self) -> dict[str, float]:
+    def run(self, agents: Sequence[Agent]) -> Any:
+        # TODO change this immediately once experiment could run and more consideration is taken to the function design
         """Run the mechanism over the base game."""
         raise NotImplementedError
 
-@register_mechanism
+    def post_tournament(self, match_records: list[list[dict]]) -> None:
+        """Most mechanisms do not need to implement this, but Reputation needs it to update reputation scores."""
+        pass
+
+
 class NoMechanism(Mechanism):
     """A mechanism that does nothing."""
-    def __init__(self, base_game: Game, logger: Logger | None = None):
-        super().__init__(base_game, logger)
 
-    def run(self):
+    def run(self, agents: Sequence[Agent]) -> dict[str, float]:
         """Run the base game without any modifications."""
-        if self.logger:
-            self.logger.info(
-                f"{'='*5} NoMechanism @ {self.base_game.__class__.__name__} {'='*5}"
-            )
 
         final_score = defaultdict(float)
-        players_moves = self.base_game.play(additional_info="None.")
+        players_moves = self.base_game.play(additional_info="None.", agents=agents)
         for move in players_moves:
             final_score[move.name] = final_score[move.name] + move.points
 
-        if self.logger:
-            self.logger.info(
-                f"{'='*5} Final Score {'='*5}\n"
-                + "\n".join(f"{name}: {score}" for name, score in final_score.items())
-            )
         return final_score

@@ -20,10 +20,6 @@ env/
 .idea/
 .vscode/
 
-# Logs
-logs/
-*.log
-
 # Hugging Face cache (optional)
 ~/.cache/huggingface/
 huggingface_cache/
@@ -36,7 +32,6 @@ slurm-*.out
 # Datasets or large experiment files
 data/
 outputs/
-results/
 checkpoints/
 *.pt
 *.bin
