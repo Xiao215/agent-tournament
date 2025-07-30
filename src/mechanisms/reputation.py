@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Sequence
-from enum import Enum
 from collections import defaultdict
+from dataclasses import dataclass
+from enum import Enum
 from itertools import permutations
+from typing import Sequence
 
 from src.agent import Agent
 from src.games.base import Game
-from src.games.prisoners_dilemma import PrisonersDilemma, PrisonersDilemmaAction
+from src.games.prisoners_dilemma import (PrisonersDilemma,
+                                         PrisonersDilemmaAction)
 from src.mechanisms.base import Mechanism
 
 

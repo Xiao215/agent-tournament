@@ -1,8 +1,35 @@
 import re
+from enum import Enum
 from typing import Sequence
 
 from src.agent import Agent
 from src.games.base import Game
+
+
+class PublicGoodsAction(Enum):
+    """Possible actions in the Public Goods game"""
+
+    CONTRIBUTE = "C"
+    FREE_RIDE = "F"
+
+    def to_token(self) -> str:
+        """Convert the action to a token for LLM parsing."""
+        if self == PublicGoodsAction.CONTRIBUTE:
+            return "<Invest>"
+        elif self == PublicGoodsAction.FREE_RIDE:
+            return "<Keep>"
+        else:
+            raise ValueError(f"Unknown action {self!r}")
+
+    @classmethod
+    def from_token(cls, token: str) -> Enum:
+        """Parse an action from a token"""
+        if token == "<Invest>":
+            return cls.CONTRIBUTE
+        elif token == "<Keep>":
+            return cls.FREE_RIDE
+        else:
+            raise ValueError(f"Unknown action token {token!r}")
 
 
 class PublicGoods(Game):
@@ -15,8 +42,8 @@ class PublicGoods(Game):
     def __init__(
         self,
         num_players: int,
-        endowment: float,
         multiplier: float,
+        endowment: float = 1,
     ):
 
         assert num_players > 1, "Public Goods must have at least 2 players."
@@ -26,21 +53,20 @@ class PublicGoods(Game):
         self.multiplier = multiplier
 
         prompt = f"""
-        You are an expert called '{{agent_name}}' playing Public Goods game with {self.num_players} players.
+        You are a player named {{agent_name}} who plays in a simultaneous contribution game with {self.num_players} players.
+        Your objective is to maximise your cumulative score in the game described below.
 
-        Each player starts with an endowment of {self.endowment}.
-        Choose a contribution from [0, {endowment}].
-        Wrap it in <>, e.g. <0>.
-        After all decisions, total contributions are multiplied by {self.multiplier}
-        and split equally among all players.
+        Rules:
+        1. You and your opponent each start with **{self.endowment} dollars**.
+        2. You both decide simultaneously whether to invest all of your starting money or none of it.
+        3. The total invested by both players is multiplied by {self.multiplier} and then split equally between you.
+        4. Any dollars you do not invest remain yours.
 
-        This means, while collectively contributing maximizes the group payoff,
-        individually free-riding can yield a higher personal payoff for you.
+        Actions (choose exactly one per round):
+        • {PublicGoodsAction.CONTRIBUTE.to_token()} - Put all your starting money into the joint fund
+        • {PublicGoodsAction.FREE_RIDE.to_token()} - Invest nothing and keep all your starting money
+        IMPORTANT: Your final printed action must be wrapped by <>, for example: <A1>.
 
-        IMPORTANT: Your final printed action must be wrapped in <>,
-        for example: <0> or <{self.endowment}>.
-
-        Additional information:
         {{additional_info}}
         """
 
@@ -55,72 +81,79 @@ class PublicGoods(Game):
             len(agents) == self.num_players
         ), f"Expected {self.num_players} agents, got {len(agents)}."
 
-        contributions: list[float] = []
-        names: list[str] = []
+        actions = {}
 
-        # TODO: Might not have enough GPU to run 2+ agents in parallel. Need to come up with a better way to handle this.
         for agent in agents:
-            resp = agent.chat(
-                self.prompt.format(
-                    agent_name=agent.name,
-                    additional_info=additional_info,
+            resp = self._prompt_agent(agent, additional_info)
+            act = self._parse_action(agent, resp)
+            actions[agent.name] = act
+
+        share = self._calculate_share(actions)
+
+        moves = []
+        for name, action in actions.items():
+            moves.append(
+                Game.Move(
+                    name=name,
+                    action=action,
+                    points=(
+                        share
+                        if action == PublicGoodsAction.CONTRIBUTE
+                        else self.endowment + share
+                    ),
+                    response=action.to_token(),
                 )
             )
-            c = self._parse_action(resp)
-            names.append(agent.name)
-            contributions.append(c)
-
-        payoffs = self._calculate_payoff(contributions)
-
-        moves: list[Game.Move] = []
-        for name, contrib, payoff in zip(names, contributions, payoffs):
-            moves.append(Game.Move(
-                name=name,
-                action=str(contrib),
-                points=payoff,
-            ))
         return moves
 
-    def _calculate_payoff(self, contributions: list[float]) -> list[float]:
+    def _calculate_share(self, actions: dict[str, float]) -> float:
         """
         Calculate the payoff for each agent based on their contributions.
         """
-        total_contribution = sum(contributions)
-        public_pool = total_contribution * self.multiplier
-        share = public_pool / self.num_players
 
-        # self.debugger.info(
-        #     f"Each player's share: {share}"
-        # )
+        contribution_count = sum(
+            1 for v in actions.values() if v == PublicGoodsAction.CONTRIBUTE
+        )
 
-        payoffs = []
-        for contribution in contributions:
-            payoff = (self.endowment - contribution) + share
-            payoffs.append(payoff)
+        return contribution_count * self.endowment * self.multiplier / self.num_players
 
-        return payoffs
-
-    def _parse_action(self, response: str) -> float:
+    def _parse_action(
+        self, agent: Agent, response: str, max_retries: int = 5
+    ) -> PublicGoodsAction:
         """
         Extracts the agent's chosen numeric contribution from a response like '<4.5>'.
         Ensures it's a number in [0, endowment].
         """
 
-        # Regex: match '<number>' or '<number.number>'
-        m = re.fullmatch(r"<\s*([0-9]+(?:\.[0-9]+)?)\s*>", response.strip())
-        if not m:
-            raise ValueError(
-                f"Invalid format '{response}'. "
-                f"Expected a single number wrapped in <>, e.g. <3> or <2.5>."
-            )
+        def pick_action(text: str) -> PublicGoodsAction:
+            # Find all actions whose token appears at least once
+            matches = [
+                action for action in PublicGoodsAction if action.to_token() in text
+            ]
+            if not matches:
+                raise ValueError(f"[{agent}] No action token found in {text!r}")
 
-        value = float(m.group(1))
+            rightmost = max(matches, key=lambda act: text.rfind(act.to_token()))
+            return rightmost
 
-        if not 0.0 <= value <= self.endowment:
-            raise ValueError(
-                f"Contribution {value} out of bounds. "
-                f"Must be between 0 and {self.endowment}."
-                f"Above error comes from response: {response}"
-            )
+        try:
+            return pick_action(response)
+        except ValueError:
+            pass
 
-        return value
+        action_tokens = [action.to_token() for action in PublicGoodsAction]
+        clarification = (
+            "Based on the action chosen in the original response below, output exactly one action token wrapped in angle brackets:\n"
+            f"{', '.join(action_tokens)}\n\n"
+            "Do NOT include explanations, `<think>` tags, or whitespace inside the brackets.\n"
+            "Example valid response: `<A1>`\n\n"
+            "Original response:\n"
+            f"{response}"
+        )
+        for i in range(max_retries):
+            response = agent.invoke(clarification + "\n\n")
+            try:
+                return pick_action(response)
+            except ValueError:
+                print(f"[{agent}] Retry {i+1} failed: {response!r}")
+        raise ValueError(f"All retries failed to parse action from {agent}")

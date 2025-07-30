@@ -13,7 +13,7 @@ class PrisonersDilemmaAction(Enum):
     DEFECT = "D"
 
     def to_token(self) -> str:
-        # list(Action) is ordered by definition
+        """Convert the action to a token (eg, <A1>) for LLM parsing."""
         idx = list(type(self)).index(self)
         return f"<A{idx}>"
 
@@ -61,14 +61,12 @@ class PrisonersDilemma(Game):
         Payoff matrix:
         {self._payoff_description()}
 
-        Additional information:
-        Note, any of the following information related to {{agent_name}} is refering to yourself.
         {{additional_info}}
         """
 
         super().__init__(
             prompt=prompt,
-            num_players=2
+            num_players=2,
         )
 
     def _payoff_description(self) -> str:
@@ -123,7 +121,7 @@ class PrisonersDilemma(Game):
             "Based on the action chosen in the original response below, output exactly one action token wrapped in angle brackets:\n"
             f"{', '.join(self.action_tokens)}\n\n"
             "Do NOT include explanations, `<think>` tags, or whitespace inside the brackets.\n"
-            "Example valid response: `<A2>`\n\n"
+            "Example valid response: `<A1>`\n\n"
             "Original response:\n"
             f"{response}"
         )
@@ -132,9 +130,7 @@ class PrisonersDilemma(Game):
             try:
                 return pick_action(response)
             except ValueError:
-                print(f"[{agent}] Retry {i+1} failed: {response!r}", file=sys.stderr)
-                # feed back the new bad response for the next retry
-                clarification = "The response still wasn't one of the exact tokens. Please output only `<A1>`, `<A2>`, etc., with no spaces."
+                print(f"[{agent}] Retry {i+1} failed: {response!r}")
         raise ValueError(f"All retries failed to parse action from {agent}")
 
     @classmethod

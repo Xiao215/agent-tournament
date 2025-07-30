@@ -1,16 +1,15 @@
 import argparse
-from pathlib import Path
 import json
 import os
 from datetime import datetime
+from pathlib import Path
 
 import yaml
 
-from config import CONFIG_DIR
+from config import CONFIG_DIR, OUTPUTS_DIR
 from src.evolution.replicator_dynamics import DiscreteReplicatorDynamics
 from src.plot import plot_probability_evolution
 from src.registry import GAME_REGISTRY, MECHANISM_REGISTRY, create_agent
-from config import OUTPUTS_DIR
 
 now = datetime.now()
 log_dir = OUTPUTS_DIR / f"{now.year}" / f"{now.month:02}" / f"{now.day:02}"
@@ -68,9 +67,9 @@ def main():
     )
 
     # TODO: currently initial_population can only be a string, rather than a dynamic population
-    population_history, _, _ = replicator_dynamics.run_dynamics(
+    population_history = replicator_dynamics.run_dynamics(
         initial_population=config["evolution"]["initial_population"],
-        steps=config["evolution"]["steps"]
+        steps=config["evolution"]["steps"],
     )
 
     plot_probability_evolution(

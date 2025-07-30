@@ -5,80 +5,61 @@ import numpy as np
 
 class PopulationPayoffs:
     """
-    Stores payoffs compactly by aggregating over *unordered* strategy
-    profiles (multisets).  A key like ('A','A','B') represents every
-    seating permutation of two A-players and one B-player.
+    Simplified: each profile is a set of distinct types.
+    _table[key] = (totals, calls)
+      - totals: sum of payoffs per type over all observations of this profile
+      - calls:  number of times this exact profile was added
     """
 
-    def __init__(self, agent_types: list[str]) -> None:
-        self.agent_types = list(agent_types)
-        self.k = len(agent_types)
-        # key -> ( totals[k] , counts[k] )  both float/ints
-        self._table: dict[tuple[str, ...], tuple[np.ndarray, np.ndarray]] = {}
+    def __init__(self, agent_names: Sequence[str]) -> None:
+        self.agent_names = list(agent_names)
+        self.k = len(self.agent_names)
+        # index mapping name to index in the population vector
+        self._idx = {t: i for i, t in enumerate(self.agent_names)}
+
+        # mapping agent names to the payoff vector as well as the number of calls
+        # Note, in most cases, if the same agent match up do not repeat again until reset,
+        # The value of count is 1.
+        self._table: dict[tuple[str, ...], tuple[np.ndarray, int]] = {}
 
     def reset(self) -> None:
+        """Reset the internal state of the payoffs table."""
         self._table.clear()
 
-    def _normalize(self, names: list[str]) -> tuple[str, ...]:
-        return tuple(sorted(names))
-
-    def add_profile_payoffs(
+    def add_profile(
         self,
-        scores: dict[str, float],
+        agent_names: Sequence[str],
+        payoffs: Sequence[float],
     ) -> None:
-        names = list(scores.keys())
-        payoffs = scores.values()
+        """Add a profile of agent names and their corresponding payoffs."""
+        if len(agent_names) != len(payoffs):
+            raise ValueError("agent_names and payoffs must align")
 
-        idx_of = {n: i for i, n in enumerate(self.agent_types)}
+        # sort so e.g. ("B","A") and ("A","B") map to the same key
+        key = tuple(sorted(agent_names))
 
-        key = self._normalize(names)
+        vec = np.zeros(self.k, float)
+        for t, p in zip(agent_names, payoffs):
+            vec[self._idx[t]] = p
 
-        totals = np.zeros(self.k, float)
-        counts = np.zeros(self.k, int)
-
-        for name, p in zip(names, payoffs):
-            try:
-                i = idx_of[name]
-            except KeyError:
-                raise KeyError(f"Unknown agent type: {name}")
-            totals[i] += p
-            counts[i] += 1
-
-        # accumulate into storage
         if key in self._table:
-            old_tot, old_cnt = self._table[key]
-            totals += old_tot
-            counts += old_cnt
+            # accumulate payoff if same profile is added again
+            totals, calls = self._table[key]
+            self._table[key] = (totals + vec, calls + 1)
+        else:
+            self._table[key] = (vec.copy(), 1)
 
-        self._table[key] = (totals, counts)
-
-    def expected_payoffs(self, population: Sequence[float] | np.ndarray) -> np.ndarray:
+    def fitness(self, population: np.ndarray) -> np.ndarray:
         """
-        Expected fitness f_i(x) under random matching of n players
-        (n = len(key)) and a population state x.
+        Weighted average of payoffs for the given population vector.
+        If one match up have multiple profiles, the average is taken.
         """
-        x = np.asarray(population, float)
-        if x.shape != (self.k,):
-            raise ValueError("population vector has wrong length")
+        fitness = np.zeros(self.k, float)
+        for key, (totals, calls) in self._table.items():
+            avg_profile = totals / calls
+            prob = 1.0
+            for t in key:
+                prob *= population[self._idx[t]]
+            fitness += prob * avg_profile
 
-        expected = np.zeros(self.k)
-
-        for key, (totals, counts) in self._table.items():
-            # probability mass of *this* multiset being drawn
-            #   Pr(key) =  n! / (m1! m2! …) ·  Π_j x_j^m_j
-            # We can ignore the multinomial front-factor because it
-            # cancels when we divide by m_i below (see derivation).
-            #
-            # m_j = multiplicity of type j in the multiset
-            m = np.zeros(self.k, int)
-            for name in key:
-                m[self.agent_types.index(name)] += 1
-            prob_multiset = np.prod(np.where(m, x**m, 1.0))
-
-            # convert aggregated totals into *per-individual* payoff
-            with np.errstate(divide="ignore", invalid="ignore"):
-                per_capita = np.where(m, totals / m, 0.0)
-
-            expected += prob_multiset * per_capita
-
-        return expected
+        return fitness

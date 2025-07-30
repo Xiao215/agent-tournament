@@ -1,12 +1,10 @@
 import itertools
+import json
 import math
 import os
 import random
 from datetime import datetime
 from typing import Literal
-import json
-from dataclasses import asdict
-
 
 import numpy as np
 from tqdm import tqdm
@@ -20,13 +18,18 @@ now = datetime.now()
 log_dir = OUTPUTS_DIR / f"{now.year}" / f"{now.month:02}" / f"{now.day:02}"
 os.makedirs(log_dir, exist_ok=True)
 
-evolution_record = open(log_dir / f"{now.hour:02}{now.minute:02}_evolution.jsonl", "a")
+evolution_json = open(
+    log_dir / f"{now.hour:02}{now.minute:02}_evolution.jsonl",
+    mode="a",
+    encoding="utf-8",
+)
 
 
-def log_evolution_record(record: dict):
-    json.dump(record, evolution_record)
-    evolution_record.write("\n")
-    evolution_record.flush()
+def log_evolution_record(record: dict) -> None:
+    """Log the evolution record to a JSON file."""
+    json.dump(record, evolution_json)
+    evolution_json.write("\n")
+    evolution_json.flush()
 
 
 class DiscreteReplicatorDynamics:
@@ -50,15 +53,15 @@ class DiscreteReplicatorDynamics:
         self.population_payoffs = (
             population_payoffs
             if population_payoffs is not None
-            else PopulationPayoffs(agent_types=[agent.name for agent in self.agents])
+            else PopulationPayoffs(agent_names=[agent.name for agent in self.agents])
         )
 
     def population_update(
         self,
         current_pop: np.ndarray,
-        expected_payoffs: np.ndarray,
-        weighted_mean_payoff: float,
-        lr: float
+        fitness: np.ndarray,
+        ave_population_fitness: float,
+        lr: float,
     ) -> np.ndarray:
         """
         Args:
@@ -70,9 +73,8 @@ class DiscreteReplicatorDynamics:
         Returns:
             numpy array, next step's probability distribution over agent types
         """
-        weights = current_pop * np.exp(lr * (expected_payoffs - weighted_mean_payoff))
+        weights = current_pop * np.exp(lr * (fitness - ave_population_fitness))
         next_pop = weights / np.sum(weights)
-
         return next_pop
 
     def run_dynamics(
@@ -83,7 +85,7 @@ class DiscreteReplicatorDynamics:
         *,
         lr_method: Literal["constant", "sqrt"] = "constant",
         lr_nu: float = 0.1,
-    ):
+    ) -> tuple[list[np.ndarray], list[float]]:
         """
         Run the multiplicative weights dynamics for a specified number of steps.
         """
@@ -97,24 +99,21 @@ class DiscreteReplicatorDynamics:
 
         # Initialize population distribution
         if isinstance(initial_population, np.ndarray):
-            assert len(initial_population) == len(self.population_payoffs.agent_types), "Initial population distribution must match number of agent types"
+            assert len(initial_population) == len(
+                self.agents
+            ), "Initial population distribution must match number of agent types"
             assert np.all(initial_population >= 0), "Initial population distribution must be non-negative"
             population = initial_population
         elif initial_population == "random":
-            population = np.random.exponential(
-                scale=1.0, size=len(self.population_payoffs.agent_types)
-            )
+            population = np.random.exponential(scale=1.0, size=len(self.agents))
         elif initial_population == "uniform":
-            population = np.ones(len(self.population_payoffs.agent_types))
+            population = np.ones(len(self.agents))
         else:
             raise ValueError("initial_population must be a numpy array or 'uniform'")
 
         # Normalize to ensure it is a probability distribution
         population /= population.sum()
-
-        # Run the dynamics
         population_history = [population.copy()]
-        payoff_history = []
 
         n = len(self.agents)
         k = self.mechanism.base_game.num_players
@@ -138,39 +137,41 @@ class DiscreteReplicatorDynamics:
                 match_record = self.mechanism.run(
                     agents=agents,
                 )
-                tournament_payoffs = {r["name"]: r["points"] for r in match_record}
-                self.population_payoffs.add_profile_payoffs(tournament_payoffs)
-                match_records.append(match_record)
 
+                self.population_payoffs.add_profile(
+                    agent_names=[r["name"] for r in match_record],
+                    payoffs=[r["points"] for r in match_record],
+                )
+                match_records.append(match_record)
             inner_tqdm_bar.close()
+
+            fitness = self.population_payoffs.fitness(population)
+            # average population fitness is the society's average performance
+            ave_population_fitness = np.dot(population, fitness)
+
             evolution_record = {
                 "step": step,
                 "population": population.tolist(),
+                "fitness": fitness.tolist(),
+                "average_population_fitness": ave_population_fitness,
                 "match_records": match_records,
             }
             log_evolution_record(evolution_record)
 
-            expected_payoffs = self.population_payoffs.expected_payoffs(population)
-            weighted_mean_payoff = np.dot(population, expected_payoffs)
-            payoff_history.append(weighted_mean_payoff)
-
-            if np.max(np.abs(expected_payoffs - weighted_mean_payoff)) < tol:
+            if np.max(np.abs(fitness - ave_population_fitness)) < tol:
                 print("Converged: approximate equilibrium reached")
-                status = "converged: approximate equilibrium reached"
-                return population_history, payoff_history, status
+                return population_history
 
             population = self.population_update(
                 current_pop=population,
-                expected_payoffs=expected_payoffs,
-                weighted_mean_payoff=weighted_mean_payoff,
-                lr=lr_fct(len(population_history) + 1)
+                fitness=fitness,
+                ave_population_fitness=ave_population_fitness,
+                lr=lr_fct(len(population_history) + 1),
             )
             population_history.append(population.copy())
 
             self.population_payoffs.reset()
             self.mechanism.post_tournament(match_records)
 
-        status = "steps limit reached"
         print("Steps limit reached")
-        # TODO: improve this return statements
-        return population_history, payoff_history, status
+        return population_history

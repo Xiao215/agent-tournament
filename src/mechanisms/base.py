@@ -1,7 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Sequence, Any
+from typing import Any, Sequence
 
 from src.agent import Agent
 from src.games.base import Game

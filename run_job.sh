@@ -2,7 +2,7 @@
 #SBATCH --job-name=LLM_evolution_tournament
 #SBATCH --account=aip-rgrosse
 #SBATCH --gres=gpu:h100:2
-#SBATCH --time=6:00:00
+#SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=60G
 #SBATCH --chdir=/project/aip-rgrosse/xiao215/agent-tournament
