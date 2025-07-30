@@ -32,7 +32,6 @@ slurm-*.out
 # Datasets or large experiment files
 data/
 outputs/
-results/
 checkpoints/
 *.pt
 *.bin
