@@ -85,7 +85,7 @@ class DiscreteReplicatorDynamics:
         *,
         lr_method: Literal["constant", "sqrt"] = "constant",
         lr_nu: float = 0.1,
-    ) -> tuple[list[np.ndarray], list[float]]:
+    ) -> list[np.ndarray]:
         """
         Run the multiplicative weights dynamics for a specified number of steps.
         """
@@ -151,8 +151,14 @@ class DiscreteReplicatorDynamics:
 
             evolution_record = {
                 "step": step,
-                "population": population.tolist(),
-                "fitness": fitness.tolist(),
+                "stats": [
+                    {
+                        "name": agent.name,
+                        "fitness": fitness[i],
+                        "population_fraction": population[i],
+                    }
+                    for i, agent in enumerate(self.agents)
+                ],
                 "average_population_fitness": ave_population_fitness,
                 "match_records": match_records,
             }
