@@ -11,6 +11,11 @@ from config import MODEL_WEIGHTS_DIR
 hf_logging.set_verbosity_error()
 torch.set_float32_matmul_precision("high")
 
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
 class LLMInstance():
     """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
     def __init__(self, model_name: str):

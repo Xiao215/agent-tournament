@@ -24,6 +24,7 @@ evolution_json = open(
     encoding="utf-8",
 )
 
+random.seed(42)
 
 def log_evolution_record(record: dict) -> None:
     """Log the evolution record to a JSON file."""
