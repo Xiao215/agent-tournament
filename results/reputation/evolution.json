@@ -5,42 +5,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.234375,
-        "population_fraction": 0.125
+        "population": 0.125
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.171875,
-        "population_fraction": 0.125
+        "population": 0.125
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.265625,
-        "population_fraction": 0.125
+        "population": 0.125
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.171875,
-        "population_fraction": 0.125
+        "population": 0.125
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.15625,
-        "population_fraction": 0.125
+        "population": 0.125
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.15625,
-        "population_fraction": 0.125
+        "population": 0.125
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.15625,
-        "population_fraction": 0.125
+        "population": 0.125
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.046875,
-        "population_fraction": 0.125
+        "population": 0.125
       }
     ],
     "average_population_fitness": 0.169921875,
@@ -501,42 +501,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17279475290459198,
-        "population_fraction": 0.12580598592969158
+        "population": 0.12580598592969158
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.17250266628436028,
-        "population_fraction": 0.12502215055472354
+        "population": 0.12502215055472354
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.07891383663137902,
-        "population_fraction": 0.1261997445631451
+        "population": 0.1261997445631451
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.2342406882959066,
-        "population_fraction": 0.12502215055472354
+        "population": 0.12502215055472354
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.09383291507299732,
-        "population_fraction": 0.12482695597995579
+        "population": 0.12482695597995579
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.07805728361769826,
-        "population_fraction": 0.12482695597995579
+        "population": 0.12482695597995579
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.2019112379170933,
-        "population_fraction": 0.12482695597995579
+        "population": 0.12482695597995579
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.21678837335007559,
-        "population_fraction": 0.1234691004578488
+        "population": 0.1234691004578488
       }
     ],
     "average_population_fitness": 0.15597661011142366,
@@ -1165,42 +1165,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.14174015395127568,
-        "population_fraction": 0.12601551364381827
+        "population": 0.12601551364381827
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.17227291651017396,
-        "population_fraction": 0.12522671504624777
+        "population": 0.12522671504624777
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.1560037349209319,
-        "population_fraction": 0.12522873334582427
+        "population": 0.12522873334582427
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17332810682928596,
-        "population_fraction": 0.12600223149453496
+        "population": 0.12600223149453496
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.15535180355882236,
-        "population_fraction": 0.12405144266134048
+        "population": 0.12405144266134048
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.1241931525891536,
-        "population_fraction": 0.12385589795985974
+        "population": 0.12385589795985974
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.1254081794325131,
-        "population_fraction": 0.1253994411977827
+        "population": 0.1253994411977827
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.23263942762421425,
-        "population_fraction": 0.12422002465059193
+        "population": 0.12422002465059193
       }
     ],
     "average_population_fitness": 0.16008876893526516,
@@ -1829,42 +1829,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.2350358756477964,
-        "population_fraction": 0.12578384210036664
+        "population": 0.12578384210036664
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.29729248314985235,
-        "population_fraction": 0.12537872571832456
+        "population": 0.12537872571832456
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10896444011842966,
-        "population_fraction": 0.1251769280975345
+        "population": 0.1251769280975345
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.1102500066384796,
-        "population_fraction": 0.12616849602859795
+        "population": 0.12616849602859795
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.07777001216336835,
-        "population_fraction": 0.12399204074704576
+        "population": 0.12399204074704576
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.23100914521256916,
-        "population_fraction": 0.12341145653210624
+        "population": 0.12341145653210624
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.06262244551382382,
-        "population_fraction": 0.12496464357507307
+        "population": 0.12496464357507307
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.23377899772043348,
-        "population_fraction": 0.12512386720095126
+        "population": 0.12512386720095126
       }
     ],
     "average_population_fitness": 0.16961674103253754,
@@ -2493,42 +2493,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17279199038696913,
-        "population_fraction": 0.12660500959707843
+        "population": 0.12660500959707843
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.2367267256090581,
-        "population_fraction": 0.12698536042223232
+        "population": 0.12698536042223232
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.06260283835679946,
-        "population_fraction": 0.1244156781017689
+        "population": 0.1244156781017689
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.1096878294159714,
-        "population_fraction": 0.1254173381160994
+        "population": 0.1254173381160994
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.21410104938900462,
-        "population_fraction": 0.12285416162237453
+        "population": 0.12285416162237453
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.09298224439711583,
-        "population_fraction": 0.12416712731894397
+        "population": 0.12416712731894397
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.13898443128726903,
-        "population_fraction": 0.12363042692250063
+        "population": 0.12363042692250063
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17273594423612915,
-        "population_fraction": 0.12592489789900185
+        "population": 0.12592489789900185
       }
     ],
     "average_population_fitness": 0.1502656941692851,
@@ -3157,42 +3157,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.22037458115126038,
-        "population_fraction": 0.126888518145334
+        "population": 0.126888518145334
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.2381181983599891,
-        "population_fraction": 0.12808602300837835
+        "population": 0.12808602300837835
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.12234519010523255,
-        "population_fraction": 0.12332783054749552
+        "population": 0.12332783054749552
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.10930559897178814,
-        "population_fraction": 0.12490747670979649
+        "population": 0.12490747670979649
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1694246118562151,
-        "population_fraction": 0.12363895828101672
+        "population": 0.12363895828101672
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.10691183321119362,
-        "population_fraction": 0.12345593569029889
+        "population": 0.12345593569029889
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.20132195504690129,
-        "population_fraction": 0.12348908149404537
+        "population": 0.12348908149404537
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17260178348483668,
-        "population_fraction": 0.12620617612363466
+        "population": 0.12620617612363466
       }
     ],
     "average_population_fitness": 0.16799512782604067,
@@ -3821,42 +3821,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.23652445927061327,
-        "population_fraction": 0.12755345179199068
+        "population": 0.12755345179199068
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.23958159010380792,
-        "population_fraction": 0.12898589664795918
+        "population": 0.12898589664795918
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10691729593765611,
-        "population_fraction": 0.12276473191773618
+        "population": 0.12276473191773618
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.23127414367905957,
-        "population_fraction": 0.1241751407033792
+        "population": 0.1241751407033792
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1387102863083684,
-        "population_fraction": 0.12365523252364995
+        "population": 0.12365523252364995
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.19745293382910395,
-        "population_fraction": 0.12270273443298314
+        "population": 0.12270273443298314
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.06197923637983258,
-        "population_fraction": 0.12389991418290296
+        "population": 0.12389991418290296
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.11032057843869733,
-        "population_fraction": 0.12626289779939875
+        "population": 0.12626289779939875
       }
     ],
     "average_population_fitness": 0.1659052155373289,
@@ -4485,42 +4485,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.22177661276927602,
-        "population_fraction": 0.12845469321582859
+        "population": 0.12845469321582859
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.2404581000722414,
-        "population_fraction": 0.1299369765137777
+        "population": 0.1299369765137777
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.06056258036784448,
-        "population_fraction": 0.12204011625694226
+        "population": 0.12204011625694226
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.10936515461983926,
-        "population_fraction": 0.1249868730562079
+        "population": 0.1249868730562079
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1683081521629241,
-        "population_fraction": 0.12331679910708959
+        "population": 0.12331679910708959
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.1365026738881013,
-        "population_fraction": 0.12308783893004126
+        "population": 0.12308783893004126
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.09248899547755118,
-        "population_fraction": 0.12261634414871478
+        "population": 0.12261634414871478
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17431022454079279,
-        "population_fraction": 0.12556035877139782
+        "population": 0.12556035877139782
       }
     ],
     "average_population_fitness": 0.1515770768592405,
@@ -5149,42 +5149,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.14459443521890056,
-        "population_fraction": 0.12935738096001356
+        "population": 0.12935738096001356
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.11390892137104408,
-        "population_fraction": 0.1310947565716151
+        "population": 0.1310947565716151
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.16888165717699757,
-        "population_fraction": 0.12093232818704489
+        "population": 0.12093232818704489
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.2316451280467373,
-        "population_fraction": 0.12445824512947905
+        "population": 0.12445824512947905
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.2170288544150462,
-        "population_fraction": 0.12352116394626585
+        "population": 0.12352116394626585
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.046154996834305934,
-        "population_fraction": 0.12290031172684457
+        "population": 0.12290031172684457
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.1519002026289476,
-        "population_fraction": 0.12189186197645652
+        "population": 0.12189186197645652
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.171872294846845,
-        "population_fraction": 0.12584395150228056
+        "population": 0.12584395150228056
       }
     ],
     "average_population_fitness": 0.15551522535606704,
@@ -5813,42 +5813,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.11251795019455807,
-        "population_fraction": 0.12921428047261324
+        "population": 0.12921428047261324
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.1135056068970563,
-        "population_fraction": 0.1305485240211596
+        "population": 0.1305485240211596
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.0766592205344056,
-        "population_fraction": 0.12109229052129206
+        "population": 0.12109229052129206
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.10968046455381596,
-        "population_fraction": 0.12540750748822524
+        "population": 0.12540750748822524
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.22960654002961492,
-        "population_fraction": 0.12428149299107766
+        "population": 0.12428149299107766
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.19528895188182863,
-        "population_fraction": 0.12156179756885227
+        "population": 0.12156179756885227
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.10612153421751438,
-        "population_fraction": 0.1218460055034002
+        "population": 0.1218460055034002
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17159380820219897,
-        "population_fraction": 0.12604810143337966
+        "population": 0.12604810143337966
       }
     ],
     "average_population_fitness": 0.1392295881225081,
@@ -6477,42 +6477,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.14300001519054778,
-        "population_fraction": 0.1288680244406851
+        "population": 0.1288680244406851
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.17650900014271287,
-        "population_fraction": 0.1302115524075622
+        "population": 0.1302115524075622
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.13455857483163458,
-        "population_fraction": 0.12033551655135587
+        "population": 0.12033551655135587
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.29477796728405115,
-        "population_fraction": 0.1250359686707469
+        "population": 0.1250359686707469
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.29560901746894747,
-        "population_fraction": 0.12540828011785374
+        "population": 0.12540828011785374
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.04653277177003743,
-        "population_fraction": 0.12224369528538398
+        "population": 0.12224369528538398
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.1044911901214601,
-        "population_fraction": 0.12144179019837976
+        "population": 0.12144179019837976
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.23372542196227847,
-        "population_fraction": 0.12645517232803247
+        "population": 0.12645517232803247
       }
     ],
     "average_population_fitness": 0.17946720680715866,
@@ -7141,42 +7141,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.11190931499258032,
-        "population_fraction": 0.12839444970853883
+        "population": 0.12839444970853883
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.17603105457723736,
-        "population_fraction": 0.13016849178825748
+        "population": 0.13016849178825748
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10544197807504738,
-        "population_fraction": 0.11979213326792851
+        "population": 0.11979213326792851
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.23569794227679808,
-        "population_fraction": 0.12648169446596577
+        "population": 0.12648169446596577
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.15589280659028446,
-        "population_fraction": 0.12686885375680315
+        "population": 0.12686885375680315
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.08885816713964383,
-        "population_fraction": 0.12062519543050297
+        "population": 0.12062519543050297
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.10446524107332997,
-        "population_fraction": 0.1205304625089705
+        "population": 0.1205304625089705
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.23361535097605776,
-        "population_fraction": 0.12713871907303284
+        "population": 0.12713871907303284
       }
     ],
     "average_population_fitness": 0.15251410216828698,
@@ -7805,42 +7805,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.23381061719383353,
-        "population_fraction": 0.1278722254958384
+        "population": 0.1278722254958384
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.1796829956023073,
-        "population_fraction": 0.1304729909150482
+        "population": 0.1304729909150482
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.13508540815431364,
-        "population_fraction": 0.11922776407143584
+        "population": 0.11922776407143584
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.23323918352397602,
-        "population_fraction": 0.12753627270311488
+        "population": 0.12753627270311488
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.12479485943149699,
-        "population_fraction": 0.12690980252131695
+        "population": 0.12690980252131695
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.19323217738630621,
-        "population_fraction": 0.11985796638539743
+        "population": 0.11985796638539743
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.07596266471836388,
-        "population_fraction": 0.1199508982477686
+        "population": 0.1199508982477686
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.11174399765568975,
-        "population_fraction": 0.12817207966007957
+        "population": 0.12817207966007957
       }
     ],
     "average_population_fitness": 0.16162640632901576,
@@ -8469,42 +8469,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.15692491576856257,
-        "population_fraction": 0.12879670855600708
+        "population": 0.12879670855600708
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.23865448883568005,
-        "population_fraction": 0.13070687343297255
+        "population": 0.13070687343297255
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.1006627173185956,
-        "population_fraction": 0.1189099945109599
+        "population": 0.1189099945109599
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.23922401219242515,
-        "population_fraction": 0.12845098658004409
+        "population": 0.12845098658004409
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1706026211215099,
-        "population_fraction": 0.12644137646676448
+        "population": 0.12644137646676448
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.1176287973021704,
-        "population_fraction": 0.12023561979647719
+        "population": 0.12023561979647719
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.07544629581073693,
-        "population_fraction": 0.11892599562407828
+        "population": 0.11892599562407828
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.23326322014257314,
-        "population_fraction": 0.12753244503269637
+        "population": 0.12753244503269637
       }
     ],
     "average_population_fitness": 0.16853911449084685,
@@ -9133,42 +9133,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17286888752468876,
-        "population_fraction": 0.12864481176444295
+        "population": 0.12864481176444295
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.17728017967118684,
-        "population_fraction": 0.1316240979045371
+        "population": 0.1316240979045371
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.1301952289066795,
-        "population_fraction": 0.11810340914765206
+        "population": 0.11810340914765206
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.23563462524675013,
-        "population_fraction": 0.12935974768567204
+        "population": 0.12935974768567204
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.11047168928407952,
-        "population_fraction": 0.12646511445927774
+        "population": 0.12646511445927774
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.08815407393520767,
-        "population_fraction": 0.11962282347703351
+        "population": 0.11962282347703351
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.11700480474889897,
-        "population_fraction": 0.11782182233854388
+        "population": 0.11782182233854388
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17237592811438232,
-        "population_fraction": 0.12835817322284077
+        "population": 0.12835817322284077
       }
     ],
     "average_population_fitness": 0.15185879789086998,
@@ -9797,42 +9797,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.09528402500585474,
-        "population_fraction": 0.1289140870650731
+        "population": 0.1289140870650731
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.3067660029582474,
-        "population_fraction": 0.13195780696030676
+        "population": 0.13195780696030676
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.029028551449301603,
-        "population_fraction": 0.11784665019576455
+        "population": 0.11784665019576455
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17492120161031688,
-        "population_fraction": 0.13044671375872224
+        "population": 0.13044671375872224
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.15466052775012762,
-        "population_fraction": 0.12594153060285
+        "population": 0.12594153060285
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.20129837225090752,
-        "population_fraction": 0.11886199982341754
+        "population": 0.11886199982341754
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.13332403525093878,
-        "population_fraction": 0.11741070367849014
+        "population": 0.11741070367849014
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.23385962003268657,
-        "population_fraction": 0.12862050791537552
+        "population": 0.12862050791537552
       }
     ],
     "average_population_fitness": 0.16814015814219968,
@@ -10461,42 +10461,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.14378690530317317,
-        "population_fraction": 0.1279742131236701
+        "population": 0.1279742131236701
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.11589431348086512,
-        "population_fraction": 0.1337955673136453
+        "population": 0.1337955673136453
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10270901368398339,
-        "population_fraction": 0.11621492171266401
+        "population": 0.11621492171266401
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11349269505898685,
-        "population_fraction": 0.13053105009891136
+        "population": 0.13053105009891136
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.14214041306766848,
-        "population_fraction": 0.12576788174121514
+        "population": 0.12576788174121514
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.14540256970540463,
-        "population_fraction": 0.1192529875708794
+        "population": 0.1192529875708794
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.07421049762082788,
-        "population_fraction": 0.11699891601173722
+        "population": 0.11699891601173722
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.2350483181746712,
-        "population_fraction": 0.12946446242727738
+        "population": 0.12946446242727738
       }
     ],
     "average_population_fitness": 0.1349871435677757,
@@ -11125,42 +11125,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17284110391487945,
-        "population_fraction": 0.12808560178407066
+        "population": 0.12808560178407066
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.18293344203462975,
-        "population_fraction": 0.1335390279685656
+        "population": 0.1335390279685656
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.07269365150473839,
-        "population_fraction": 0.1158392531942973
+        "population": 0.1158392531942973
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.113284556967458,
-        "population_fraction": 0.13024948541950343
+        "population": 0.13024948541950343
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.21006939608485964,
-        "population_fraction": 0.12585662611060497
+        "population": 0.12585662611060497
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.12975326151635425,
-        "population_fraction": 0.1193760708918389
+        "population": 0.1193760708918389
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.059041395921427334,
-        "population_fraction": 0.11628883460640888
+        "population": 0.11628883460640888
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.2975234945223669,
-        "population_fraction": 0.13076510002471026
+        "population": 0.13076510002471026
       }
     ],
     "average_population_fitness": 0.15744284902518543,
@@ -11789,42 +11789,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.1852013753207997,
-        "population_fraction": 0.1282795572142201
+        "population": 0.1282795572142201
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.24615516232276086,
-        "population_fraction": 0.133876285643263
+        "population": 0.133876285643263
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.08563235995668672,
-        "population_fraction": 0.11485860558945965
+        "population": 0.11485860558945965
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.29390470938327223,
-        "population_fraction": 0.12967213081033557
+        "population": 0.12967213081033557
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1707546085139539,
-        "population_fraction": 0.12651733306303603
+        "population": 0.12651733306303603
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.07073238831393439,
-        "population_fraction": 0.11904280140469989
+        "population": 0.11904280140469989
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.0991025003278251,
-        "population_fraction": 0.1151470719473907
+        "population": 0.1151470719473907
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.30016579588627573,
-        "population_fraction": 0.13260621432759492
+        "population": 0.13260621432759492
       }
     ],
     "average_population_fitness": 0.18589756455505058,
@@ -12453,42 +12453,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.29533927051929665,
-        "population_fraction": 0.12826590602534807
+        "population": 0.12826590602534807
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.17779892139718143,
-        "population_fraction": 0.13468047047637535
+        "population": 0.13468047047637535
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.15509626995945872,
-        "population_fraction": 0.11370854258206879
+        "population": 0.11370854258206879
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.1801251309011864,
-        "population_fraction": 0.13107544903487303
+        "population": 0.13107544903487303
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.0632400602316081,
-        "population_fraction": 0.12632124416447
+        "population": 0.12632124416447
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.1154955341422109,
-        "population_fraction": 0.11767537596868706
+        "population": 0.11767537596868706
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.08580796365178248,
-        "population_fraction": 0.11414777571220781
+        "population": 0.11414777571220781
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17737604653578842,
-        "population_fraction": 0.13412523603596982
+        "population": 0.13412523603596982
       }
     ],
     "average_population_fitness": 0.15823869052469736,
@@ -13117,42 +13117,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.21611206455559465,
-        "population_fraction": 0.1300336004783476
+        "population": 0.1300336004783476
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.24562466875935116,
-        "population_fraction": 0.13494110648461394
+        "population": 0.13494110648461394
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.17543000130850478,
-        "population_fraction": 0.11367023861116597
+        "population": 0.11367023861116597
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.2481739944110742,
-        "population_fraction": 0.13135966199799348
+        "population": 0.13135966199799348
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.07614739357661517,
-        "population_fraction": 0.12512405441755897
+        "population": 0.12512405441755897
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.04586356384033893,
-        "population_fraction": 0.1171708107332695
+        "population": 0.1171708107332695
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.14071024497012008,
-        "population_fraction": 0.1133214124073775
+        "population": 0.1133214124073775
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17930260769611123,
-        "population_fraction": 0.13437911486967305
+        "population": 0.13437911486967305
       }
     ],
     "average_population_fitness": 0.16872966756625724,
@@ -13781,42 +13781,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.11357911181881467,
-        "population_fraction": 0.13064801586943475
+        "population": 0.13064801586943475
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.11748902403084231,
-        "population_fraction": 0.1359794291950554
+        "population": 0.1359794291950554
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.12310281414610448,
-        "population_fraction": 0.11374366107816464
+        "population": 0.11374366107816464
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.24076935592443338,
-        "population_fraction": 0.13240417663060786
+        "population": 0.13240417663060786
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.0921860285489221,
-        "population_fraction": 0.12396795891530796
+        "population": 0.12396795891530796
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.06053049254224772,
-        "population_fraction": 0.11573717223941377
+        "population": 0.11573717223941377
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.13734541983502016,
-        "population_fraction": 0.11300158891122347
+        "population": 0.11300158891122347
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.30070310360462194,
-        "population_fraction": 0.13451799716079213
+        "population": 0.13451799716079213
       }
     ],
     "average_population_fitness": 0.1510999808755792,
@@ -14445,42 +14445,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17292459004369265,
-        "population_fraction": 0.13015488098366348
+        "population": 0.13015488098366348
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.17863728181175942,
-        "population_fraction": 0.1355191471680136
+        "population": 0.1355191471680136
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.044227042922374935,
-        "population_fraction": 0.11342230079242156
+        "population": 0.11342230079242156
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17635540231513347,
-        "population_fraction": 0.13359282321591498
+        "population": 0.13359282321591498
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.10804897560228283,
-        "population_fraction": 0.123236115852757
+        "population": 0.123236115852757
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.1645266437510947,
-        "population_fraction": 0.1146902860127761
+        "population": 0.1146902860127761
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.1617812511541241,
-        "population_fraction": 0.11284292854001159
+        "population": 0.11284292854001159
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.1795289102295394,
-        "population_fraction": 0.1365415174344416
+        "population": 0.1365415174344416
       }
     ],
     "average_population_fitness": 0.15024606446280675,
@@ -15109,42 +15109,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.15700834027035993,
-        "population_fraction": 0.13044914053437084
+        "population": 0.13044914053437084
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.3075860140848085,
-        "population_fraction": 0.135903149582812
+        "population": 0.135903149582812
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10626528189279444,
-        "population_fraction": 0.11222508733320971
+        "population": 0.11222508733320971
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.2418734603542895,
-        "population_fraction": 0.13394080010117845
+        "population": 0.13394080010117845
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.12999656136903967,
-        "population_fraction": 0.12271601741189217
+        "population": 0.12271601741189217
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.14331584252574905,
-        "population_fraction": 0.11485308904702962
+        "population": 0.11485308904702962
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.09682582997522489,
-        "population_fraction": 0.11297208971581996
+        "population": 0.11297208971581996
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.24298198179225536,
-        "population_fraction": 0.13694062627368742
+        "population": 0.13694062627368742
       }
     ],
     "average_population_fitness": 0.18323151509327848,
@@ -15773,42 +15773,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.23623157375305642,
-        "population_fraction": 0.13010413640840704
+        "population": 0.13010413640840704
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.18162810131883406,
-        "population_fraction": 0.13760015060300035
+        "population": 0.13760015060300035
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.12443824074982163,
-        "population_fraction": 0.11136176133161357
+        "population": 0.11136176133161357
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.18235309930023916,
-        "population_fraction": 0.1347250695478951
+        "population": 0.1347250695478951
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.07483694697949707,
-        "population_fraction": 0.12206131037409608
+        "population": 0.12206131037409608
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.13164961993136665,
-        "population_fraction": 0.11439259311470039
+        "population": 0.11439259311470039
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.08664220881510507,
-        "population_fraction": 0.11199724799260709
+        "population": 0.11199724799260709
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.18181439439237893,
-        "population_fraction": 0.13775773062768049
+        "population": 0.13775773062768049
       }
     ],
     "average_population_fitness": 0.15309641917661604,
@@ -16437,42 +16437,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17224766385343804,
-        "population_fraction": 0.1311885451426386
+        "population": 0.1311885451426386
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.2432457595388337,
-        "population_fraction": 0.13799149571516414
+        "population": 0.13799149571516414
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.15359568309305352,
-        "population_fraction": 0.11104161766579221
+        "population": 0.11104161766579221
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17855389435035537,
-        "population_fraction": 0.13511803338971207
+        "population": 0.13511803338971207
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.10644100611590222,
-        "population_fraction": 0.12110820293374289
+        "population": 0.12110820293374289
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.08266578208562833,
-        "population_fraction": 0.11414602174124738
+        "population": 0.11414602174124738
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.11192111369593234,
-        "population_fraction": 0.11125398584857664
+        "population": 0.11125398584857664
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.18042862509136187,
-        "population_fraction": 0.13815209756312594
+        "population": 0.13815209756312594
       }
     ],
     "average_population_fitness": 0.1570492429305616,
@@ -17101,42 +17101,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.23200449209166352,
-        "population_fraction": 0.1313865297260155
+        "population": 0.1313865297260155
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.3734328232740142,
-        "population_fraction": 0.1391844303255606
+        "population": 0.1391844303255606
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.0800262091108987,
-        "population_fraction": 0.1110019634453606
+        "population": 0.1110019634453606
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11707217204290021,
-        "population_fraction": 0.13540731225503194
+        "population": 0.13540731225503194
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.16933595304717275,
-        "population_fraction": 0.1204954198074786
+        "population": 0.1204954198074786
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.041569852544059545,
-        "population_fraction": 0.11329877500346068
+        "population": 0.11329877500346068
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.10458172479031529,
-        "population_fraction": 0.11075173959454207
+        "population": 0.11075173959454207
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.30488282762289215,
-        "population_fraction": 0.13847382984255
+        "population": 0.13847382984255
       }
     ],
     "average_population_fitness": 0.18610871522934438,
@@ -17765,42 +17765,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.13795105439487876,
-        "population_fraction": 0.13198289621712594
+        "population": 0.13198289621712594
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.25887085820792305,
-        "population_fraction": 0.1418076378852927
+        "population": 0.1418076378852927
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10779502078883606,
-        "population_fraction": 0.10982397033792031
+        "population": 0.10982397033792031
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11638602589756092,
-        "population_fraction": 0.13446754712824868
+        "population": 0.13446754712824868
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1693202737233614,
-        "population_fraction": 0.12028616848586787
+        "population": 0.12028616848586787
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.15714165541537692,
-        "population_fraction": 0.1116661531881158
+        "population": 0.1116661531881158
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.054545095930134346,
-        "population_fraction": 0.10984580308783455
+        "population": 0.10984580308783455
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.24463912370076815,
-        "population_fraction": 0.14011982366959422
+        "population": 0.14011982366959422
       }
     ],
     "average_population_fitness": 0.16059029708477832,
@@ -18429,42 +18429,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.13564798549991564,
-        "population_fraction": 0.13168164075405164
+        "population": 0.13168164075405164
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.18527429874728354,
-        "population_fraction": 0.1432051637741998
+        "population": 0.1432051637741998
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.06435921106038162,
-        "population_fraction": 0.10924336150920483
+        "population": 0.10924336150920483
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.250930242573327,
-        "population_fraction": 0.13387161433773256
+        "population": 0.13387161433773256
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.08977861212829914,
-        "population_fraction": 0.12038866935003002
+        "population": 0.12038866935003002
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.13204506639746502,
-        "population_fraction": 0.11162528159346907
+        "population": 0.11162528159346907
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.15327160934685843,
-        "population_fraction": 0.10868478950104106
+        "population": 0.10868478950104106
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.3820230389441612,
-        "population_fraction": 0.141299479180271
+        "population": 0.141299479180271
       }
     ],
     "average_population_fitness": 0.1812036832165193,
@@ -19093,42 +19093,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.21453536928057085,
-        "population_fraction": 0.13107688929072825
+        "population": 0.13107688929072825
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.24670603243663475,
-        "population_fraction": 0.14325665907925494
+        "population": 0.14325665907925494
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.11466197177220508,
-        "population_fraction": 0.1079692091081046
+        "population": 0.1079692091081046
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.18095101000761768,
-        "population_fraction": 0.13480190893066032
+        "population": 0.13480190893066032
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1406895003888036,
-        "population_fraction": 0.11928736068825406
+        "population": 0.11928736068825406
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.12033464979613659,
-        "population_fraction": 0.11107261372274041
+        "population": 0.11107261372274041
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.09733894047902415,
-        "population_fraction": 0.10837648212315579
+        "population": 0.10837648212315579
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.18587082307182975,
-        "population_fraction": 0.14415887705710156
+        "population": 0.14415887705710156
       }
     ],
     "average_population_fitness": 0.16772795913530722,
@@ -19757,42 +19757,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.22915160177174532,
-        "population_fraction": 0.13169026434280853
+        "population": 0.13169026434280853
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.2542794660612355,
-        "population_fraction": 0.14439079781876507
+        "population": 0.14439079781876507
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.09920515598298835,
-        "population_fraction": 0.10739647246851114
+        "population": 0.10739647246851114
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17474432135500206,
-        "population_fraction": 0.1349786360615523
+        "population": 0.1349786360615523
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.0876341463408228,
-        "population_fraction": 0.11896381626212442
+        "population": 0.11896381626212442
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.07972344794132968,
-        "population_fraction": 0.11054610613541148
+        "population": 0.11054610613541148
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.11982685189256055,
-        "population_fraction": 0.107615001684163
+        "population": 0.107615001684163
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.18742187554038284,
-        "population_fraction": 0.14441890522666406
+        "population": 0.14441890522666406
       }
     ],
     "average_population_fitness": 0.16033452211514865,
@@ -20421,42 +20421,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.08002925643542544,
-        "population_fraction": 0.1325970196134795
+        "population": 0.1325970196134795
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.3328941615209507,
-        "population_fraction": 0.1457507836353868
+        "population": 0.1457507836353868
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.05262757358828542,
-        "population_fraction": 0.10673985474820948
+        "population": 0.10673985474820948
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11689951087661378,
-        "population_fraction": 0.1351706027149317
+        "population": 0.1351706027149317
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.14957776034293027,
-        "population_fraction": 0.11809974384751
+        "population": 0.11809974384751
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.16795617031204768,
-        "population_fraction": 0.10965639406746228
+        "population": 0.10965639406746228
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.11919622055766946,
-        "population_fraction": 0.1071778390328505
+        "population": 0.1071778390328505
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.18566551238061443,
-        "population_fraction": 0.1448077623401697
+        "population": 0.1448077623401697
       }
     ],
     "average_population_fitness": 0.15629362660879664,
@@ -21085,42 +21085,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.23198725753380123,
-        "population_fraction": 0.1315850261589354
+        "population": 0.1315850261589354
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.21251123255441803,
-        "population_fraction": 0.14834243048768725
+        "population": 0.14834243048768725
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.15189670098681957,
-        "population_fraction": 0.10563535012981642
+        "population": 0.10563535012981642
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11650801785633949,
-        "population_fraction": 0.13463445408240732
+        "population": 0.13463445408240732
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.14675917268473215,
-        "population_fraction": 0.11801633334883574
+        "population": 0.11801633334883574
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.09363290109258804,
-        "population_fraction": 0.10978052072176642
+        "population": 0.10978052072176642
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.10621852767060702,
-        "population_fraction": 0.10677724336227484
+        "population": 0.10677724336227484
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.2349242244567828,
-        "population_fraction": 0.14522864170827673
+        "population": 0.14522864170827673
       }
     ],
     "average_population_fitness": 0.16684063235189023,
@@ -21749,42 +21749,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.2331757059853775,
-        "population_fraction": 0.132443113311441
+        "population": 0.132443113311441
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.12681253575836354,
-        "population_fraction": 0.1490192822367068
+        "population": 0.1490192822367068
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.05676432948404675,
-        "population_fraction": 0.10547605970351188
+        "population": 0.10547605970351188
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17440554496386768,
-        "population_fraction": 0.13395654076002594
+        "population": 0.13395654076002594
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.17077623110033494,
-        "population_fraction": 0.1177778490509622
+        "population": 0.1177778490509622
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.06656895418200875,
-        "population_fraction": 0.1089781780809829
+        "population": 0.1089781780809829
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.12714372606643826,
-        "population_fraction": 0.10613033815584014
+        "population": 0.10613033815584014
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.2574625788145864,
-        "population_fraction": 0.1462186387005292
+        "population": 0.1462186387005292
       }
     ],
     "average_population_fitness": 0.15763792574900104,
@@ -22413,42 +22413,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.23431976722961617,
-        "population_fraction": 0.13344435256394302
+        "population": 0.13344435256394302
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.1264880271137056,
-        "population_fraction": 0.1485572978616651
+        "population": 0.1485572978616651
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.11236752489315735,
-        "population_fraction": 0.10441508984504733
+        "population": 0.10441508984504733
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.1741330015571536,
-        "population_fraction": 0.1341783312002332
+        "population": 0.1341783312002332
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.2383904514652281,
-        "population_fraction": 0.11793004431867356
+        "population": 0.11793004431867356
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.08758089255894416,
-        "population_fraction": 0.10798780697702393
+        "population": 0.10798780697702393
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.10195795220233464,
-        "population_fraction": 0.10580482068264672
+        "population": 0.10580482068264672
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.22091472905290777,
-        "population_fraction": 0.14768225655076705
+        "population": 0.14768225655076705
       }
     ],
     "average_population_fitness": 0.1661410034827125,
@@ -23077,42 +23077,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.1540750163413334,
-        "population_fraction": 0.13435503417473793
+        "population": 0.13435503417473793
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.313174266191578,
-        "population_fraction": 0.14796692998394761
+        "population": 0.14796692998394761
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10189863717398286,
-        "population_fraction": 0.10385339365919577
+        "population": 0.10385339365919577
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.24420107934117355,
-        "population_fraction": 0.134283376526258
+        "population": 0.134283376526258
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.178992338243612,
-        "population_fraction": 0.11878319266944468
+        "population": 0.11878319266944468
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.05277205775364423,
-        "population_fraction": 0.10714099567948158
+        "population": 0.10714099567948158
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.14716473067101052,
-        "population_fraction": 0.10512615968670756
+        "population": 0.10512615968670756
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.220921795502151,
-        "population_fraction": 0.14849091762022684
+        "population": 0.14849091762022684
       }
     ],
     "average_population_fitness": 0.18560592889433156,
@@ -23741,42 +23741,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.15109072271731855,
-        "population_fraction": 0.13392807179540706
+        "population": 0.13392807179540706
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.27106260135502186,
-        "population_fraction": 0.14986213941993592
+        "population": 0.14986213941993592
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.06467627952829423,
-        "population_fraction": 0.10298462070870665
+        "population": 0.10298462070870665
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.22958485951312813,
-        "population_fraction": 0.13506849183959588
+        "population": 0.13506849183959588
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.10461116314869082,
-        "population_fraction": 0.11870111873845055
+        "population": 0.11870111873845055
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.0708111071658162,
-        "population_fraction": 0.10572405669191573
+        "population": 0.10572405669191573
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.11589626088169715,
-        "population_fraction": 0.10471969346379574
+        "population": 0.10471969346379574
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.18982381968364895,
-        "population_fraction": 0.1490118073421925
+        "population": 0.1490118073421925
       }
     ],
     "average_population_fitness": 0.1588541643227038,
@@ -24405,42 +24405,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.11591279195442794,
-        "population_fraction": 0.13382079790685533
+        "population": 0.13382079790685533
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.25363162585499355,
-        "population_fraction": 0.15154940638060382
+        "population": 0.15154940638060382
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.08774713361142628,
-        "population_fraction": 0.10201673994656393
+        "population": 0.10201673994656393
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.1817550919800056,
-        "population_fraction": 0.1360238323305123
+        "population": 0.1360238323305123
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1252546528387251,
-        "population_fraction": 0.11805604486884466
+        "population": 0.11805604486884466
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.10998557764173619,
-        "population_fraction": 0.10479469990372756
+        "population": 0.10479469990372756
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.15154049647818227,
-        "population_fraction": 0.10426820209842794
+        "population": 0.10426820209842794
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.2507775654326797,
-        "population_fraction": 0.1494702765644645
+        "population": 0.1494702765644645
       }
     ],
     "average_population_fitness": 0.16722158700455586,
@@ -25069,42 +25069,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.23190954215860668,
-        "population_fraction": 0.13313342156941624
+        "population": 0.13313342156941624
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.1932045139298261,
-        "population_fraction": 0.15286173027607391
+        "population": 0.15286173027607391
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.06954031595158155,
-        "population_fraction": 0.10120726778282262
+        "population": 0.10120726778282262
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.23686424644260495,
-        "population_fraction": 0.13621909162003573
+        "population": 0.13621909162003573
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.10877829947264833,
-        "population_fraction": 0.11755941595937079
+        "population": 0.11755941595937079
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.12094615854777448,
-        "population_fraction": 0.10419464067573633
+        "population": 0.10419464067573633
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.12441502197557251,
-        "population_fraction": 0.1041028586187029
+        "population": 0.1041028586187029
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.25183857614951066,
-        "population_fraction": 0.1507215734978415
+        "population": 0.1507215734978415
       }
     ],
     "average_population_fitness": 0.176011225798053,
@@ -25733,42 +25733,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.2250359746702032,
-        "population_fraction": 0.13387695319836063
+        "population": 0.13387695319836063
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.12967540032327537,
-        "population_fraction": 0.15312163561743344
+        "population": 0.15312163561743344
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10783423093054371,
-        "population_fraction": 0.10013336735546657
+        "population": 0.10013336735546657
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17506939567088198,
-        "population_fraction": 0.1370477425712368
+        "population": 0.1370477425712368
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.18217250460629061,
-        "population_fraction": 0.11676928589066903
+        "population": 0.11676928589066903
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.029738892461287976,
-        "population_fraction": 0.10362034386299877
+        "population": 0.10362034386299877
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.1512881074316388,
-        "population_fraction": 0.10356498673669683
+        "population": 0.10356498673669683
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.2626809867098131,
-        "population_fraction": 0.15186568476713785
+        "population": 0.15186568476713785
       }
     ],
     "average_population_fitness": 0.16468799647128846,
@@ -26397,42 +26397,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.15314218025762522,
-        "population_fraction": 0.13468434658265507
+        "population": 0.13468434658265507
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.1293014907328592,
-        "population_fraction": 0.1525830901249325
+        "population": 0.1525830901249325
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.0780045563948118,
-        "population_fraction": 0.09956349142322235
+        "population": 0.09956349142322235
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.19227457668495943,
-        "population_fraction": 0.13718706630643207
+        "population": 0.13718706630643207
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1258175427507639,
-        "population_fraction": 0.11697105070897651
+        "population": 0.11697105070897651
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.11526812413054668,
-        "population_fraction": 0.10222913551546436
+        "population": 0.10222913551546436
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.18340975540418175,
-        "population_fraction": 0.10342402331795084
+        "population": 0.10342402331795084
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.12983918242014203,
-        "population_fraction": 0.15335779602036628
+        "population": 0.15335779602036628
       }
     ],
     "average_population_fitness": 0.13988066310656366,
@@ -27061,42 +27061,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.21609854287461505,
-        "population_fraction": 0.13486233848006382
+        "population": 0.13486233848006382
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.20040351339426538,
-        "population_fraction": 0.1524209205874121
+        "population": 0.1524209205874121
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.06750958469023888,
-        "population_fraction": 0.09894879153258912
+        "population": 0.09894879153258912
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.19328246876021904,
-        "population_fraction": 0.13790697416829087
+        "population": 0.13790697416829087
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1524583976947874,
-        "population_fraction": 0.11680602893145238
+        "population": 0.11680602893145238
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.13961729037549725,
-        "population_fraction": 0.10197727464694957
+        "population": 0.10197727464694957
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.12332291616297852,
-        "population_fraction": 0.10387463117062244
+        "population": 0.10387463117062244
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.19222478301367577,
-        "population_fraction": 0.15320304048261962
+        "population": 0.15320304048261962
       }
     ],
     "average_population_fitness": 0.16732962950636288,
@@ -27725,42 +27725,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.204661668395884,
-        "population_fraction": 0.13552032318825022
+        "population": 0.13552032318825022
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.2756961705858543,
-        "population_fraction": 0.15292436879409355
+        "population": 0.15292436879409355
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.17512470124091467,
-        "population_fraction": 0.09796503563108001
+        "population": 0.09796503563108001
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.18365069801739425,
-        "population_fraction": 0.13826398915999097
+        "population": 0.13826398915999097
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.15887083354326295,
-        "population_fraction": 0.11663130788378591
+        "population": 0.11663130788378591
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.06519426286944355,
-        "population_fraction": 0.10169406445952556
+        "population": 0.10169406445952556
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.10691333196261998,
-        "population_fraction": 0.10341750195266637
+        "population": 0.10341750195266637
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17742382565444306,
-        "population_fraction": 0.15358340893060746
+        "population": 0.15358340893060746
       }
     ],
     "average_population_fitness": 0.17591010238580132,
@@ -28389,42 +28389,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17211175395359773,
-        "population_fraction": 0.13590820495438963
+        "population": 0.13590820495438963
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.325187332106677,
-        "population_fraction": 0.15445534205380534
+        "population": 0.15445534205380534
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.10123216853434908,
-        "population_fraction": 0.0979556688441568
+        "population": 0.0979556688441568
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.18366428362813247,
-        "population_fraction": 0.13836869207083116
+        "population": 0.13836869207083116
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.1378206208228992,
-        "population_fraction": 0.11643075745361911
+        "population": 0.11643075745361911
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.0490453517781065,
-        "population_fraction": 0.10057264237924617
+        "population": 0.10057264237924617
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.11769767512031062,
-        "population_fraction": 0.10270465655214622
+        "population": 0.10270465655214622
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.25490668983256176,
-        "population_fraction": 0.15360403569180556
+        "population": 0.15360403569180556
       }
     ],
     "average_population_fitness": 0.1811699471097841,
@@ -29053,42 +29053,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.14997287000062476,
-        "population_fraction": 0.13578035132564847
+        "population": 0.13578035132564847
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.34210593619913837,
-        "population_fraction": 0.15669032201654012
+        "population": 0.15669032201654012
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.13264787823936078,
-        "population_fraction": 0.09717231843163962
+        "population": 0.09717231843163962
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11924422250650919,
-        "population_fraction": 0.1383983165228751
+        "population": 0.1383983165228751
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.13829997859136278,
-        "population_fraction": 0.11592303139594026
+        "population": 0.11592303139594026
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.0964577916616547,
-        "population_fraction": 0.09924906094208434
+        "population": 0.09924906094208434
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.0885392623782999,
-        "population_fraction": 0.10205122278382439
+        "population": 0.10205122278382439
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.2403494453629564,
-        "population_fraction": 0.15473537658144784
+        "population": 0.15473537658144784
       }
     ],
     "average_population_fitness": 0.1751925597310835,
@@ -29717,42 +29717,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17965708683218123,
-        "population_fraction": 0.1354334206584483
+        "population": 0.1354334206584483
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.13393839437091873,
-        "population_fraction": 0.15932184450851372
+        "population": 0.15932184450851372
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.1476702325314645,
-        "population_fraction": 0.09675625923066067
+        "population": 0.09675625923066067
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11868157278317487,
-        "population_fraction": 0.13762115511963843
+        "population": 0.13762115511963843
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.07482810750954808,
-        "population_fraction": 0.11549194670857318
+        "population": 0.11549194670857318
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.1132824623320913,
-        "population_fraction": 0.09846711089950093
+        "population": 0.09846711089950093
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.1277065740382584,
-        "population_fraction": 0.10116705429450187
+        "population": 0.10116705429450187
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.17775849520741552,
-        "population_fraction": 0.15574120858016308
+        "population": 0.15574120858016308
       }
     ],
     "average_population_fitness": 0.13669266166890598,
@@ -30381,42 +30381,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.1438650523806999,
-        "population_fraction": 0.1360158239329811
+        "population": 0.1360158239329811
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.3226028707218709,
-        "population_fraction": 0.15927711370277045
+        "population": 0.15927711370277045
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.13808288345986186,
-        "population_fraction": 0.0968620122496545
+        "population": 0.0968620122496545
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.18157155600115318,
-        "population_fraction": 0.13737276979856536
+        "population": 0.13737276979856536
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.12428619040219319,
-        "population_fraction": 0.11477905005700789
+        "population": 0.11477905005700789
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.11804105538645028,
-        "population_fraction": 0.09823633948689837
+        "population": 0.09823633948689837
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.13712461362453682,
-        "population_fraction": 0.10107564272807623
+        "population": 0.10107564272807623
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.18857591532947382,
-        "population_fraction": 0.15638124804404618
+        "population": 0.15638124804404618
       }
     ],
     "average_population_fitness": 0.1784802187753144,
@@ -31045,42 +31045,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.17010967162021362,
-        "population_fraction": 0.13554274712346423
+        "population": 0.13554274712346423
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.2092596527031813,
-        "population_fraction": 0.1615856199389773
+        "population": 0.1615856199389773
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.06673095236332142,
-        "population_fraction": 0.09646932004210179
+        "population": 0.09646932004210179
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.11853003716134974,
-        "population_fraction": 0.13741213087218399
+        "population": 0.13741213087218399
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.17269085149516253,
-        "population_fraction": 0.11415611327779678
+        "population": 0.11415611327779678
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.08743862338084606,
-        "population_fraction": 0.0976421865389513
+        "population": 0.0976421865389513
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.10259090996949094,
-        "population_fraction": 0.1006562218262353
+        "population": 0.1006562218262353
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.25619533663281496,
-        "population_fraction": 0.1565356603802892
+        "population": 0.1565356603802892
       }
     ],
     "average_population_fitness": 0.15827697187047976,
@@ -31709,42 +31709,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.22424332797719426,
-        "population_fraction": 0.135700652564324
+        "population": 0.135700652564324
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.1360319458649971,
-        "population_fraction": 0.16240845073520735
+        "population": 0.16240845073520735
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.13016138808235592,
-        "population_fraction": 0.09558839935694628
+        "population": 0.09558839935694628
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.17120921272278145,
-        "population_fraction": 0.13686444855148083
+        "population": 0.13686444855148083
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.13609338249332945,
-        "population_fraction": 0.114318607464621
+        "population": 0.114318607464621
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.09994353186583611,
-        "population_fraction": 0.09695111113649985
+        "population": 0.09695111113649985
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.055346157735688496,
-        "population_fraction": 0.10009536671399234
+        "population": 0.10009536671399234
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.13308590169455,
-        "population_fraction": 0.15807296347692834
+        "population": 0.15807296347692834
       }
     ],
     "average_population_fitness": 0.14022189601894547,
@@ -32373,42 +32373,42 @@
       {
         "name": "Qwen2.5-7B-Instruct(CoT)",
         "fitness": 0.0959027811460057,
-        "population_fraction": 0.13684427008763317
+        "population": 0.13684427008763317
       },
       {
         "name": "Qwen2.5-7B-Instruct(IO)",
         "fitness": 0.34955526437656065,
-        "population_fraction": 0.16233880067893305
+        "population": 0.16233880067893305
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(CoT)",
         "fitness": 0.11646736831028044,
-        "population_fraction": 0.09549133037491127
+        "population": 0.09549133037491127
       },
       {
         "name": "Mistral-7B-Instruct-v0.3(IO)",
         "fitness": 0.23363077357206985,
-        "population_fraction": 0.1372878459149708
+        "population": 0.1372878459149708
       },
       {
         "name": "Llama-3.2-3B-Instruct(CoT)",
         "fitness": 0.15271288155234908,
-        "population_fraction": 0.11427028312657675
+        "population": 0.11427028312657675
       },
       {
         "name": "Llama-3.2-3B-Instruct(IO)",
         "fitness": 0.05275685711486318,
-        "population_fraction": 0.09656043210993431
+        "population": 0.09656043210993431
       },
       {
         "name": "gemma-2-9b-it(CoT)",
         "fitness": 0.11639089356210028,
-        "population_fraction": 0.09924840714655134
+        "population": 0.09924840714655134
       },
       {
         "name": "gemma-2-9b-it(IO)",
         "fitness": 0.1330077015919441,
-        "population_fraction": 0.15795863056048923
+        "population": 0.15795863056048923
       }
     ],
     "average_population_fitness": 0.16817251238526815,
