@@ -9,7 +9,7 @@ game:
 
 evolution:
   initial_population: uniform
-  steps: 50
+  steps: 100
 
 mechanism:
   type: ReputationPrisonersDilemma
@@ -50,4 +50,10 @@ agents:
       model: DeepSeek-R1-Distill-Llama-8B
       kwargs:
         max_new_tokens: 4096
+    type: CoTAgent
+
+  - llm:
+      model: Qwen3-14B
+      kwargs:
+        max_new_tokens: 2048
     type: CoTAgent

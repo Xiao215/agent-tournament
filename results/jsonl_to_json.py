@@ -1,6 +1,6 @@
-import sys
 import json
 import os
+import sys
 
 
 def convert_jsonl_to_json(input_path: str):
