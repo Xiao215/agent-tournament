@@ -1,8 +1,9 @@
-from typing import Any
 from datetime import datetime
+from typing import Any
+
+from matplotlib.figure import Figure
 
 import wandb
-from matplotlib.figure import Figure
 
 
 class WandBLogger:

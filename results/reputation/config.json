@@ -24,7 +24,7 @@
   },
   "evolution": {
     "initial_population": "uniform",
-    "steps": 50
+    "steps": 100
   },
   "mechanism": {
     "type": "ReputationPrisonersDilemma"

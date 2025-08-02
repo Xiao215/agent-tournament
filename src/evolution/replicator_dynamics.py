@@ -19,7 +19,7 @@ log_dir = OUTPUTS_DIR / f"{now.year}" / f"{now.month:02}" / f"{now.day:02}"
 os.makedirs(log_dir, exist_ok=True)
 
 evolution_json = open(
-    log_dir / f"{now.hour:02}{now.minute:02}_evolution.json",
+    log_dir / f"{now.hour:02}{now.minute:02}_evolution.jsonl",
     mode="a",
     encoding="utf-8",
 )
@@ -156,7 +156,7 @@ class DiscreteReplicatorDynamics:
                     {
                         "name": agent.name,
                         "fitness": fitness[i],
-                        "population_fraction": population[i],
+                        "population": population[i],
                     }
                     for i, agent in enumerate(self.agents)
                 ],

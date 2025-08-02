@@ -2,7 +2,7 @@
 #SBATCH --job-name=LLM_evolution_tournament
 #SBATCH --account=aip-rgrosse
 #SBATCH --gres=gpu:h100:2
-#SBATCH --time=10:00:00
+#SBATCH --time=14:00:00
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=60G
 #SBATCH --chdir=/project/aip-rgrosse/xiao215/agent-tournament
@@ -13,7 +13,7 @@
 source venv/bin/activate
 export PYTHONPATH=.
 
-# python3 script/run_evolution.py --config prisoner_dilemma.yaml
-python3 script/run_evolution.py --config prisoner_dilemma_io_vs_cot.yaml
+python3 script/run_evolution.py --config prisoner_dilemma.yaml
+# python3 script/run_evolution.py --config prisoner_dilemma_io_vs_cot.yaml
 
-# python3 script/run_evolution.py --config toy.yaml
+# python3 script/run_evolution.py --config toy.yaml --wandb
