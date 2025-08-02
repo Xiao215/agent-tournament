@@ -51,3 +51,4 @@ outputs/
 sbatch-logs/
 figures/
 test/
+wandb/
