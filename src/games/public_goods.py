@@ -1,4 +1,3 @@
-import re
 from enum import Enum
 from typing import Sequence
 
@@ -15,21 +14,21 @@ class PublicGoodsAction(Enum):
     def to_token(self) -> str:
         """Convert the action to a token for LLM parsing."""
         if self == PublicGoodsAction.CONTRIBUTE:
-            return "<Invest>"
+            return "<A1>"
         elif self == PublicGoodsAction.FREE_RIDE:
-            return "<Keep>"
+            return "<A2>"
         else:
             raise ValueError(f"Unknown action {self!r}")
 
     @classmethod
     def from_token(cls, token: str) -> Enum:
-        """Parse an action from a token"""
-        if token == "<Invest>":
-            return cls.CONTRIBUTE
-        elif token == "<Keep>":
-            return cls.FREE_RIDE
-        else:
-            raise ValueError(f"Unknown action token {token!r}")
+        """Parse an action from a token like "<A1>" or "<A2>"."""
+        try:
+            idx = int(token.strip("<>").lstrip("A"))
+            action = list(cls)[idx]
+        except Exception as exp:
+            raise ValueError(f"Unknown action token {token!r}") from exp
+        return action
 
 
 class PublicGoods(Game):
@@ -51,10 +50,11 @@ class PublicGoods(Game):
 
         self.endowment = endowment
         self.multiplier = multiplier
+        self.num_players = num_players
 
         prompt = f"""
         You are a player named {{agent_name}} who plays in a simultaneous contribution game with {self.num_players} players.
-        Your objective is to maximise your cumulative score in the game described below.
+        Your objective is to maximise your cumulative wealth in the game described below.
 
         Rules:
         1. You and your opponent each start with **{self.endowment} dollars**.
@@ -82,11 +82,13 @@ class PublicGoods(Game):
         ), f"Expected {self.num_players} agents, got {len(agents)}."
 
         actions = {}
+        responses = {}
 
         for agent in agents:
             resp = self._prompt_agent(agent, additional_info)
             act = self._parse_action(agent, resp)
             actions[agent.name] = act
+            responses[agent.name] = resp
 
         share = self._calculate_share(actions)
 
@@ -101,7 +103,7 @@ class PublicGoods(Game):
                         if action == PublicGoodsAction.CONTRIBUTE
                         else self.endowment + share
                     ),
-                    response=action.to_token(),
+                    response=responses[name],
                 )
             )
         return moves

@@ -146,7 +146,6 @@ class ReputationPrisonersDilemma(Reputation):
     def post_tournament(self, match_records: list[list[dict]]) -> None:
         """Update the global reputation rates based on the live rates."""
         for record in match_records:
-            # For prisoner dilemma, only two players are involved in each match.
             for player in record:
                 player_name = player["name"]
 
@@ -170,3 +169,42 @@ class ReputationPublicGoods(Reputation):
                 f"ReputationPublicGoods can only be used with PublicGoodsGame, "
                 f"but got {self.base_game.__class__.__name__}"
             )
+
+    def _format_reputation(self, agents: Sequence[Agent]) -> str:
+        """Format the reputation information of the given agents into a string."""
+        lines = []
+        coop_tok = PrisonersDilemmaAction.COOPERATE.to_token()
+
+        for agent in agents:
+            name = agent.name
+            agent_reputation = self.reputation[name]
+
+            coop_rate = agent_reputation.rate("contribution_rate")
+
+            # Initial reputation information at game start
+            if coop_rate is None:
+                lines.append(f"{name}: No reputation data available.")
+                continue
+            else:
+                coop_count, total_count = agent_reputation.stat("contribution_rate")
+                coop_pct = coop_rate
+                lines.append(
+                    f"They chose {coop_tok} in {coop_count}/{total_count} rounds ({coop_pct:.2%})"
+                )
+        lines = [f"\n\t\t{line}" for line in lines]
+        return (
+            "\n\tReputation:"
+            + "".join(lines)
+            + "\n\t\tNote: Your chosen action will affect your reputation score."
+        )
+
+    def post_tournament(self, match_records: list[list[dict]]) -> None:
+        """Update the global reputation rates based on the live rates."""
+        for record in match_records:
+            for player in record:
+                player_name = player["name"]
+                player_stat = self.reputation[player_name]
+                player_stat.record(
+                    "contribution_rate",
+                    player["action"] == PrisonersDilemmaAction.COOPERATE.name,
+                )

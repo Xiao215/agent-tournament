@@ -134,6 +134,7 @@ class CoTAgent(Agent):
     ) -> str:
         """Chat with the agent using the provided messages."""
         messages += """
+        Instructions:
         First reason about the strategy you are taking step by step, then you must choose one action from legal actions.
 
         Your output must be in the following format strictly:
@@ -142,9 +143,8 @@ class CoTAgent(Agent):
         Your thought.
 
         Action:
-        Your action wrapped in angles brackets, for example: <A1>.
+        Your action.
         """
-
         response = self.pipeline.invoke(messages, **self.kwargs)
         return response
 

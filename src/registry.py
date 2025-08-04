@@ -1,17 +1,17 @@
 from src.agent import Agent, CoTAgent, IOAgent
 from src.games.prisoners_dilemma import PrisonersDilemma
+from src.games.public_goods import PublicGoods
 from src.mechanisms.base import NoMechanism
 from src.mechanisms.repetition import Repetition
-from src.mechanisms.reputation import ReputationPrisonersDilemma
+from src.mechanisms.reputation import ReputationPrisonersDilemma, ReputationPublicGoods
 
-GAME_REGISTRY = {
-    "PrisonersDilemma": PrisonersDilemma
-}
+GAME_REGISTRY = {"PrisonersDilemma": PrisonersDilemma, "PublicGoods": PublicGoods}
 
 MECHANISM_REGISTRY = {
-    "Repetition": Repetition,
     "ReputationPrisonersDilemma": ReputationPrisonersDilemma,
-    "NoMechanism": NoMechanism
+    "NoMechanism": NoMechanism,
+    "ReputationPublicGoods": ReputationPublicGoods,
+    "Repetition": Repetition,
 }
 
 AGENT_REGISTRY = {

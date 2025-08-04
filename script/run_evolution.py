@@ -49,9 +49,6 @@ def main():
 
     config = load_config(filename=args.config)
 
-    # Record the configuration as JSON
-    record_config(config)
-
     game_class = GAME_REGISTRY[config["game"]["type"]]
     mechanism_class = MECHANISM_REGISTRY[config["mechanism"]["type"]]
 
@@ -64,6 +61,12 @@ def main():
     )
 
     agents = [create_agent(agent_cfg) for agent_cfg in config["agents"]]
+
+    # Record the configuration as JSON
+    for i, agent in enumerate(agents):
+        # Create the name field to make frontend easier.
+        config["agents"][i]["name"] = agent.name
+    record_config(config)
 
     replicator_dynamics = DiscreteReplicatorDynamics(
         agents=agents,
