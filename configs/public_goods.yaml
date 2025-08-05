@@ -1,9 +1,9 @@
 game:
   type: PublicGoods
   kwargs:
-    multiplier: 2
+    multiplier: 3
     num_players: 6
-    endowment: 1.0
+    endowment: 10
 
 evolution:
   initial_population: uniform

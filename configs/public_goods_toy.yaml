@@ -3,7 +3,7 @@ game:
   kwargs:
     multiplier: 2
     num_players: 3
-    endowment: 1.0
+    endowment: 2.0
 
 evolution:
   initial_population: uniform
