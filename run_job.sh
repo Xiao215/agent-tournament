@@ -15,10 +15,10 @@ export PYTHONPATH=.
 
 # python3 script/run_evolution.py --config prisoner_dilemma.yaml --wandb
 
-python3 script/run_evolution.py --config public_goods.yaml --wandb
+# python3 script/run_evolution.py --config public_goods.yaml --wandb
 #
 # python3 script/run_evolution.py --config public_goods_toy.yaml --wandb
 
-# python3 script/run_evolution.py --config prisoner_dilemma_io_vs_cot.yaml --wandb
+python3 script/run_evolution.py --config prisoner_dilemma_io_vs_cot.yaml --wandb
 
 # python3 script/run_evolution.py --config toy.yaml --wandb

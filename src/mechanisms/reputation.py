@@ -134,7 +134,7 @@ class ReputationPrisonersDilemma(Reputation):
                 coop_count, total_count = agent_reputation.stat("cooperation_rate")
                 coop_pct = coop_rate
                 lines.append(
-                    f"They played {coop_tok} in {coop_count}/{total_count} rounds ({coop_pct:.2%})"
+                    f"{name} played {coop_tok} in {coop_count}/{total_count} rounds ({coop_pct:.2%})"
                 )
         lines = [f"\n\t{line}" for line in lines]
         return (

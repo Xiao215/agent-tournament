@@ -62,3 +62,15 @@ agents:
       kwargs:
         max_new_tokens: 1024
     type: IOAgent
+
+  - llm:
+      model: Qwen3-14B
+      kwargs:
+        max_new_tokens: 2048
+    type: CoTAgent
+
+  - llm:
+      model: Qwen3-14B
+      kwargs:
+        max_new_tokens: 1024
+    type: IOAgent
