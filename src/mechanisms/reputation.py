@@ -66,9 +66,10 @@ class Reputation(Mechanism, ABC):
     Reputation mechanism that makes each players' reputation visible to all players.
     """
 
-    def __init__(self, base_game: Game):
+    def __init__(self, base_game: Game, discount: float):
         super().__init__(base_game)
         self.reputation: dict[str, ReputationStat] = defaultdict(ReputationStat)
+        self.discount = discount
 
     def run(self, agents: Sequence[Agent]):
         """Repeat the base game for a specified number of repetitions."""

@@ -47,15 +47,15 @@ class DiscreteReplicatorDynamics:
         self,
         agents: list[Agent],
         mechanism: Mechanism,
-        population_payoffs: PopulationPayoffs | None = None,
+        # population_payoffs: PopulationPayoffs | None = None,
     ) -> None:
         self.mechanism = mechanism
         self.agents = agents
-        self.population_payoffs = (
-            population_payoffs
-            if population_payoffs is not None
-            else PopulationPayoffs(agent_names=[agent.name for agent in self.agents])
-        )
+        # self.population_payoffs = (
+        #     population_payoffs
+        #     if population_payoffs is not None
+        #     else PopulationPayoffs(agent_names=[agent.name for agent in self.agents])
+        # )
 
     def population_update(
         self,
@@ -116,35 +116,39 @@ class DiscreteReplicatorDynamics:
         population /= population.sum()
         population_history = [population.copy()]
 
-        n = len(self.agents)
-        k = self.mechanism.base_game.num_players
-        total_matches = math.comb(n, k)
+        self.population_payoffs = self.mechanism.run(
+            agents=self.agents,
+        )
+
+        # n = len(self.agents)
+        # k = self.mechanism.base_game.num_players
+        # total_matches = math.comb(n, k)
         for step in tqdm(range(1, steps + 1), desc="Evolution Steps"):
-            combo_iter = list(itertools.combinations(self.agents, k))
-            random.shuffle(combo_iter)
-            inner_tqdm_bar = tqdm(
-                combo_iter,
-                desc="Tournaments",
-                total=total_matches,
-                leave=False,
-                position=1,
-            )
+            # combo_iter = list(itertools.combinations(self.agents, k))
+            # random.shuffle(combo_iter)
+            # inner_tqdm_bar = tqdm(
+            #     combo_iter,
+            #     desc="Tournaments",
+            #     total=total_matches,
+            #     leave=False,
+            #     position=1,
+            # )
 
-            match_records = []
-            for agents in inner_tqdm_bar:
-                match_label = " vs ".join(agent.name for agent in agents)
-                inner_tqdm_bar.set_postfix(match=match_label)
+            # match_records = []
+            # for agents in inner_tqdm_bar:
+            #     match_label = " vs ".join(agent.name for agent in agents)
+            #     inner_tqdm_bar.set_postfix(match=match_label)
 
-                match_record = self.mechanism.run(
-                    agents=agents,
-                )
+            #     match_record = self.mechanism.run(
+            #         agents=agents,
+            #     )
 
-                self.population_payoffs.add_profile(
-                    agent_names=[r["name"] for r in match_record],
-                    payoffs=[r["points"] for r in match_record],
-                )
-                match_records.append(match_record)
-            inner_tqdm_bar.close()
+            #     self.population_payoffs.add_profile(
+            #         agent_names=[r["name"] for r in match_record],
+            #         payoffs=[r["points"] for r in match_record],
+            #     )
+            #     match_records.append(match_record)
+            # inner_tqdm_bar.close()
 
             fitness = self.population_payoffs.fitness(population)
             # average population fitness is the society's average performance
@@ -161,7 +165,6 @@ class DiscreteReplicatorDynamics:
                     for i, agent in enumerate(self.agents)
                 ],
                 "average_population_fitness": ave_population_fitness,
-                "match_records": match_records,
             }
             log_evolution_record(evolution_record)
 
@@ -176,9 +179,6 @@ class DiscreteReplicatorDynamics:
                 lr=lr_fct(len(population_history) + 1),
             )
             population_history.append(population.copy())
-
-            self.population_payoffs.reset()
-            self.mechanism.post_tournament(match_records)
 
         print("Steps limit reached")
         return population_history

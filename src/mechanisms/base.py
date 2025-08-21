@@ -5,6 +5,7 @@ from typing import Any, Sequence
 
 from src.agent import Agent
 from src.games.base import Game
+from src.evolution.population_payoffs import PopulationPayoffs
 
 
 class Mechanism(ABC):
@@ -12,24 +13,20 @@ class Mechanism(ABC):
         self.base_game = base_game
 
     @abstractmethod
-    def run(self, agents: Sequence[Agent]) -> Any:
+    def run(self, agents: Sequence[Agent]) -> PopulationPayoffs:
         # TODO change this immediately once experiment could run and more consideration is taken to the function design
         """Run the mechanism over the base game."""
         raise NotImplementedError
-
-    def post_tournament(self, match_records: list[list[dict]]) -> None:
-        """Most mechanisms do not need to implement this, but Reputation needs it to update reputation scores."""
-        pass
 
 
 class NoMechanism(Mechanism):
     """A mechanism that does nothing."""
 
-    def run(self, agents: Sequence[Agent]) -> dict[str, float]:
+    def run(self, agents: Sequence[Agent]) -> PopulationPayoffs:
         """Run the base game without any modifications."""
-
+        payoffs = PopulationPayoffs(agent_names=[agent.name for agent in agents])
         final_score = defaultdict(float)
-        players_moves = self.base_game.play(additional_info="None.", agents=agents)
+        players_moves = self.base_game.play(additional_info="None.", player=agents)
         for move in players_moves:
             final_score[move.name] = final_score[move.name] + move.points
 

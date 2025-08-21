@@ -1,4 +1,3 @@
-import sys
 from enum import Enum
 from typing import Sequence
 
@@ -13,15 +12,15 @@ class PrisonersDilemmaAction(Enum):
     DEFECT = "D"
 
     def to_token(self) -> str:
-        """Convert the action to a token (eg, <A1>) for LLM parsing."""
+        """Convert the action to a token (eg, A1) for LLM parsing."""
         idx = list(type(self)).index(self)
-        return f"<A{idx}>"
+        return f"A{idx}"
 
     @classmethod
-    def from_token(cls, token: str) -> Enum:
-        """Parse an action from a token like "<A1>" or "<A2>"."""
+    def from_token(cls, token: str) -> "PrisonersDilemmaAction":
+        """Parse an action from a token like "A1" or "A2"."""
         try:
-            idx = int(token.strip("<>").lstrip("A"))
+            idx = int(token.lstrip("A"))
             action = list(cls)[idx]
         except Exception as exp:
             raise ValueError(f"Unknown action token {token!r}") from exp
@@ -42,11 +41,11 @@ class PrisonersDilemma(Game):
 
         self.action_tokens = [act.to_token() for act in PrisonersDilemmaAction]
         actions_block = "\n\t".join(
-            [f"\t• {act_tok}" for act_tok in self.action_tokens]
+            [f"\t- {act_tok}" for act_tok in self.action_tokens]
         )
 
         prompt = f"""
-        You are a player named {{agent_name}} who plays in a decision-making game.
+        You are a player named {{player_name}} who plays in a decision-making game.
         Your objective is to maximise your cumulative score in the game described below.
 
         Rule:
@@ -56,7 +55,18 @@ class PrisonersDilemma(Game):
 
         Actions (choose exactly one per round):
         {actions_block}
-        IMPORTANT: Your final printed action must be wrapped by <>, for example: <A1>.
+
+        Decision Procedure
+        - Decide on a probability distribution over A1 and A2 each round.
+        - Probabilities must be integers in [0, 100] that sum to 100.
+        - If you are very certain, you may assign 100 to one action and 0 to the other.
+        - Report your chosen probabilities in the exact format below.
+
+        Output Specification
+        - On the last line, print both probabilities in this exact format:
+        <A1=probability>|<A2=probability>
+        - Replace `probability` with integers between 0 and 100 that sum to 100.
+        - Example placeholders only: <A1=XX>|<A2=YY>
 
         Payoff matrix:
         {self._payoff_description()}
@@ -78,60 +88,28 @@ class PrisonersDilemma(Game):
             )
         return "\n".join(lines)
 
-    def play(self, additional_info: str, agents: Sequence[Agent]) -> list[Game.Move]:
-        assert len(agents) == 2
-        agent1, agent2 = agents
+    def play(self, additional_info: str, players: Sequence[Agent]) -> list[Game.Move]:
+        assert len(players) == 2
+        player1, player2 = players
 
-        resp1 = self._prompt_agent(agent1, additional_info)
-        resp2 = self._prompt_agent(agent2, additional_info)
+        resp1 = self._prompt_player(player1, additional_info)
+        resp2 = self._prompt_player(player2, additional_info)
 
-        act1 = self._parse_action(agent1, resp1)
-        act2 = self._parse_action(agent2, resp2)
+        prob_distribution1 = self._parse_mix_strategy(player1, resp1)
+        prob_distribution2 = self._parse_mix_strategy(player2, resp2)
+
+        act1 = PrisonersDilemmaAction.from_token(
+            self._choose_from_mix_strategy(prob_distribution1)
+        )
+        act2 = PrisonersDilemmaAction.from_token(
+            self._choose_from_mix_strategy(prob_distribution2)
+        )
 
         pts1, pts2 = self.payoff_matrix[(act1, act2)]
         return [
-            Game.Move(name=agent1.name, action=act1, points=pts1, response=resp1),
-            Game.Move(name=agent2.name, action=act2, points=pts2, response=resp2),
+            Game.Move(name=player1.name, action=act1, points=pts1, response=resp1),
+            Game.Move(name=player2.name, action=act2, points=pts2, response=resp2),
         ]
-
-    def _parse_action(
-        self, agent: Agent, response: str, max_retries: int = 5
-    ) -> PrisonersDilemmaAction:
-        """
-        Extract the chosen action from the LLM's response, retrying up to max_retries
-        with a clarifying prompt if parsing fails.
-        """
-        def pick_action(text: str) -> PrisonersDilemmaAction:
-            # Find all actions whose token appears at least once
-            matches = [
-                action for action in PrisonersDilemmaAction if action.to_token() in text
-            ]
-            if not matches:
-                raise ValueError(f"[{agent}] No action token found in {text!r}")
-
-            rightmost = max(matches, key=lambda act: text.rfind(act.to_token()))
-            return rightmost
-
-        try:
-            return pick_action(response)
-        except ValueError:
-            pass
-
-        clarification = (
-            "Based on the action chosen in the original response below, output exactly one action token wrapped in angle brackets:\n"
-            f"{', '.join(self.action_tokens)}\n\n"
-            "Do NOT include explanations, `<think>` tags, or whitespace inside the brackets.\n"
-            "Example valid response: `<A1>`\n\n"
-            "Original response:\n"
-            f"{response}"
-        )
-        for i in range(max_retries):
-            response = agent.invoke(clarification + "\n\n")
-            try:
-                return pick_action(response)
-            except ValueError:
-                print(f"[{agent}] Retry {i+1} failed: {response!r}")
-        raise ValueError(f"All retries failed to parse action from {agent}")
 
     @classmethod
     def _parse_payoff_matrix(

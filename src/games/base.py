@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+import random
+import re
 from typing import Sequence
 
 from src.agent import Agent
@@ -36,23 +38,85 @@ class Game(ABC):
         self.num_players = num_players
 
     @abstractmethod
-    def play(self, additional_info: str, agents: Sequence[Agent]) -> list[Move]:
+    def play(self, additional_info: str, players: Sequence[Agent]) -> list[Move]:
         """Play the game."""
         raise NotImplementedError
 
-    def _prompt_agent(
+    def _prompt_player(
         self,
-        agent: Agent,
+        player: Agent,
         additional_info: str,
     ) -> str:
         prompt = self.prompt.format(
-            agent_name=agent.name,
+            player_name=player.name,
             additional_info=additional_info,
         )
-        resp = agent.chat(prompt)
+        resp = player.chat(prompt)
         return resp
 
-    @abstractmethod
-    def _parse_action(self, agent: Agent, response: str) -> Enum:
-        """Base on the game type, extract the decision made by the llm agent. If decision is not valid with regex, use the agent to generate a valid action."""
-        raise NotImplementedError
+    def _parse_mix_strategy(
+        self, player: Agent, response: str, max_retries: int = 5
+    ) -> dict[str, float]:
+        """
+        Parse a mixed-strategy line '<A1=XX>|<A2=YY>' and return a PublicGoodsAction
+        (by argmax or sampling). Falls back to token-pick if probs not present.
+        """
+
+        def _parse_probs(line: str) -> dict[str, float] | None:
+            """
+            Parse '<A1=XX>|<A2=YY>' (order-agnostic, allows spaces around tokens/numbers).
+            Returns {'A1': int, 'A2': int} or None if no match.
+            """
+            _mix_regex = re.compile(
+                r"\s*<\s*(A[12])\s*=\s*(\d{1,3})\s*>\s*\|\s*<\s*(A[12])\s*=\s*(\d{1,3})\s*>\s*$"
+            )
+            m = _mix_regex.match(line)
+            if not m:
+                return None
+            k1, v1, k2, v2 = m.group(1), m.group(2), m.group(3), m.group(4)
+            a = {k1: float(v1), k2: float(v2)}
+            # Currently assuming only two choices
+            if "A1" not in a or "A2" not in a:
+                return None
+            # Validate ranges and sum
+            if not (
+                0 <= a["A1"] <= 100 and 0 <= a["A2"] <= 100 and a["A1"] + a["A2"] == 100
+            ):
+                return None
+            return a
+
+        probs = _parse_probs(response)
+        if probs is not None:
+            return probs
+
+        # 2) Retry with a targeted clarification
+        clarification = (
+            "Please output your mixed strategy on a single line in the exact format:\n"
+            "<A1=probability>|<A2=probability>\n"
+            "- Use integers in [0,100] that sum to 100.\n"
+            "- If you are certain, 100 and 0 are allowed.\n"
+            "Example placeholders (do not copy numbers): <A1=XX>|<A2=YY>\n\n"
+            "Do NOT include any other text before or after this line.\n\n"
+            "Original response:\n"
+            f"{response}"
+        )
+
+        for i in range(max_retries):
+            attempt = player.invoke(clarification + "\n\n")
+            probs = _parse_probs(attempt)
+            if probs is not None:
+                return probs
+            print(f"[{player}] Retry {i+1} failed: {attempt!r}")
+
+        raise ValueError(f"All retries failed to parse mixed strategy from {player}")
+
+    @staticmethod
+    def _choose_from_mix_strategy(probs: dict[str, float]) -> str:
+        r = random.random() * sum(probs.values())
+        acc = 0.0
+        for k, w in probs.items():
+            acc += w
+            if r <= acc:
+                return k
+        # floating-point edge case fallback
+        return next(reversed(probs))
