@@ -84,3 +84,11 @@ class Repetition(Mechanism):
                 # TBD
 
         return payoffs
+
+    @staticmethod
+    def get_expected_payoff(payoffs: PopulationPayoffs) -> dict[str, float]:
+        """Calculate the expected payoff for each player."""
+        expected_payoff = {}
+        for player_name, player_payoffs in payoffs.items():
+            expected_payoff[player_name] = sum(player_payoffs) / len(player_payoffs)
+        return expected_payoff
