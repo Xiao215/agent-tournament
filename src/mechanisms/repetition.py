@@ -19,7 +19,9 @@ class Repetition(RepetitiveMechanism):
     def _parse_history(self, history: list[tuple[dict]]) -> str:
         """Parse the history of past actions as the mechanism information."""
         if not history:
-            return "History: None of the players have played yet, so there is no history."
+            return (
+                "History: None of the players have played yet, so there is no history."
+            )
 
         history_str = "History:\n"
         for i, (players_moves) in enumerate(history):

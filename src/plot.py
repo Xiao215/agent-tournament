@@ -16,7 +16,9 @@ def _ensure_date_dir() -> Path:
     Create date-based directory under FIGURE_DIR/YYYY/MM/DD and return it.
     """
     now = datetime.now()
-    date_path = Path(FIGURE_DIR) / now.strftime("%Y") / now.strftime("%m") / now.strftime("%d")
+    date_path = (
+        Path(FIGURE_DIR) / now.strftime("%Y") / now.strftime("%m") / now.strftime("%d")
+    )
     date_path.mkdir(parents=True, exist_ok=True)
     return date_path
 

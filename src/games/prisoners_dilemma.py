@@ -2,6 +2,7 @@ from typing import Callable, Sequence
 
 from src.agents.agent_manager import Agent
 from src.games.base import Action, Game
+import textwrap
 
 
 class PrisonersDilemmaAction(Action):
@@ -24,11 +25,9 @@ class PrisonersDilemma(Game):
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
 
         self.action_tokens = [act.to_token() for act in PrisonersDilemmaAction]
-        actions_block = "\n\t".join(
-            [f"\t- {act_tok}" for act_tok in self.action_tokens]
-        )
-
-        self.prompt_template = """
+        actions_block = "\n".join([f"- {act_tok}" for act_tok in self.action_tokens])
+        self.prompt_template = textwrap.dedent(
+            """
         You are a player named {{player_name}} who plays in a decision-making game.
         Your objective is to maximise your score in the game described below.
 
@@ -45,6 +44,7 @@ class PrisonersDilemma(Game):
 
         {{instruction}}
         """
+        )
 
         super().__init__(
             prompt=self.prompt_template.format(

@@ -1,6 +1,7 @@
 import random
 import re
 from typing import Callable, Sequence
+import textwrap
 
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
@@ -24,7 +25,8 @@ class Mediation(Mechanism):
         super().__init__(base_game)
         self.designer = create_agent(designer_cfg)
 
-        self.mediator_design_prompt = """
+        self.mediator_design_prompt = textwrap.dedent(
+            """
         Instruction:
         You are tasked with designing a **mediator agent** for this game.
 
@@ -41,8 +43,10 @@ class Mediation(Mechanism):
         - Values: the action the mediator will recommend (e.g., "A0", "A1", ...).
         - Ensure the dictionary is syntactically valid in Python.
         """
+        )
 
-        self.game_prompt = """
+        self.game_prompt = textwrap.dedent(
+            """
         Additional Information:
         On top of the original game instructions, you have the option to delegate your move to a mediator agent.
         If you choose to delegate, the mediator will play an action for you based on how many players have delegated to it.
@@ -53,6 +57,7 @@ class Mediation(Mechanism):
 
         Consider A{additional_action_id} as an addtional action "Delegate to Mediator". Your final mixed strategy should include probability for all actions A0, A1, ..., A{additional_action_id}.
         """
+        )
 
     def _design_mediator(
         self, player: Agent, *, max_retries: int = 5

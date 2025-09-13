@@ -8,6 +8,8 @@ import json
 from src.agents.agent_manager import Agent
 from src.logger_manager import write_to_txt
 
+import textwrap
+
 random.seed(42)
 
 
@@ -75,7 +77,8 @@ class Game(ABC):
         self.prompt = prompt
         self.num_players = num_players
         self.num_actions = num_actions
-        self.default_output_instruction = """
+        self.default_output_instruction = textwrap.dedent(
+            """
         Instruction:
         - Choose a probability distribution over the provided actions each round.
         - Output must contain a valid JSON object at the end.
@@ -87,6 +90,7 @@ class Game(ABC):
         Return exactly one JSON object, for example:
         {"A0": <INT>, "A1": <INT>, ...}
         """
+        )
 
     @abstractmethod
     def play(
@@ -118,7 +122,7 @@ class Game(ABC):
             prompt += additional_info
 
         write_to_txt(prompt, "game_prompt.txt")
-        # print(prompt)
+        print(prompt)
         resp = player.chat(prompt)
         return resp
 

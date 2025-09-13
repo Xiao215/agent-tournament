@@ -2,9 +2,12 @@ from typing import Mapping, Sequence, Any
 
 import numpy as np
 
+
 class PopulationPayoffs:
 
-    def __init__(self, agent_names: Sequence[str], *, discount: float | None = None) -> None:
+    def __init__(
+        self, agent_names: Sequence[str], *, discount: float | None = None
+    ) -> None:
         self.agent_names = list(agent_names)
         self.k = len(self.agent_names)
         self._idx = {t: i for i, t in enumerate(self.agent_names)}

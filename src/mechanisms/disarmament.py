@@ -2,6 +2,7 @@ import random
 import re
 from typing import Sequence
 import json
+import textwrap
 
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
@@ -24,7 +25,8 @@ class Disarmament(RepetitiveMechanism):
     ) -> None:
         super().__init__(base_game, num_rounds, discount)
 
-        self.disarm_prompt = """
+        self.disarm_prompt = textwrap.dedent(
+            """
         Instruction:
         You are negotiating a multi-action disarmament for this game.
 
@@ -47,8 +49,10 @@ class Disarmament(RepetitiveMechanism):
         Return the new cap as a JSON object, for example:
         {{"A0": <INT>, "A1": <INT>, ...}}
         """
+        )
 
-        self.game_prompt = """
+        self.game_prompt = textwrap.dedent(
+            """
         Additional Information:
         A "cap" is the maximum probability (in %) with which you may choose an action in the next round.
         From previous round of negotiation, you agree to have a cap of:
@@ -56,6 +60,7 @@ class Disarmament(RepetitiveMechanism):
 
         Now you need to propose a new probability distribution over actions subjected to your current cap limits.
         """
+        )
 
     def _format_prompt(
         self,
@@ -76,8 +81,6 @@ class Disarmament(RepetitiveMechanism):
             opp_lines.append(f"\t{name}: {self._caps_to_line(caps_by_agent[name])}")
         opponents_caps_block = "\n".join(opp_lines)
 
-        print(f'my_caps_line: {my_caps_line}')
-        print(f'opponents_caps_block: {opponents_caps_block}')
         return self.disarm_prompt.format(
             my_caps=my_caps_line,
             opponents_caps=opponents_caps_block,

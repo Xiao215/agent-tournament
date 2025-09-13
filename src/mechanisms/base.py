@@ -1,15 +1,11 @@
 import itertools
-import json
 import math
-import os
 import random
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Sequence, Any
 
 from tqdm import tqdm
 
-from src.logger_manager import log_dir
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game

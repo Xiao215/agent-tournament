@@ -25,7 +25,9 @@ class PublicGoods(Game):
     ):
 
         assert num_players > 1, "Public Goods must have at least 2 players."
-        assert 1.0 <= multiplier <= num_players, "Multiplier should be between 1 and num_players."
+        assert (
+            1.0 <= multiplier <= num_players
+        ), "Multiplier should be between 1 and num_players."
 
         self.endowment = 1  # value of endowment does not matter
         self.multiplier = multiplier

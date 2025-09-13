@@ -56,7 +56,9 @@ class Reputation(RepetitiveMechanism, ABC):
     @abstractmethod
     def _format_reputation(self, agents: Sequence[Agent]) -> str:
         """Format the reputation information into a string."""
-        raise NotImplementedError("`_format_reputation` should be implemented in subclasses.")
+        raise NotImplementedError(
+            "`_format_reputation` should be implemented in subclasses."
+        )
 
     def run_tournament(self, agents: Sequence[Agent]) -> PopulationPayoffs:
         """Run the mechanism over the base game across all players."""
@@ -69,7 +71,9 @@ class Reputation(RepetitiveMechanism, ABC):
             self._play_matchup(agents, payoffs)
         return payoffs
 
-    def _play_matchup(self, players: Sequence[Agent], payoffs: PopulationPayoffs) -> None:
+    def _play_matchup(
+        self, players: Sequence[Agent], payoffs: PopulationPayoffs
+    ) -> None:
         k = self.base_game.num_players
         n = len(players)
         total_matches = math.comb(n, k)
@@ -90,7 +94,9 @@ class Reputation(RepetitiveMechanism, ABC):
                 additional_info=self._format_reputation(players), players=players
             )
             moves_per_round.append([move.to_dict() for move in players_moves])
-            payoff_map = {player.name: move.points for player, move in zip(players, players_moves)}
+            payoff_map = {
+                player.name: move.points for player, move in zip(players, players_moves)
+            }
             payoffs.add_profile(payoff_map)
 
         log_record(record=moves_per_round, file_name=self.record_file)
