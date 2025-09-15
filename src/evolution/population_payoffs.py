@@ -1,9 +1,13 @@
-from typing import Mapping, Sequence, Any
+import math
+from typing import Any, Sequence
+
+from src.games.base import Move
 
 import numpy as np
 
 
 class PopulationPayoffs:
+    """A class to manage and compute payoffs for a population of agents."""
 
     def __init__(
         self, agent_names: Sequence[str], *, discount: float | None = None
@@ -14,30 +18,25 @@ class PopulationPayoffs:
         self.discount = discount if discount is not None else 1.0
 
         # Store list of payoff vectors
-        self._table: dict[tuple[str, ...], np.ndarray] = {}
+        self._table: dict[tuple[int, ...], np.ndarray] = {}
 
-    def reset(self) -> None:
-        """Reset the payoff table to be empty."""
-        self._table.clear()
+    def _players_to_counts(self, players: Sequence[str]) -> tuple[int, ...]:
+        """Convert player names to counts (tuple of count)."""
+        counts = np.zeros(self.k, dtype=int)
+        for name in players:
+            counts[self._idx[name]] += 1
+        aaa = tuple(int(c) for c in counts)
+        return aaa
 
-    def add_profile(self, payoff_map: Mapping[str, float]) -> None:
-        """Add a new payoff profile to the table.
-        If the game is repetitive, only the new match payoff is added rather than the cumulative payoff.
-
-        Eg, if the match payoff is [1, 2, 3] over 3 rounds, [1, 2, 3] should be added sequentially.
+    def _counts_to_players(self, counts: Sequence[int]) -> list[str]:
+        """Convert counts (list of count) back to player names.
+        List of player names are sorted by the order in self.agent_names.
         """
-        key = tuple(name for name in self.agent_names if name in payoff_map)
-
-        vec = np.zeros(self.k, dtype=float)
-        for t, p in payoff_map.items():
-            vec[self._idx[t]] = float(p)
-
-        if key not in self._table:
-            # start a (1, k) array
-            self._table[key] = vec[None, :]
-        else:
-            # append to shape (n+1, k)
-            self._table[key] = np.vstack([self._table[key], vec[None, :]])
+        out = []
+        for i, c in enumerate(counts):
+            if c > 0:
+                out.extend([self.agent_names[i]] * int(c))
+        return out
 
     def _discounted_average(self, payoffs: np.ndarray) -> np.ndarray:
         """
@@ -56,16 +55,61 @@ class PopulationPayoffs:
         # weights already sum to 1, so no need to normalize
         return np.sum(weights[:, None] * cumsum_ave_payoffs, axis=0)
 
-    def fitness(self, population: np.ndarray) -> np.ndarray:
-        """Calculate the fitness of the population based on the payoff profiles."""
-        fitness = np.zeros(self.k, float)
-        for key, payoff_list in self._table.items():
-            avg_profile = self._discounted_average(payoff_list)
-            prob = 1.0
-            for t in key:
-                prob *= population[self._idx[t]]
-            fitness += prob * avg_profile
+    def reset(self) -> None:
+        """Reset the payoff table to be empty."""
+        self._table.clear()
 
+    def add_profile(self, moves: list[Move]) -> None:
+        """
+        Add one observed round for a lineup that may contain duplicates, e.g. ["A","A","B"].
+
+        `payoffs` is per-type (interpreted per seat for that type). Any types not present
+        in `payoffs` are assumed to have payoff 0 for the round.
+        """
+        key = self._players_to_counts([m.name for m in moves])
+
+        vec = np.zeros(self.k, dtype=float)
+        for m in moves:
+            vec[self._idx[m.name]] = float(m.points)
+
+        if key not in self._table:
+            self._table[key] = vec[None, :]  # (1, k)
+        else:
+            # Stack against the 1st dimension for multiple rounds profiles
+            self._table[key] = np.vstack([self._table[key], vec[None, :]])
+
+    def fitness(self, population: np.ndarray) -> np.ndarray:
+        """
+        Expected per-type payoff with weight = ∏ p_i^{count_i} for each stored counts key.
+        Note: This is *not* multiplied by any multinomial coefficient.
+        """
+        if population.shape != (self.k,):
+            raise ValueError(
+                f"population must be shape ({self.k},), got {population.shape}"
+            )
+        s = population.sum()
+        if not np.isclose(s, 1.0):
+            raise ValueError(f"Total population must sum to 1.0, got {s}")
+
+        fitness = np.zeros(self.k, dtype=float)
+        for counts, rounds in self._table.items():
+            counts_arr = np.asarray(counts, dtype=int)
+            if np.any((population == 0) & (counts_arr > 0)):
+                weight = 0.0
+            else:
+                logprod = np.sum(
+                    counts_arr * np.log(np.where(population > 0, population, 1.0))
+                )
+                comb_factor = math.factorial(sum(counts)) / np.prod(
+                    [math.factorial(c) for c in counts_arr]
+                )
+                weight = comb_factor * math.exp(logprod)
+
+            if weight == 0.0:
+                continue
+
+            avg_profile = self._discounted_average(rounds)  # (k,)
+            fitness += weight * avg_profile
         return fitness
 
     def to_record(self) -> dict[str, Any]:
@@ -75,26 +119,31 @@ class PopulationPayoffs:
         - expected_payoff: dict[name -> payoff] computed as fitness(population=all ones).
         """
         profiles = []
-        for key, arr in self._table.items():
-            idxs = [self._idx[name] for name in key]
-            local_rounds = arr[:, idxs]  # shape: (rounds, len(key))
-            local_avg = self._discounted_average(local_rounds)
-            entry = {
-                "players": list(key),
-                "rounds": local_rounds.tolist(),
-                "discounted_average": local_avg.tolist(),
-            }
-            profiles.append(entry)
+        for counts, arr in self._table.items():
+            players_list = self._counts_to_players(counts)
+            present_idxs = [
+                self._idx[name]
+                for name in sorted(set(players_list), key=lambda n: self._idx[n])
+            ]
 
-        expected_payoff = self.fitness(np.ones(self.k) / self.k)
+            profiles.append(
+                {
+                    "players": players_list,
+                    "rounds": arr[:, present_idxs].tolist(),
+                    "discounted_average": {
+                        self.agent_names[i]: float(self._discounted_average(arr)[i])
+                        for i in present_idxs
+                    },
+                }
+            )
 
-        payoff_record = {
+        expected_payoff = self.fitness(np.ones(self.k, dtype=float) / self.k)
+
+        return {
             "discount": float(self.discount),
             "profiles": profiles,
             "expected_payoff": {
-                name: v * self.k
+                name: float(v)
                 for name, v in zip(self.agent_names, expected_payoff.tolist())
             },
         }
-        print(payoff_record)
-        return payoff_record

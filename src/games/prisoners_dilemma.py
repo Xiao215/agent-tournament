@@ -1,8 +1,8 @@
+import textwrap
 from typing import Callable, Sequence
 
 from src.agents.agent_manager import Agent
-from src.games.base import Action, Game
-import textwrap
+from src.games.base import Action, Game, Move
 
 
 class PrisonersDilemmaAction(Action):
@@ -69,7 +69,7 @@ class PrisonersDilemma(Game):
         additional_info: list[str] | str,
         players: Sequence[Agent],
         action_map: Callable = lambda x: x,
-    ) -> list[Game.Move]:
+    ) -> list[Move]:
         assert len(players) == 2
         player1, player2 = players
 
@@ -96,13 +96,13 @@ class PrisonersDilemma(Game):
 
         pts1, pts2 = self.payoff_matrix[(actions[player1.name], actions[player2.name])]
         return [
-            Game.Move(
+            Move(
                 name=player1.name,
                 action=actions[player1.name],
                 points=pts1,
                 response=responses[player1.name],
             ),
-            Game.Move(
+            Move(
                 name=player2.name,
                 action=actions[player2.name],
                 points=pts2,

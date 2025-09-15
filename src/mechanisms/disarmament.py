@@ -1,15 +1,13 @@
-import random
-import re
-from typing import Sequence
 import json
+import re
 import textwrap
+from typing import Sequence
 
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
 from src.mechanisms.base import RepetitiveMechanism
-
-random.seed(42)
+from src.logger_manager import LOGGER
 
 
 class Disarmament(RepetitiveMechanism):
@@ -99,7 +97,7 @@ class Disarmament(RepetitiveMechanism):
         caps_by_agent: dict[str, list[float]],
         *,
         max_retries: int = 5,
-    ) -> tuple[list[float], bool]:
+    ) -> tuple[str, list[float], bool]:
         """
         Ask the LLM for disarm caps and parse with automatic retries.
         Returns: (new_caps, changed, last_response). On total failure, returns (old_caps, False, last_response)
@@ -119,8 +117,7 @@ class Disarmament(RepetitiveMechanism):
             response = self.base_game.prompt_player(player, output_instruction=prompt)
 
             try:
-                new_caps, changed = self._parse_disarm_caps(response, old_caps)
-                return new_caps, changed
+                return response, *self._parse_disarm_caps(response, old_caps)
             except ValueError as e:
                 error_reason = str(e)
                 print(
@@ -128,22 +125,14 @@ class Disarmament(RepetitiveMechanism):
                 )
 
         print(
-            f"Warning: Failed to parse disarm caps after {1 + max_retries} attempts. "
+            f"Warning: Failed to parse disarm caps for {player.name} after {1 + max_retries} attempts. "
             f"Last error: {error_reason}. Last response: {response!r}"
         )
-        return old_caps[:], False
-
-    @staticmethod
-    def _build_retry_prompt(
-        base_prompt: str, bad_response: str, error_reason: str
-    ) -> str:
-        """Restate the prompt, show prior answer and the error reason, then ask for regeneration."""
-        br = bad_response.replace("\n", " ")[:500]
+        # If all the attempts fail, return the old caps and indicate no change
         return (
-            f"{base_prompt}\n\n"
-            f"Your previous response was:\n{br}\n\n"
-            f"That response is INVALID because: {error_reason}\n\n"
-            f"Please give the action cap again!"
+            f"Fail to disarm for {player.name}, keep the same cap.",
+            old_caps[:],
+            False,
         )
 
     def _parse_disarm_caps(
@@ -165,6 +154,9 @@ class Disarmament(RepetitiveMechanism):
 
         got_keys = set(json_obj.keys())
         missing = set(f"A{i}" for i in range(n)) - got_keys
+        extra = got_keys - set(f"A{i}" for i in range(n))
+        if extra:
+            raise ValueError(f"Action key mismatch. Extra: {sorted(extra)}")
         if missing:
             raise ValueError(f"Action key mismatch. Missing: {sorted(missing)}")
 
@@ -197,14 +189,15 @@ class Disarmament(RepetitiveMechanism):
             player.name: [100.0 for _ in range(self.base_game.num_actions)]
             for player in players
         }
+        disarmament_records = []
         for _ in range(self.num_rounds):
             new_disarmed_cap = {}
             negotiation_continue = False
             additional_info = []
-
+            round_records = []
             for player in players:
                 if sum(disarmed_cap[player.name]) > 100.0:
-                    new_cap, changed = self._negotiate_disarm_caps(
+                    disarm_rsp, new_cap, changed = self._negotiate_disarm_caps(
                         player=player,
                         old_caps=disarmed_cap[player.name],
                         caps_by_agent=disarmed_cap,
@@ -212,7 +205,15 @@ class Disarmament(RepetitiveMechanism):
                     negotiation_continue |= changed
                     new_disarmed_cap[player.name] = new_cap
                 else:
+                    disarm_rsp = "No room for further disarmament, keep the same cap."
                     new_disarmed_cap[player.name] = disarmed_cap[player.name]
+
+                round_records.append(
+                    {
+                        "response": disarm_rsp,
+                        "new_cap": new_disarmed_cap[player.name],
+                    }
+                )
                 capping_limitation = self._caps_to_line(new_disarmed_cap[player.name])
                 additional_info.append(
                     self.game_prompt.format(my_caps=capping_limitation)
@@ -221,8 +222,13 @@ class Disarmament(RepetitiveMechanism):
             moves = self.base_game.play(
                 players=players, additional_info=additional_info
             )
-            payoffs.add_profile({move.name: move.points for move in moves})
+            payoffs.add_profile(moves)
+
+            disarmament_records.append(
+                [{**r, **m.to_dict()} for r, m in zip(round_records, moves)]
+            )
 
             disarmed_cap = new_disarmed_cap
             if not negotiation_continue:
                 break
+        LOGGER.log_record(record=disarmament_records, file_name=self.record_file)

@@ -19,22 +19,15 @@ mechanism:
 
 agents:
   - llm:
-      provider: HFInstance
-      model: Meta-Llama-3.1-8B-Instruct
+      provider: OpenRouter
+      model: openai/gpt-oss-20b:free
       kwargs:
-        max_new_tokens: 2048
+        temperature: 0
     type: CoTAgent
 
   - llm:
-      provider: HFInstance
-      model: gemma-2-9b-it
+      provider: OpenRouter
+      model: deepseek/deepseek-chat-v3.1:free
       kwargs:
-        max_new_tokens: 1024
+        temperature: 0
     type: CoTAgent
-
-  - llm:
-      provider: HFInstance
-      model: Qwen2.5-7B-Instruct
-      kwargs:
-        max_new_tokens: 2048
-    type: IOAgent

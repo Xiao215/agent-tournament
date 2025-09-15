@@ -1,8 +1,8 @@
 import argparse
-import json
-import os
-from datetime import datetime
 from pathlib import Path
+import torch
+import numpy as np
+import random
 
 import yaml
 
@@ -12,13 +12,15 @@ from src.plot import plot_probability_evolution
 from src.registry.game_registry import GAME_REGISTRY
 from src.registry.agent_registry import create_agent
 from src.registry.mechanism_registry import MECHANISM_REGISTRY
-from src.logger_manager import WandBLogger, log_dir
+from src.logger_manager import WandBLogger, LOGGER
 
 
-def record_config(config: dict) -> None:
-    out_path = log_dir / "config.json"
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+def set_seed(seed=42):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def load_config(filename: str) -> dict:
@@ -59,7 +61,7 @@ def main():
     for i, agent in enumerate(agents):
         # Create the name field to make frontend easier.
         config["agents"][i]["name"] = agent.name
-    record_config(config)
+    LOGGER.log_record(config, "config.json")
 
     print(
         f"Running {config['game']['type']} with mechanism {config['mechanism']['type']}.\n"
@@ -90,4 +92,5 @@ def main():
 
 
 if __name__ == "__main__":
+    set_seed()
     main()

@@ -1,15 +1,13 @@
-import random
+import json
 import re
-from typing import Callable, Sequence
 import textwrap
+from typing import Callable, Sequence
 
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
+from src.logger_manager import LOGGER
 from src.mechanisms.base import Mechanism
-from src.registry.agent_registry import create_agent
-
-random.seed(42)
 
 
 class Mediation(Mechanism):
@@ -20,11 +18,9 @@ class Mediation(Mechanism):
     def __init__(
         self,
         base_game: Game,
-        designer_cfg: dict,
     ) -> None:
         super().__init__(base_game)
-        self.designer = create_agent(designer_cfg)
-
+        self.mediators: dict[str, dict[int, int]] = {}
         self.mediator_design_prompt = textwrap.dedent(
             """
         Instruction:
@@ -37,7 +33,7 @@ class Mediation(Mechanism):
 
         Output Format:
         Return exactly **one valid Python dictionary** in a single line:
-        {{1: <Action>, ..., {num_players}: <Action>}}
+        {{"1": <Action>, ..., "{num_players}": <Action>}} where <Action> is a string like "A0", "A1" ...
 
         - Keys: the number of players delegating (from 1 to {num_players}).
         - Values: the action the mediator will recommend (e.g., "A0", "A1", ...).
@@ -61,9 +57,13 @@ class Mediation(Mechanism):
 
     def _design_mediator(
         self, player: Agent, *, max_retries: int = 5
-    ) -> dict[int, str]:
+    ) -> tuple[str, dict[int, int]]:
         """
         Design the mediator agent by prompting the designer.
+
+        Returns:
+            response (str): The raw response from the designer.
+            mediator (dict[int, int]): A dictionary mapping number of delegating players to recommended action.
         """
         base_prompt = self.mediator_design_prompt.format(
             num_players=self.base_game.num_players,
@@ -79,55 +79,48 @@ class Mediation(Mechanism):
                 prompt = self._build_retry_prompt(base_prompt, response, error_reason)
 
             response = self.base_game.prompt_player(player, output_instruction=prompt)
-            print(response)
             try:
-                mediator = self._parse_mediator(response)
-                print(f"Successfully designed mediator: {mediator}")
-                return mediator
+                return response, self._parse_mediator(response)
             except ValueError as e:
                 error_reason = str(e)
                 print(
                     f"Attempt {attempt + 1} of {player.name} to design mediator failed: "
-                    "{error_reason} from response {response!r}"
+                    f"{error_reason} from response {response!r}"
                 )
         raise ValueError(
-            f"Failed to design mediator after {1 + max_retries} attempts. "
+            f"Failed to design mediator with {player.name} after {1 + max_retries} attempts. "
             f"Last error: {error_reason}. Last response: {response!r}"
         )
 
-    @staticmethod
-    def _build_retry_prompt(
-        base_prompt: str, bad_response: str, error_reason: str
-    ) -> str:
-        """Restate the prompt, show prior response and ask for regeneration."""
-        br = bad_response.replace("\n", " ")[:500]
-        return (
-            f"{base_prompt}\n\n"
-            f"Your previous response was:\n{br}\n\n"
-            f"That response is INVALID because: {error_reason}\n\n"
-            f"Please give the action cap again!"
-        )
-
-    def _parse_mediator(self, response: str) -> dict[int, str]:
+    def _parse_mediator(self, response: str) -> dict[int, int]:
         """
         Parse the mediator design from the response.
         Expecting a Python dictionary in string format.
         """
-        pairs = re.findall(r'(\d+)\s*:\s*(?:"|\'|)?A(\d+)(?:"|\'|)?', response)
+        matches = re.findall(r"\{.*?\}", response, re.DOTALL)
+        if not matches:
+            raise ValueError(f"No JSON object found in the response {response!r}")
+        json_str = matches[-1]
+
+        try:
+            json_obj = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON: {e.msg}") from e
 
         mediator = {}
-        for k, v in pairs:
-            if int(k) < 1 or int(k) > self.base_game.num_players:
+        for k, v in json_obj.items():
+            k = int(k)
+            if k < 1 or k > self.base_game.num_players:
                 raise ValueError(
-                    f"Invalid player number {k} for the pair {k}: A{v}, "
+                    f"Invalid player number {k} for the pair {k}: {v}, "
                     f"must be between 1 and {self.base_game.num_players}."
                 )
-            if not 0 <= int(v) < self.base_game.num_actions:
+            if not 0 <= int(v[1:]) < self.base_game.num_actions:
                 raise ValueError(
-                    f"Invalid action A{v} for the pair {k}: A{v}, "
+                    f"Invalid action {v} for the pair {k}: {v}, "
                     f"must be one of {[f'A{a}' for a in range(self.base_game.num_actions)]}."
                 )
-            mediator[int(k)] = f"A{v}"
+            mediator[k] = int(v[1:])
         if len(mediator) != self.base_game.num_players:
             raise ValueError(
                 "There are missing cases in the mediator design, "
@@ -136,49 +129,72 @@ class Mediation(Mechanism):
             )
         return mediator
 
-    def _mediator_description(self, mediator: dict[int, str]) -> str:
+    def _mediator_description(self, mediator: dict[int, int]) -> str:
         """Format the prompt for the mediator agent."""
         lines = []
         for num_delegating, action in mediator.items():
             lines.append(
                 f"\t• If {num_delegating} player(s) delegate to the mediator, "
-                f"it will recommend action {action}."
+                f"it will recommend action A{action}."
             )
         return "\n".join(lines)
+
+    def run_tournament(self, agents: Sequence[Agent]) -> PopulationPayoffs:
+        mediator_design = {}
+        for agent in agents:
+            if agent.name not in self.mediators:
+                response, mediator = self._design_mediator(agent)
+                self.mediators[agent.name] = mediator
+                mediator_design[agent.name] = {
+                    "response": response,
+                    "mediator": mediator,
+                }
+        LOGGER.log_record(record=mediator_design, file_name="mediator_design.json")
+        return super().run_tournament(agents)
 
     def _play_matchup(
         self, players: Sequence[Agent], payoffs: PopulationPayoffs
     ) -> None:
-        mediator = self._design_mediator(self.designer)
-        mediator_description = self._mediator_description(mediator)
-        additional_info = self.game_prompt.format(
-            mediator_description=mediator_description,
-            additional_action_id=self.base_game.num_actions,
-        )
-        moves = self.base_game.play(
-            players=players,
-            additional_info=additional_info,
-            action_map=self.mediator_mapping(mediator),
-        )
-        payoffs.add_profile({move.name: move.points for move in moves})
+        history = []
+        for player in players:
+            if player.name not in self.mediators:
+                raise ValueError(f"Mediator for player {player.name} not found.")
+            mediator = self.mediators[player.name]
+            mediator_description = self._mediator_description(mediator)
+            additional_info = self.game_prompt.format(
+                mediator_description=mediator_description,
+                additional_action_id=self.base_game.num_actions,
+            )
+            moves = self.base_game.play(
+                players=players,
+                additional_info=additional_info,
+                action_map=self.mediator_mapping(mediator),
+            )
+            payoffs.add_profile(moves)
+            history.append(
+                {"mediator": player.name, "moves": [move.to_dict() for move in moves]}
+            )
+        LOGGER.log_record(record=history, file_name=self.record_file)
 
-    def mediator_mapping(self, mediator: dict[int, str]) -> Callable:
+    def mediator_mapping(self, mediator: dict[int, int]) -> Callable:
         """
         Given the original actions and the mediator design, return the final actions
         after applying the mediator's recommendations.
         """
 
-        def apply_mediation(actions_str: dict[str, str]) -> dict[str, str]:
+        def apply_mediation(player_action_map: dict[str, int]) -> dict[str, int]:
             actions = {}
-            num_delegating = sum(1 for a in actions_str.values() if a == "D")
+            num_delegating = sum(
+                a == self.base_game.num_actions for a in player_action_map.values()
+            )
             if num_delegating == 0:
-                return actions_str
+                return player_action_map
             recommended_action = mediator[num_delegating]
-            for player_name, action_str in actions_str.items():
-                if action_str == "D":
+            for player_name, action_idx in player_action_map.items():
+                if action_idx == self.base_game.num_actions:
                     actions[player_name] = recommended_action
                 else:
-                    actions[player_name] = action_str
+                    actions[player_name] = action_idx
             return actions
 
         return apply_mediation

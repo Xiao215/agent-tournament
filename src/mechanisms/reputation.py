@@ -12,8 +12,8 @@ from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
 from src.games.prisoners_dilemma import PrisonersDilemma, PrisonersDilemmaAction
 from src.games.public_goods import PublicGoods, PublicGoodsAction
+from src.logger_manager import LOGGER
 from src.mechanisms.base import RepetitiveMechanism
-from src.logger_manager import log_record
 
 random.seed(42)
 
@@ -77,7 +77,7 @@ class Reputation(RepetitiveMechanism, ABC):
         k = self.base_game.num_players
         n = len(players)
         total_matches = math.comb(n, k)
-        combo_iter = list(itertools.combinations(players, k))
+        combo_iter = list(itertools.combinations_with_replacement(players, k))
         random.shuffle(combo_iter)
         inner_tqdm_bar = tqdm(
             combo_iter,
@@ -90,21 +90,18 @@ class Reputation(RepetitiveMechanism, ABC):
             matchup = " vs ".join(agent.name for agent in players)
             inner_tqdm_bar.set_description(f"Match: {matchup}")
 
-            players_moves = self.base_game.play(
+            moves = self.base_game.play(
                 additional_info=self._format_reputation(players), players=players
             )
-            moves_per_round.append([move.to_dict() for move in players_moves])
-            payoff_map = {
-                player.name: move.points for player, move in zip(players, players_moves)
-            }
-            payoffs.add_profile(payoff_map)
+            moves_per_round.append([move.to_dict() for move in moves])
+            payoffs.add_profile(moves)
 
-        log_record(record=moves_per_round, file_name=self.record_file)
+        LOGGER.log_record(record=moves_per_round, file_name=self.record_file)
 
         # Update reputation score at the end of each round
         for players_moves in moves_per_round:
             for move in players_moves:
-                self._update_reputation(move.name, move.action)
+                self._update_reputation(move["name"], move["action"])
 
     @abstractmethod
     def _update_reputation(self, name: str, action: str) -> None:

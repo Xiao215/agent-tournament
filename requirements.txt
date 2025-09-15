@@ -11,3 +11,5 @@ protobuf
 wandb
 isort
 black
+openai
+pydantic-settings

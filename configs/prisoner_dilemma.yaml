@@ -12,45 +12,66 @@ evolution:
   steps: 100
 
 mechanism:
-  type: ReputationPrisonersDilemma
+  type: Repetition
   kwargs:
     num_rounds: 20
     discount: 0.95
 
 agents:
   - llm:
+      provider: HFInstance
       model: Qwen2.5-7B-Instruct
       kwargs:
         max_new_tokens: 2048
     type: CoTAgent
 
   - llm:
+      provider: HFInstance
       model: Mistral-7B-Instruct-v0.3
       kwargs:
         max_new_tokens: 1024
     type: CoTAgent
 
   - llm:
+      provider: HFInstance
       model: Llama-3.2-3B-Instruct
       kwargs:
         max_new_tokens: 2048
     type: CoTAgent
 
   - llm:
+      provider: HFInstance
       model: gemma-2-9b-it
       kwargs:
         max_new_tokens: 1024
     type: CoTAgent
 
   # Deepseek is always a chain of thought agent. It will always think.
+  # - llm:
+  #     provider: HFInstance
+  #     model: DeepSeek-R1-Distill-Llama-8B
+  #     kwargs:
+  #       max_new_tokens: 4096
+  #   type: CoTAgent
+
+  # Qwen3 is always a chain of thought agent. Need to have high token limit.
+  # - llm:
+  #     provider: HFInstance
+  #     model: Qwen3-14B
+  #     kwargs:
+  #       max_new_tokens: 4096
+  #   type: CoTAgent
+
   - llm:
-      model: DeepSeek-R1-Distill-Llama-8B
+      provider: OpenRouter
+      model: openai/gpt-oss-20b:free
       kwargs:
-        max_new_tokens: 4096
+        temperature: 0
     type: CoTAgent
 
   - llm:
-      model: Qwen3-14B
+      provider: OpenRouter
+      model: deepseek/deepseek-chat-v3.1:free
       kwargs:
-        max_new_tokens: 2048
+        temperature: 0
     type: CoTAgent

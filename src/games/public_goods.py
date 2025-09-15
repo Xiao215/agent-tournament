@@ -1,7 +1,7 @@
 from typing import Callable, Sequence
 
 from src.agents.agent_manager import Agent
-from src.games.base import Action, Game
+from src.games.base import Action, Game, Move
 
 
 class PublicGoodsAction(Action):
@@ -68,7 +68,7 @@ class PublicGoods(Game):
         additional_info: list[str] | str,
         players: Sequence[Agent],
         action_map: Callable = lambda x: x,
-    ) -> list[Game.Move]:
+    ) -> list[Move]:
         """
         Runs the Public Goods game: collects all actions, computes payoffs,
         and returns a list of Moves with each agent's action and points earned.
@@ -101,7 +101,7 @@ class PublicGoods(Game):
         moves = []
         for name, action in actions.items():
             moves.append(
-                Game.Move(
+                Move(
                     name=name,
                     action=action,
                     points=(

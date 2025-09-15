@@ -1,14 +1,11 @@
-import random
 from typing import Sequence
 
 from tqdm import tqdm
 
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
+from src.logger_manager import LOGGER
 from src.mechanisms.base import RepetitiveMechanism
-from src.logger_manager import log_record
-
-random.seed(42)
 
 
 class Repetition(RepetitiveMechanism):
@@ -53,11 +50,10 @@ class Repetition(RepetitiveMechanism):
             desc=f"Running {self.__class__.__name__} repetitive rounds",
         ):
             repetition_information = self._parse_history(history)
-            players_moves = self.base_game.play(
+            moves = self.base_game.play(
                 additional_info=repetition_information, players=players
             )
 
-            history.append([move.to_dict() for move in players_moves])
-            payoffs.add_profile({move.name: move.points for move in players_moves})
-
-        log_record(record=history, file_name=self.record_file)
+            history.append([move.to_dict() for move in moves])
+            payoffs.add_profile(moves)
+        LOGGER.log_record(record=history, file_name=self.record_file)

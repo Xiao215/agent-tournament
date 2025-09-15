@@ -1,14 +1,11 @@
-import random
 from typing import Literal
 
 import numpy as np
 from tqdm import tqdm
 
-from src.logger_manager import log_record
 from src.agents.agent_manager import Agent
+from src.logger_manager import LOGGER
 from src.mechanisms.base import Mechanism
-
-random.seed(42)
 
 
 class DiscreteReplicatorDynamics:
@@ -93,8 +90,12 @@ class DiscreteReplicatorDynamics:
 
         population_payoffs = self.mechanism.run_tournament(agents=self.agents)
         fitness = population_payoffs.fitness(population)
+        print("Initial population fitness:", fitness)
+        print(f"Record is: {population_payoffs.to_record()}")
 
-        log_record(record=population_payoffs.to_record(), file_name="payoffs.json")
+        LOGGER.log_record(
+            record=population_payoffs.to_record(), file_name="payoffs.json"
+        )
 
         for step in tqdm(range(1, steps + 1), desc="Evolution Steps"):
 

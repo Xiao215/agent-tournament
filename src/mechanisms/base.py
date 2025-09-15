@@ -2,15 +2,13 @@ import itertools
 import math
 import random
 from abc import ABC, abstractmethod
-from typing import Sequence, Any
+from typing import Any, Sequence
 
 from tqdm import tqdm
 
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
-
-random.seed(42)
 
 
 class Mechanism(ABC):
@@ -32,7 +30,7 @@ class Mechanism(ABC):
         k = self.base_game.num_players
         n = len(agents)
         total_matches = math.comb(n, k)
-        combo_iter = list(itertools.combinations(agents, k))
+        combo_iter = list(itertools.combinations_with_replacement(agents, k))
         random.shuffle(combo_iter)  # The order does not matter, kept just in case
 
         inner_tqdm_bar = tqdm(
@@ -48,10 +46,23 @@ class Mechanism(ABC):
             self._play_matchup(players, payoffs)
         return payoffs
 
+    @staticmethod
+    def _build_retry_prompt(
+        base_prompt: str, bad_response: str, error_reason: str
+    ) -> str:
+        """Restate the prompt, show prior response and ask for regeneration."""
+        br = bad_response.replace("\n", " ")[:500]
+        return (
+            f"{base_prompt}\n\n"
+            f"Your previous response was:\n{br}\n\n"
+            f"That response is INVALID because: {error_reason}\n\n"
+            f"Please give the new output again!"
+        )
+
     @abstractmethod
     def _play_matchup(
         self, players: Sequence[Agent], payoffs: PopulationPayoffs
-    ) -> Any:
+    ) -> None:
         """Play match(es) between the given players."""
         raise NotImplementedError
 
@@ -75,9 +86,6 @@ class NoMechanism(Mechanism):
         self, players: Sequence[Agent], payoffs: PopulationPayoffs
     ) -> Any:
         """Run the base game without any modifications."""
-        players_moves = self.base_game.play(additional_info="None.", players=players)
-        payoff_map = {
-            player.name: move.points for player, move in zip(players, players_moves)
-        }
-        payoffs.add_profile(payoff_map)
-        return players_moves
+        moves = self.base_game.play(additional_info="None.", players=players)
+        payoffs.add_profile(moves)
+        return moves
