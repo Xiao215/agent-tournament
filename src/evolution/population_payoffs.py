@@ -59,6 +59,21 @@ class PopulationPayoffs:
         """Reset the payoff table to be empty."""
         self._table.clear()
 
+    def merge_from(self, other: "PopulationPayoffs") -> None:
+        """
+        Merge another PopulationPayoffs into this one by concatenating rounds per lineup key.
+        Assumes same agent_names ordering and discount.
+        """
+        if self.agent_names != other.agent_names:
+            raise ValueError("Cannot merge payoffs with different agent sets/order")
+        if not math.isclose(self.discount, other.discount):
+            raise ValueError("Cannot merge payoffs with different discounts")
+        for key, arr in other._table.items():
+            if key not in self._table:
+                self._table[key] = arr.copy()
+            else:
+                self._table[key] = np.vstack([self._table[key], arr])
+
     def add_profile(self, moves: list[Move]) -> None:
         """
         Add one observed round for a lineup that may contain duplicates, e.g. ["A","A","B"].

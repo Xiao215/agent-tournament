@@ -2,6 +2,8 @@ import itertools
 import math
 import random
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 from typing import Any, Sequence
 
 from tqdm import tqdm
@@ -19,6 +21,7 @@ class Mechanism(ABC):
         self.record_file = (
             f"{self.__class__.__name__}_{self.base_game.__class__.__name__}.jsonl"
         )
+        self.matchup_workers = 1
 
     def _build_payoffs(self, agent_names: list[str]) -> PopulationPayoffs:
         return PopulationPayoffs(agent_names=agent_names)
@@ -33,18 +36,53 @@ class Mechanism(ABC):
         combo_iter = list(itertools.combinations_with_replacement(agents, k))
         random.shuffle(combo_iter)  # The order does not matter, kept just in case
 
-        inner_tqdm_bar = tqdm(
-            combo_iter,
-            desc="Tournaments",
-            total=total_matches,
-            leave=False,
-            position=1,
-        )
-        for players in inner_tqdm_bar:
-            matchup = " vs ".join(agent.name for agent in players)
-            inner_tqdm_bar.set_description(f"Match: {matchup}")
-            self._play_matchup(players, payoffs)
-        return payoffs
+        if self.matchup_workers <= 1:
+            inner_tqdm_bar = tqdm(
+                combo_iter,
+                desc="Tournaments",
+                total=total_matches,
+                leave=False,
+                position=1,
+            )
+            first_duration = None
+            for players in inner_tqdm_bar:
+                matchup = " vs ".join(agent.name for agent in players)
+                inner_tqdm_bar.set_description(f"Match: {matchup}")
+                t0 = time.perf_counter()
+                self._play_matchup(players, payoffs)
+                dt = time.perf_counter() - t0
+                if first_duration is None:
+                    first_duration = dt
+                    # Rough ETA: match-count * per-match duration
+                    est_total = dt * total_matches
+                    print(
+                        f"[ETA] ~{est_total/60:.1f} min for {total_matches} matchups (sequential)."
+                    )
+            return payoffs
+
+        # Parallel branch: run independent matchups concurrently
+        def run_one(players: Sequence[Agent]) -> tuple[PopulationPayoffs, float]:
+            local = self._build_payoffs(agent_names=[agent.name for agent in agents])
+            t0 = time.perf_counter()
+            self._play_matchup(players, local)
+            dt = time.perf_counter() - t0
+            return local, dt
+
+        merged = payoffs
+        with ThreadPoolExecutor(max_workers=self.matchup_workers) as ex:
+            futures = [ex.submit(run_one, players) for players in combo_iter]
+            first_dt = None
+            for fut in tqdm(as_completed(futures), total=len(futures), desc="Tournaments", leave=False, position=1):
+                local, dt = fut.result()
+                if first_dt is None:
+                    first_dt = dt
+                    waves = (total_matches + self.matchup_workers - 1) // self.matchup_workers
+                    est_total = first_dt * waves
+                    print(
+                        f"[ETA] ~{est_total/60:.1f} min for {total_matches} matchups with {self.matchup_workers} workers."
+                    )
+                merged.merge_from(local)
+        return merged
 
     @staticmethod
     def _build_retry_prompt(

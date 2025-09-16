@@ -53,7 +53,13 @@ def main():
     mechanism_class = MECHANISM_REGISTRY[config["mechanism"]["type"]]
 
     game = game_class(**config["game"].get("kwargs", {}))
-    mechanism = mechanism_class(base_game=game, **config["mechanism"].get("kwargs", {}))
+    # Extract mechanism kwargs and handle matchup_workers separately to avoid ctor error
+    mech_kwargs = (config["mechanism"].get("kwargs", {}) or {}).copy()
+    workers = mech_kwargs.pop("matchup_workers", None)
+    mechanism = mechanism_class(base_game=game, **mech_kwargs)
+    # Optional parallelism across matchups
+    if isinstance(workers, int):
+        mechanism.matchup_workers = max(1, workers)
 
     agents = [create_agent(agent_cfg) for agent_cfg in config["agents"]]
 

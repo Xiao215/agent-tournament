@@ -1,5 +1,6 @@
 import textwrap
 from typing import Callable, Sequence
+from concurrent.futures import ThreadPoolExecutor
 
 from src.agents.agent_manager import Agent
 from src.games.base import Action, Game, Move
@@ -21,8 +22,11 @@ class PrisonersDilemma(Game):
     def __init__(
         self,
         payoff_matrix: dict[str, list[float]],
+        *,
+        parallel_players: bool = False,
     ) -> None:
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
+        self.parallel_players = parallel_players
 
         self.action_tokens = [act.to_token() for act in PrisonersDilemmaAction]
         actions_block = "\n".join([f"- {act_tok}" for act_tok in self.action_tokens])
@@ -79,14 +83,24 @@ class PrisonersDilemma(Game):
         responses = {}
         actions = {}
 
-        for player, info in zip(players, additional_info):
+        def play_one(player: Agent, info: str) -> tuple[str, int, str]:
             resp = self.prompt_player(player, info)
-            responses[player.name] = resp
+            probs = self._extract_mixed_strategy(player, resp, info)
+            action_idx = self._choose_from_mix_strategy(probs)
+            return player.name, action_idx, resp
 
-            prob_distribution = self._extract_mixed_strategy(player, resp, info)
-            action_idx = self._choose_from_mix_strategy(prob_distribution)
-            actions[player.name] = action_idx
-            responses[player.name] = resp
+        if self.parallel_players:
+            with ThreadPoolExecutor(max_workers=self.num_players) as ex:
+                futs = [ex.submit(play_one, p, info) for p, info in zip(players, additional_info)]
+                for fut in futs:
+                    name, action_idx, resp = fut.result()
+                    actions[name] = action_idx
+                    responses[name] = resp
+        else:
+            for player, info in zip(players, additional_info):
+                name, action_idx, resp = play_one(player, info)
+                actions[name] = action_idx
+                responses[name] = resp
 
         actions = action_map(actions)
         actions = {

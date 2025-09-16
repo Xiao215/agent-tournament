@@ -1,5 +1,6 @@
 import json
 import os
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -25,22 +26,24 @@ class Logger:
             / f"{now.hour:02}:{now.minute:02}"
         )
         os.makedirs(self.log_dir, exist_ok=True)
+        self._lock = threading.Lock()
 
     def log_record(self, record: dict | list, file_name: str) -> None:
         """
         Log the evolution record to a JSON or JSONL file inside log_dir.
         """
         path = self.log_dir / file_name
-        match path.suffix:
-            case ".jsonl":
-                with open(path, "a", encoding="utf-8") as f:
-                    json.dump(record, f)
-                    f.write("\n")
-            case ".json":
-                with open(path, "w", encoding="utf-8") as f:
-                    json.dump(record, f, indent=2)
-            case _:
-                raise ValueError(f"Unsupported file type: {path.suffix}")
+        with self._lock:
+            match path.suffix:
+                case ".jsonl":
+                    with open(path, "a", encoding="utf-8") as f:
+                        json.dump(record, f)
+                        f.write("\n")
+                case ".json":
+                    with open(path, "w", encoding="utf-8") as f:
+                        json.dump(record, f, indent=2)
+                case _:
+                    raise ValueError(f"Unsupported file type: {path.suffix}")
 
     def write_to_txt(self, content: str, filename: str) -> None:
         """
@@ -48,9 +51,10 @@ class Logger:
         Overwrites if the file does not exist.
         """
         path = self.log_dir / filename
-        if not path.exists():
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(content)
+        with self._lock:
+            if not path.exists():
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(content)
 
 
 LOGGER = Logger()
