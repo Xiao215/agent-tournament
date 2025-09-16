@@ -50,7 +50,7 @@ def plot_mechanism_effectiveness(csv_path: str | Path, out_dir: str | Path) -> N
         ax.set_ylabel("Average cooperation")
         ax.set_xlabel("Mechanism")
         plt.xticks(rotation=30, ha="right")
-        out_path = Path(out_dir) / f"mechanism_effectiveness_{game}.png"
+        out_path = Path(out_dir) / "figures" / f"mechanism_effectiveness_{game}.png"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         fig.tight_layout()
         fig.savefig(out_path, dpi=150)
@@ -133,7 +133,7 @@ def plot_agent_performance(payoffs_csv: str | Path, coop_csv: str | Path, out_di
         ax.set_title(f"Agent expected payoff — {game} | {mechanism}")
         ax.set_xlabel("Expected payoff")
         plt.tight_layout()
-        out_path = Path(out_dir) / f"agent_payoffs_{game}_{mechanism}.png"
+        out_path = Path(out_dir) / "figures" / f"agent_payoffs_{game}_{mechanism}.png"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(out_path, dpi=150)
         plt.close(fig)
@@ -158,8 +158,108 @@ def plot_agent_performance(payoffs_csv: str | Path, coop_csv: str | Path, out_di
             ax2.set_ylabel("Expected payoff")
             ax2.set_title(f"Payoff vs Cooperation — {game} | {mechanism}")
             plt.tight_layout()
-            out_path2 = Path(out_dir) / f"agent_payoff_vs_coop_{game}_{mechanism}.png"
+            out_path2 = Path(out_dir) / "figures" / f"agent_payoff_vs_coop_{game}_{mechanism}.png"
             fig2.savefig(out_path2, dpi=150)
             plt.close(fig2)
+
+
+def plot_pairwise_and_trajectories(
+    pairwise_csv: str | Path,
+    conditional_csv: str | Path,
+    trajectory_csv: str | Path,
+    out_dir: str | Path,
+) -> None:
+    # Pairwise heatmap-like bar plots per run (simple version: grouped bars per pair)
+    def read_csv(path: Path) -> List[Dict[str, str]]:
+        rows: List[Dict[str, str]] = []
+        with open(path, "r", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                rows.append(r)
+        return rows
+
+    pair_rows = read_csv(Path(pairwise_csv)) if Path(pairwise_csv).exists() else []
+    cond_rows = read_csv(Path(conditional_csv)) if Path(conditional_csv).exists() else []
+    traj_rows = read_csv(Path(trajectory_csv)) if Path(trajectory_csv).exists() else []
+
+    # Pairwise grouped bars per (game, mechanism)
+    by_group: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
+    for r in pair_rows:
+        g = (r.get("game") or "").strip()
+        m = (r.get("mechanism") or "").strip()
+        if not g or not m:
+            continue
+        by_group.setdefault((g, m), []).append(r)
+
+    for (game, mech), items in by_group.items():
+        # show top 10 pairs by rounds
+        items_sorted = sorted(items, key=lambda x: -int(x.get("rounds", 0)))[:10]
+        labels = [f"{r['agent_i']} vs {r['agent_j']}" for r in items_sorted]
+        pay_i = [float(r.get("avg_payoff_i_vs_j", 0.0)) for r in items_sorted]
+        pay_j = [float(r.get("avg_payoff_j_vs_i", 0.0)) for r in items_sorted]
+        coop_i = [float(r.get("coop_rate_i_vs_j", 0.0)) for r in items_sorted]
+        coop_j = [float(r.get("coop_rate_j_vs_i", 0.0)) for r in items_sorted]
+
+        fig, axs = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+        x = range(len(labels))
+        axs[0].bar(x, pay_i, label="payoff_i", alpha=0.7)
+        axs[0].bar(x, pay_j, bottom=pay_i, label="payoff_j", alpha=0.7)
+        axs[0].set_ylabel("Avg payoff (stacked)")
+        axs[0].legend()
+        axs[1].bar(x, coop_i, label="coop_i", alpha=0.7)
+        axs[1].bar(x, coop_j, bottom=coop_i, label="coop_j", alpha=0.7)
+        axs[1].set_ylabel("Coop rate (stacked)")
+        axs[1].set_xticks(list(x))
+        axs[1].set_xticklabels(labels, rotation=30, ha="right", fontsize=8)
+        fig.suptitle(f"Pairwise payoff & cooperation — {game} | {mech}")
+        fig.tight_layout()
+        out_path = Path(out_dir) / "figures" / f"pairwise_payoff_coop_{game}_{mech}.png"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_path, dpi=150)
+        plt.close(fig)
+
+    # Conditional cooperation: scatter per agent
+    by_group2: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
+    for r in cond_rows:
+        g = (r.get("game") or "").strip()
+        m = (r.get("mechanism") or "").strip()
+        if not g or not m:
+            continue
+        by_group2.setdefault((g, m), []).append(r)
+    for (game, mech), items in by_group2.items():
+        xs = [float(r.get("p_coop_given_opp_D", 0.0)) for r in items]
+        ys = [float(r.get("p_coop_given_opp_C", 0.0)) for r in items]
+        labs = [r.get("agent") or "" for r in items]
+        fig, ax = plt.subplots(figsize=(6, 5))
+        ax.scatter(xs, ys, color="#54A24B")
+        for x, y, lab in zip(xs, ys, labs):
+            ax.annotate(lab, (x, y), fontsize=8, xytext=(2, 2), textcoords="offset points")
+        ax.set_xlabel("P(C | opp D)")
+        ax.set_ylabel("P(C | opp C)")
+        ax.set_title(f"Conditional cooperation — {game} | {mech}")
+        plt.tight_layout()
+        fig.savefig(Path(out_dir) / "figures" / f"conditional_coop_{game}_{mech}.png", dpi=150)
+        plt.close(fig)
+
+    # Round trajectory: line plot of avg_pair_coop over rounds (aggregated by run)
+    by_group3: Dict[Tuple[str, str], Dict[int, List[float]]] = {}
+    for r in traj_rows:
+        g = (r.get("game") or "").strip()
+        m = (r.get("mechanism") or "").strip()
+        if not g or not m:
+            continue
+        key = (g, m)
+        by_group3.setdefault(key, {}).setdefault(int(r.get("round", 0)), []).append(float(r.get("avg_pair_coop", 0.0)))
+    for (game, mech), series in by_group3.items():
+        xs = sorted(series.keys())
+        ys = [sum(series[t]) / max(1, len(series[t])) for t in xs]
+        fig, ax = plt.subplots(figsize=(7, 4))
+        ax.plot(xs, ys, marker="o", color="#E19D29")
+        ax.set_xlabel("Round")
+        ax.set_ylabel("Avg pair cooperation")
+        ax.set_ylim(0, 1)
+        ax.set_title(f"Cooperation trajectory — {game} | {mech}")
+        plt.tight_layout()
+        fig.savefig(Path(out_dir) / "figures" / f"round_trajectory_{game}_{mech}.png", dpi=150)
+        plt.close(fig)
 
 
