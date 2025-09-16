@@ -121,13 +121,28 @@ def plot_mechanism_effectiveness(csv_path: str | Path, out_dir: str | Path) -> N
 
         bars = ax.bar(labels, values, color=colors, edgecolor='white', linewidth=1.5, alpha=0.85)
 
-        # Add value labels on bars
+        # Add value labels on bars while keeping them within [0, 1]
+        y_max = 1.0
+        offset = 0.02
         for bar, value in zip(bars, values):
             height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
-                   f'{value:.3f}', ha='center', va='bottom', fontweight='bold', fontsize=9)
+            if height + offset <= y_max:
+                y_pos = height + offset
+                va = "bottom"
+            else:
+                y_pos = max(height - offset, offset)
+                va = "top"
+            ax.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                y_pos,
+                f"{value:.3f}",
+                ha="center",
+                va=va,
+                fontweight="bold",
+                fontsize=9,
+            )
 
-        ax.set_ylim(0, min(1.1, max(values) * 1.15))
+        ax.set_ylim(0, y_max)
         ax.set_title(f"Mechanism Effectiveness (Average Cooperation)\n{game}",
                     fontsize=16, fontweight='bold', pad=20)
         ax.set_ylabel("Average Cooperation Rate", fontweight='bold')
@@ -383,9 +398,30 @@ def plot_pairwise_and_trajectories(
             continue
         by_group2.setdefault((g, m), []).append(r)
     for (game, mech), items in by_group2.items():
-        xs = [float(r.get("p_coop_given_opp_D", 0.0)) for r in items]
-        ys = [float(r.get("p_coop_given_opp_C", 0.0)) for r in items]
-        labs = [r.get("agent") or "" for r in items]
+        aggregated: Dict[str, Tuple[float, float, int]] = {}
+        for r in items:
+            agent = (r.get("agent") or "").strip()
+            if not agent:
+                continue
+            coop_c = float(r.get("p_coop_given_opp_C", 0.0))
+            coop_d = float(r.get("p_coop_given_opp_D", 0.0))
+            total = aggregated.get(agent)
+            if total is None:
+                aggregated[agent] = (coop_c, coop_d, 1)
+            else:
+                sum_c, sum_d, count = total
+                aggregated[agent] = (sum_c + coop_c, sum_d + coop_d, count + 1)
+
+        xs: List[float] = []
+        ys: List[float] = []
+        labs: List[str] = []
+        for agent, (sum_c, sum_d, count) in aggregated.items():
+            if count == 0:
+                continue
+            ys.append(sum_c / count)
+            xs.append(sum_d / count)
+            labs.append(agent)
+
         fig, ax = plt.subplots(figsize=(8, 6))
 
         # Enhanced scatter plot with varying sizes and colors
@@ -474,5 +510,3 @@ def plot_pairwise_and_trajectories(
         fig.savefig(Path(out_dir) / "figures" / f"round_trajectory_{game}_{mech}.png",
                    dpi=300, bbox_inches='tight', facecolor='white')
         plt.close(fig)
-
-

@@ -37,27 +37,27 @@ class Mechanism(ABC):
         random.shuffle(combo_iter)  # The order does not matter, kept just in case
 
         if self.matchup_workers <= 1:
-            inner_tqdm_bar = tqdm(
-                combo_iter,
-                desc="Tournaments",
-                total=total_matches,
-                leave=False,
-                position=1,
-            )
             first_duration = None
-            for players in inner_tqdm_bar:
-                matchup = " vs ".join(agent.name for agent in players)
-                inner_tqdm_bar.set_description(f"Match: {matchup}")
-                t0 = time.perf_counter()
-                self._play_matchup(players, payoffs)
-                dt = time.perf_counter() - t0
-                if first_duration is None:
-                    first_duration = dt
-                    # Rough ETA: match-count * per-match duration
-                    est_total = dt * total_matches
-                    print(
-                        f"[ETA] ~{est_total/60:.1f} min for {total_matches} matchups (sequential)."
-                    )
+            with tqdm(
+                total=len(combo_iter),
+                desc="Tournaments",
+                leave=True,
+                dynamic_ncols=True,
+            ) as pbar:
+                for players in combo_iter:
+                    matchup = " vs ".join(agent.name for agent in players)
+                    pbar.set_postfix_str(matchup, refresh=False)
+                    t0 = time.perf_counter()
+                    self._play_matchup(players, payoffs)
+                    dt = time.perf_counter() - t0
+                    if first_duration is None:
+                        first_duration = dt
+                        # Rough ETA: match-count * per-match duration
+                        est_total = dt * len(combo_iter)
+                        print(
+                            f"[ETA] ~{est_total/60:.1f} min for {len(combo_iter)} matchups (sequential)."
+                        )
+                    pbar.update(1)
             return payoffs
 
         # Parallel branch: run independent matchups concurrently
@@ -70,18 +70,27 @@ class Mechanism(ABC):
 
         merged = payoffs
         with ThreadPoolExecutor(max_workers=self.matchup_workers) as ex:
-            futures = [ex.submit(run_one, players) for players in combo_iter]
+            future_map = {
+                ex.submit(run_one, players): players for players in combo_iter
+            }
             first_dt = None
-            for fut in tqdm(as_completed(futures), total=len(futures), desc="Tournaments", leave=False, position=1):
-                local, dt = fut.result()
-                if first_dt is None:
-                    first_dt = dt
-                    waves = (total_matches + self.matchup_workers - 1) // self.matchup_workers
-                    est_total = first_dt * waves
-                    print(
-                        f"[ETA] ~{est_total/60:.1f} min for {total_matches} matchups with {self.matchup_workers} workers."
-                    )
-                merged.merge_from(local)
+            with tqdm(
+                total=len(future_map),
+                desc="Tournaments",
+                leave=True,
+                dynamic_ncols=True,
+            ) as pbar:
+                for fut in as_completed(future_map):
+                    local, dt = fut.result()
+                    if first_dt is None:
+                        first_dt = dt
+                        waves = (len(future_map) + self.matchup_workers - 1) // self.matchup_workers
+                        est_total = first_dt * waves
+                        print(
+                            f"[ETA] ~{est_total/60:.1f} min for {len(future_map)} matchups with {self.matchup_workers} workers."
+                        )
+                    merged.merge_from(local)
+                    pbar.update(1)
         return merged
 
     @staticmethod

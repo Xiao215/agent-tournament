@@ -1,6 +1,7 @@
 import json
 import re
 import textwrap
+from concurrent.futures import ThreadPoolExecutor
 from typing import Sequence
 
 from src.agents.agent_manager import Agent
@@ -20,8 +21,11 @@ class Disarmament(RepetitiveMechanism):
         base_game: Game,
         num_rounds: int,
         discount: float,
+        *,
+        negotiation_workers: int = 1,
     ) -> None:
         super().__init__(base_game, num_rounds, discount)
+        self.negotiation_workers = max(1, negotiation_workers)
 
         self.disarm_prompt = textwrap.dedent(
             """
@@ -195,13 +199,36 @@ class Disarmament(RepetitiveMechanism):
             negotiation_continue = False
             additional_info = []
             round_records = []
+
+            # Prepare tasks for players who still have wiggle room on their caps
+            def _negotiate(player: Agent):
+                return self._negotiate_disarm_caps(
+                    player=player,
+                    old_caps=disarmed_cap[player.name],
+                    caps_by_agent=disarmed_cap,
+                )
+
+            negotiable_players = [
+                player for player in players if sum(disarmed_cap[player.name]) > 100.0
+            ]
+            negotiation_results: dict[str, tuple[str, list[float], bool]] = {}
+            if len(negotiable_players) > 1 and self.negotiation_workers > 1:
+                with ThreadPoolExecutor(
+                    max_workers=self.negotiation_workers
+                ) as executor:
+                    futures = {
+                        executor.submit(_negotiate, player): player
+                        for player in negotiable_players
+                    }
+                    for future, player in futures.items():
+                        negotiation_results[player.name] = future.result()
+            else:
+                for player in negotiable_players:
+                    negotiation_results[player.name] = _negotiate(player)
+
             for player in players:
-                if sum(disarmed_cap[player.name]) > 100.0:
-                    disarm_rsp, new_cap, changed = self._negotiate_disarm_caps(
-                        player=player,
-                        old_caps=disarmed_cap[player.name],
-                        caps_by_agent=disarmed_cap,
-                    )
+                if player.name in negotiation_results:
+                    disarm_rsp, new_cap, changed = negotiation_results[player.name]
                     negotiation_continue |= changed
                     new_disarmed_cap[player.name] = new_cap
                 else:

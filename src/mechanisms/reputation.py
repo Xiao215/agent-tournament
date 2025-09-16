@@ -3,6 +3,7 @@ import math
 import random
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Sequence
 
 from tqdm import tqdm
@@ -52,6 +53,7 @@ class Reputation(RepetitiveMechanism, ABC):
     def __init__(self, base_game: Game, num_rounds: int, discount: float):
         super().__init__(base_game, num_rounds, discount)
         self.reputation: dict[str, ReputationStat] = defaultdict(ReputationStat)
+        self.matchup_workers = 1
 
     @abstractmethod
     def _format_reputation(self, agents: Sequence[Agent]) -> str:
@@ -79,22 +81,45 @@ class Reputation(RepetitiveMechanism, ABC):
         total_matches = math.comb(n, k)
         combo_iter = list(itertools.combinations_with_replacement(players, k))
         random.shuffle(combo_iter)
-        inner_tqdm_bar = tqdm(
-            combo_iter,
-            total=total_matches,
-            leave=False,
-            position=1,
-        )
-        moves_per_round = []
-        for players in inner_tqdm_bar:
-            matchup = " vs ".join(agent.name for agent in players)
-            inner_tqdm_bar.set_description(f"Match: {matchup}")
 
-            moves = self.base_game.play(
-                additional_info=self._format_reputation(players), players=players
+        def play_one(lineup: Sequence[Agent]) -> tuple[list[dict], PopulationPayoffs]:
+            local_payoffs = self._build_payoffs(
+                agent_names=[agent.name for agent in players]
             )
-            moves_per_round.append([move.to_dict() for move in moves])
-            payoffs.add_profile(moves)
+            moves = self.base_game.play(
+                additional_info=self._format_reputation(lineup), players=lineup
+            )
+            local_payoffs.add_profile(moves)
+            return [move.to_dict() for move in moves], local_payoffs
+
+        moves_per_round: list[list[dict]] = []
+
+        if self.matchup_workers <= 1 or len(combo_iter) <= 1:
+            for lineup in tqdm(
+                combo_iter,
+                total=total_matches,
+                leave=False,
+                position=1,
+                desc="Reputation matches",
+            ):
+                moves_dicts, local = play_one(lineup)
+                moves_per_round.append(moves_dicts)
+                payoffs.merge_from(local)
+        else:
+            with ThreadPoolExecutor(max_workers=self.matchup_workers) as ex:
+                futures = {
+                    ex.submit(play_one, lineup): lineup for lineup in combo_iter
+                }
+                for fut in tqdm(
+                    as_completed(futures),
+                    total=len(futures),
+                    leave=False,
+                    position=1,
+                    desc="Reputation matches",
+                ):
+                    moves_dicts, local = fut.result()
+                    moves_per_round.append(moves_dicts)
+                    payoffs.merge_from(local)
 
         LOGGER.log_record(record=moves_per_round, file_name=self.record_file)
 

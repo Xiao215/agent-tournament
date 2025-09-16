@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -55,6 +56,22 @@ class Logger:
             if not path.exists():
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(content)
+
+    def retag(self, suffix: str) -> None:
+        """Rename the current log directory to include run-specific metadata."""
+        slug = re.sub(r"[^A-Za-z0-9._-]+", "-", suffix).strip("-")
+        if not slug:
+            return
+        with self._lock:
+            parent = self.log_dir.parent
+            base_name = self.log_dir.name
+            new_path = parent / f"{base_name}_{slug}"
+            counter = 1
+            while new_path.exists():
+                counter += 1
+                new_path = parent / f"{base_name}_{slug}-{counter}"
+            os.rename(self.log_dir, new_path)
+            self.log_dir = new_path
 
 
 LOGGER = Logger()

@@ -1,9 +1,10 @@
 import argparse
-from pathlib import Path
-import torch
-import numpy as np
 import random
+import re
+from pathlib import Path
 
+import numpy as np
+import torch
 import yaml
 
 from config import CONFIG_DIR
@@ -34,6 +35,14 @@ def load_config(filename: str) -> dict:
         return yaml.safe_load(f)
 
 
+def _slugify(text: str, *, max_len: int = 40) -> str:
+    slug = re.sub(r"[^A-Za-z0-9]+", "-", text.strip())
+    slug = slug.strip("-")
+    if max_len and len(slug) > max_len:
+        slug = slug[:max_len].rstrip("-")
+    return slug.lower() or "item"
+
+
 def main():
     """
     Build agents and run pairwise IPD matches.
@@ -62,6 +71,10 @@ def main():
         mechanism.matchup_workers = max(1, workers)
 
     agents = [create_agent(agent_cfg) for agent_cfg in config["agents"]]
+
+    mech_slug = _slugify(config["mechanism"]["type"], max_len=32)
+    agents_slug = "__".join(_slugify(agent.name, max_len=32) for agent in agents)
+    LOGGER.retag(f"{mech_slug}__{agents_slug}")
 
     # Record the configuration as JSON
     for i, agent in enumerate(agents):
