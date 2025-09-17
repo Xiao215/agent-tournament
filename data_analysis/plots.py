@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, Tuple, List, Iterable
 
 import csv
 import math
@@ -329,184 +330,134 @@ def plot_pairwise_and_trajectories(
         with open(path, "r", encoding="utf-8") as f:
             for r in csv.DictReader(f):
                 rows.append(r)
-        return rows
+    return rows
 
-    pair_rows = read_csv(Path(pairwise_csv)) if Path(pairwise_csv).exists() else []
-    cond_rows = read_csv(Path(conditional_csv)) if Path(conditional_csv).exists() else []
-    traj_rows = read_csv(Path(trajectory_csv)) if Path(trajectory_csv).exists() else []
 
-    # Pairwise grouped bars per (game, mechanism)
-    by_group: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
-    for r in pair_rows:
-        g = (r.get("game") or "").strip()
-        m = (r.get("mechanism") or "").strip()
-        if not g or not m:
-            continue
-        by_group.setdefault((g, m), []).append(r)
+def _load_csv(path: Path) -> List[Dict[str, Any]]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        return [dict(row) for row in reader]
 
-    for (game, mech), items in by_group.items():
-        # show top 10 pairs by rounds
-        items_sorted = sorted(items, key=lambda x: -int(x.get("rounds", 0)))[:10]
-        labels = [f"{r['agent_i']} vs {r['agent_j']}" for r in items_sorted]
-        pay_i = [float(r.get("avg_payoff_i_vs_j", 0.0)) for r in items_sorted]
-        pay_j = [float(r.get("avg_payoff_j_vs_i", 0.0)) for r in items_sorted]
-        coop_i = [float(r.get("coop_rate_i_vs_j", 0.0)) for r in items_sorted]
-        coop_j = [float(r.get("coop_rate_j_vs_i", 0.0)) for r in items_sorted]
 
-        fig, axs = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
+def _safe_float(value: Any) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float("nan")
+
+
+def _avg(values: Iterable[float]) -> float:
+    vals = [v for v in values if isinstance(v, (int, float)) and not (v != v)]
+    return sum(vals) / len(vals) if vals else float("nan")
+
+
+def plot_mechanism_summary(summary_csv: str | Path, out_dir: str | Path) -> None:
+    rows = _load_csv(Path(summary_csv))
+    if not rows:
+        return
+
+    by_game: Dict[str, List[Dict[str, Any]]] = {}
+    for row in rows:
+        game = row.get("game") or "Unknown"
+        by_game.setdefault(game, []).append(row)
+
+    fig_dir = Path(out_dir) / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    for game, items in by_game.items():
+        labels = [item.get("mechanism", "Unknown") for item in items]
+        payoffs = [_safe_float(item.get("avg_expected_payoff")) for item in items]
+        coop = [_safe_float(item.get("avg_cooperation_rate")) for item in items]
+        delta = [_safe_float(item.get("avg_delta_expected_payoff")) for item in items]
+
         x = np.arange(len(labels))
-        width = 0.8
+        width = 0.35
 
-        # Enhanced stacked bars with better colors
-        bars1_1 = axs[0].bar(x, pay_i, width, label="Agent i Payoff",
-                            color=COLOR_PALETTE['primary'], alpha=0.8, edgecolor='white')
-        bars1_2 = axs[0].bar(x, pay_j, width, bottom=pay_i, label="Agent j Payoff",
-                            color=COLOR_PALETTE['secondary'], alpha=0.8, edgecolor='white')
+        fig, ax1 = plt.subplots(figsize=(10, 6))
+        bars = ax1.bar(x - width / 2, payoffs, width, label="Avg Payoff", color=COLOR_PALETTE['primary'], alpha=0.8)
+        ax1.bar(x + width / 2, coop, width, label="Avg Cooperation", color=COLOR_PALETTE['success'], alpha=0.8)
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(labels, rotation=30, ha="right")
+        ax1.set_ylabel("Value", fontweight='bold')
+        ax1.set_title(f"Mechanism Summary – {game}", fontweight='bold', fontsize=16)
+        ax1.legend()
+        ax1.grid(alpha=0.3)
 
-        axs[0].set_ylabel("Average Payoff (Stacked)", fontweight='bold')
-        axs[0].legend(loc='upper right', frameon=True, fancybox=True, shadow=True)
-        axs[0].grid(axis='y', alpha=0.3)
-        axs[0].set_facecolor('#FAFAFA')
+        for bar in bars:
+            h = bar.get_height()
+            ax1.text(bar.get_x() + bar.get_width() / 2, h + 0.02, f"{h:.3f}", ha='center', va='bottom', fontsize=9)
 
-        bars2_1 = axs[1].bar(x, coop_i, width, label="Agent i Cooperation",
-                            color=COLOR_PALETTE['success'], alpha=0.8, edgecolor='white')
-        bars2_2 = axs[1].bar(x, coop_j, width, bottom=coop_i, label="Agent j Cooperation",
-                            color=COLOR_PALETTE['warning'], alpha=0.8, edgecolor='white')
+        ax2 = ax1.twinx()
+        ax2.plot(x, delta, color=COLOR_PALETTE['accent1'], marker='o', linewidth=2, label="Δ Payoff vs Base")
+        ax2.set_ylabel("Δ Payoff", color=COLOR_PALETTE['accent1'], fontweight='bold')
+        ax2.tick_params(axis='y', labelcolor=COLOR_PALETTE['accent1'])
 
-        axs[1].set_ylabel("Cooperation Rate (Stacked)", fontweight='bold')
-        axs[1].set_xlabel("Agent Pairs", fontweight='bold')
-        axs[1].legend(loc='upper right', frameon=True, fancybox=True, shadow=True)
-        axs[1].set_xticks(x)
-        axs[1].set_xticklabels(labels, rotation=35, ha="right", fontsize=9)
-        axs[1].grid(axis='y', alpha=0.3)
-        axs[1].set_facecolor('#FAFAFA')
+        lines, labels_leg = ax1.get_legend_handles_labels()
+        l2, labels2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines + l2, labels_leg + labels2, loc='upper left')
 
-        fig.suptitle(f"Pairwise Performance Analysis\n{game} | {mech}",
-                    fontsize=18, fontweight='bold', y=0.98)
-        fig.tight_layout(rect=[0, 0, 1, 0.95])
-        out_path = Path(out_dir) / "figures" / f"pairwise_payoff_coop_{game}_{mech}.png"
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(out_path, dpi=300, bbox_inches='tight', facecolor='white')
+        fig.tight_layout()
+        fig.savefig(fig_dir / f"mechanism_summary_{game}.png", dpi=300, bbox_inches='tight', facecolor='white')
         plt.close(fig)
 
-    # Conditional cooperation: scatter per agent
-    by_group2: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
-    for r in cond_rows:
-        g = (r.get("game") or "").strip()
-        m = (r.get("mechanism") or "").strip()
-        if not g or not m:
-            continue
-        by_group2.setdefault((g, m), []).append(r)
-    for (game, mech), items in by_group2.items():
-        aggregated: Dict[str, Tuple[float, float, int]] = {}
-        for r in items:
-            agent = (r.get("agent") or "").strip()
-            if not agent:
-                continue
-            coop_c = float(r.get("p_coop_given_opp_C", 0.0))
-            coop_d = float(r.get("p_coop_given_opp_D", 0.0))
-            total = aggregated.get(agent)
-            if total is None:
-                aggregated[agent] = (coop_c, coop_d, 1)
-            else:
-                sum_c, sum_d, count = total
-                aggregated[agent] = (sum_c + coop_c, sum_d + coop_d, count + 1)
 
-        xs: List[float] = []
-        ys: List[float] = []
-        labs: List[str] = []
-        for agent, (sum_c, sum_d, count) in aggregated.items():
-            if count == 0:
-                continue
-            ys.append(sum_c / count)
-            xs.append(sum_d / count)
-            labs.append(agent)
+def plot_agent_metrics(agent_csv: str | Path, out_dir: str | Path) -> None:
+    rows = _load_csv(Path(agent_csv))
+    if not rows:
+        return
 
-        fig, ax = plt.subplots(figsize=(8, 6))
+    fig_dir = Path(out_dir) / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
 
-        # Enhanced scatter plot with varying sizes and colors
-        scatter = ax.scatter(xs, ys, s=100, c=range(len(xs)), cmap=custom_cmap,
-                           alpha=0.7, edgecolors='white', linewidth=2)
+    # Scatter: expected payoff vs cooperation rate colored by mechanism
+    mechanisms = sorted(set(row.get("mechanism", "Unknown") for row in rows))
+    mech_colors = {mech: plt.get_cmap("tab10")(i % 10) for i, mech in enumerate(mechanisms)}
 
-        # Add diagonal reference line
-        ax.plot([0, 1], [0, 1], 'k--', alpha=0.3, linewidth=1, label='Equal probability')
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for row in rows:
+        mech = row.get("mechanism", "Unknown")
+        ax.scatter(
+            _safe_float(row.get("expected_payoff")),
+            _safe_float(row.get("coop_rate")),
+            color=mech_colors.get(mech, COLOR_PALETTE['primary']),
+            alpha=0.7,
+            label=mech,
+        )
+        ax.annotate(
+            row.get("agent", ""),
+            (_safe_float(row.get("expected_payoff")), _safe_float(row.get("coop_rate"))),
+            textcoords="offset points",
+            xytext=(4, 4),
+            fontsize=8,
+        )
+    ax.set_xlabel("Expected Payoff", fontweight='bold')
+    ax.set_ylabel("Cooperation Rate", fontweight='bold')
+    ax.set_title("Agent Payoff vs Cooperation", fontweight='bold', fontsize=16)
+    handles, labels = ax.get_legend_handles_labels()
+    unique = dict(zip(labels, handles))
+    ax.legend(unique.values(), unique.keys(), loc='best', frameon=True)
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(fig_dir / "agent_payoff_vs_coop.png", dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
 
-        # Better annotations with boxes
-        for x, y, lab in zip(xs, ys, labs):
-            ax.annotate(lab, (x, y), fontsize=9, fontweight='bold',
-                       xytext=(5, 5), textcoords="offset points",
-                       bbox=dict(boxstyle="round,pad=0.3", facecolor='white',
-                               edgecolor='gray', alpha=0.8))
+    # Horizontal bars of expected payoff per mechanism
+    clusters: Dict[str, List[float]] = defaultdict(list)
+    for row in rows:
+        mech = row.get("mechanism", "Unknown")
+        clusters[mech].append(_safe_float(row.get("expected_payoff")))
 
-        ax.set_xlabel("P(Cooperate | Opponent Defected)", fontweight='bold')
-        ax.set_ylabel("P(Cooperate | Opponent Cooperated)", fontweight='bold')
-        ax.set_title(f"Conditional Cooperation Strategies\n{game} | {mech}",
-                    fontsize=16, fontweight='bold', pad=20)
-
-        # Set limits and grid
-        ax.set_xlim(-0.05, 1.05)
-        ax.set_ylim(-0.05, 1.05)
-        ax.grid(True, alpha=0.3)
-        ax.set_facecolor('#FAFAFA')
-        ax.legend()
-
-        plt.tight_layout()
-        fig.savefig(Path(out_dir) / "figures" / f"conditional_coop_{game}_{mech}.png",
-                   dpi=300, bbox_inches='tight', facecolor='white')
-        plt.close(fig)
-
-    # Round trajectory: line plot of avg_pair_coop over rounds (aggregated by run)
-    by_group3: Dict[Tuple[str, str], Dict[int, List[float]]] = {}
-    for r in traj_rows:
-        g = (r.get("game") or "").strip()
-        m = (r.get("mechanism") or "").strip()
-        if not g or not m:
-            continue
-        key = (g, m)
-        by_group3.setdefault(key, {}).setdefault(int(r.get("round", 0)), []).append(float(r.get("avg_pair_coop", 0.0)))
-    for (game, mech), series in by_group3.items():
-        xs = sorted(series.keys())
-        ys = [sum(series[t]) / max(1, len(series[t])) for t in xs]
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        # Enhanced line plot with filled area and markers
-        ax.plot(xs, ys, marker="o", linewidth=3, markersize=8,
-               color=COLOR_PALETTE['primary'], markerfacecolor=COLOR_PALETTE['accent1'],
-               markeredgecolor='white', markeredgewidth=2, alpha=0.8)
-
-        # Add filled area under the curve
-        ax.fill_between(xs, ys, alpha=0.3, color=COLOR_PALETTE['primary'])
-
-        # Add trend line if enough points
-        if len(xs) > 2:
-            z = np.polyfit(xs, ys, 1)
-            p = np.poly1d(z)
-            ax.plot(xs, p(xs), "--", alpha=0.6, color=COLOR_PALETTE['secondary'],
-                   linewidth=2, label=f'Trend (slope: {z[0]:.4f})')
-            ax.legend()
-
-        ax.set_xlabel("Round Number", fontweight='bold')
-        ax.set_ylabel("Average Cooperation Rate", fontweight='bold')
-        ax.set_ylim(0, 1)
-        ax.set_title(f"Cooperation Trajectory Over Time\n{game} | {mech}",
-                    fontsize=16, fontweight='bold', pad=20)
-
-        # Grid and styling
-        ax.grid(True, alpha=0.3)
-        ax.set_facecolor('#FAFAFA')
-
-        # Add annotations for min/max points
-        if len(ys) > 0:
-            min_idx = np.argmin(ys)
-            max_idx = np.argmax(ys)
-            ax.annotate(f'Min: {ys[min_idx]:.3f}', (xs[min_idx], ys[min_idx]),
-                       xytext=(10, 10), textcoords='offset points',
-                       bbox=dict(boxstyle='round,pad=0.3', facecolor='lightcoral', alpha=0.7))
-            ax.annotate(f'Max: {ys[max_idx]:.3f}', (xs[max_idx], ys[max_idx]),
-                       xytext=(10, -15), textcoords='offset points',
-                       bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgreen', alpha=0.7))
-
-        plt.tight_layout()
-        fig.savefig(Path(out_dir) / "figures" / f"round_trajectory_{game}_{mech}.png",
-                   dpi=300, bbox_inches='tight', facecolor='white')
-        plt.close(fig)
+    fig, ax = plt.subplots(figsize=(10, max(4, len(clusters) * 0.8)))
+    mechanisms = sorted(clusters)
+    means = [_avg(clusters[m]) for m in mechanisms]
+    bars = ax.barh(mechanisms, means, color=COLOR_PALETTE['primary'], alpha=0.8)
+    for bar, val in zip(bars, means):
+        ax.text(val + 0.01, bar.get_y() + bar.get_height() / 2, f"{val:.3f}", va='center', fontsize=9)
+    ax.set_xlabel("Average Expected Payoff", fontweight='bold')
+    ax.set_title("Average Agent Payoff by Mechanism", fontweight='bold', fontsize=16)
+    ax.grid(axis='x', alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(fig_dir / "agent_payoff_by_mechanism.png", dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
