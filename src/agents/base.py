@@ -1,3 +1,5 @@
+"""Abstract interfaces shared by concrete LLM backends."""
+
 from typing import Any
 
 from abc import ABC, abstractmethod

@@ -1,3 +1,5 @@
+"""Local Hugging Face model runner used by :class:`Agent` implementations."""
+
 from typing import Any
 
 import torch

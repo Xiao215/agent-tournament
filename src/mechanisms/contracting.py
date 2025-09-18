@@ -1,3 +1,5 @@
+"""Mechanism that lets players propose and sign payoff-altering contracts."""
+
 import json
 import re
 import textwrap

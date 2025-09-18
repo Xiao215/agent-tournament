@@ -1,3 +1,5 @@
+"""Agent abstractions and shared LLM caching utilities."""
+
 import copy
 import itertools
 from abc import ABC, abstractmethod
@@ -9,13 +11,13 @@ from src.agents.hf_llm import HFInstance
 
 
 class LLMManager:
-    """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
+    """Central cache for LLM backends, keyed by (model, provider)."""
 
     def __init__(self) -> None:
         self.llms = dict()
 
     def get_llm(self, model_name: str, provider: str) -> LLM:
-        """Get an LLM instance for the given model name."""
+        """Return a cached ``LLM`` implementation for ``model_name``/``provider``."""
         if model_name not in self.llms:
             if provider == "HFInstance":
                 self.llms[model_name] = HFInstance(model_name)

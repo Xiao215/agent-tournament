@@ -1,3 +1,5 @@
+"""Mechanisms that expose behavioural reputation across repeated rounds."""
+
 import itertools
 import math
 import random

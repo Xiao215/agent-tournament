@@ -1,3 +1,5 @@
+"""Utilities for running discrete-time replicator dynamics tournaments."""
+
 from typing import Literal
 
 import numpy as np
@@ -24,6 +26,7 @@ class DiscreteReplicatorDynamics:
         agents: list[Agent],
         mechanism: Mechanism,
     ) -> None:
+        """Bind a population of ``agents`` to a tournament ``mechanism``."""
         self.mechanism = mechanism
         self.agents = agents
 

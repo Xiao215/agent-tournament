@@ -1,3 +1,5 @@
+"""Common infrastructure for tournament mechanisms."""
+
 import itertools
 import random
 import time
@@ -15,6 +17,7 @@ from src.games.base import Game
 
 
 class Mechanism(ABC):
+    """Base class for tournament mechanisms that wrap a single game."""
 
     def __init__(self, base_game: Game):
         self.base_game = base_game
@@ -28,6 +31,7 @@ class Mechanism(ABC):
         return PopulationPayoffs(agents=agents)
 
     def _clone_lineup(self, lineup: Sequence[Agent]) -> list[Agent]:
+        """Return shallow seat-specific copies so duplicate models stay distinct."""
         counts: defaultdict[str, int] = defaultdict(int)
         cloned: list[Agent] = []
         for agent in lineup:

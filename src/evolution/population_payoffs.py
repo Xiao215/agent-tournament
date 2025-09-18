@@ -1,3 +1,5 @@
+"""Store and aggregate tournament payoffs for evolutionary dynamics."""
+
 import math
 from collections import defaultdict
 from typing import Any, Sequence
@@ -68,6 +70,7 @@ class PopulationPayoffs:
         self._table.clear()
 
     def merge_from(self, other: "PopulationPayoffs") -> None:
+        """Merge another payoff table by stacking round data for matching lineups."""
         if self.agent_names != other.agent_names:
             raise ValueError("Cannot merge payoffs with different agent sets/order")
         if not math.isclose(self.discount, other.discount):
@@ -87,6 +90,7 @@ class PopulationPayoffs:
                 )
 
     def add_profile(self, moves: list[Move]) -> None:
+        """Record a single matchup outcome consisting of the provided ``moves``."""
         if not moves:
             return
 
@@ -117,6 +121,7 @@ class PopulationPayoffs:
             )
 
     def fitness(self, population: np.ndarray) -> np.ndarray:
+        """Compute expected payoff vector for a population distribution."""
         if population.shape != (self.k,):
             raise ValueError(
                 f"population must be shape ({self.k},), got {population.shape}"
@@ -151,6 +156,7 @@ class PopulationPayoffs:
         return fitness
 
     def to_record(self) -> dict[str, Any]:
+        """Return a JSON-serialisable snapshot of accumulated matchup data."""
         profiles: list[dict[str, Any]] = []
         for entry in self._table.values():
             labels = entry["labels"]

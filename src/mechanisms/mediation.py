@@ -1,3 +1,5 @@
+"""Mechanism where agents may delegate their action to a mediator design."""
+
 import json
 import re
 import textwrap

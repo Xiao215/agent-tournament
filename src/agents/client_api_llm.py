@@ -1,3 +1,5 @@
+"""Hosted-model :class:`LLM` implementation backed by OpenAI-compatible APIs."""
+
 from typing import Any
 import time
 
@@ -9,7 +11,7 @@ from src.agents.base import LLM
 
 
 class ClientAPILLM(LLM):
-    """A class to manage a Hugging Face LLM pipeline that can be moved between CPU and GPU."""
+    """Thin wrapper around hosted LLM APIs (OpenAI-compatible clients)."""
 
     def __init__(self, model_name: str, provider: str):
         self.provider = provider
@@ -17,6 +19,7 @@ class ClientAPILLM(LLM):
         self.client = self._get_client()
 
     def _get_client(self) -> OpenAI:
+        """Initialise an :class:`OpenAI` client for the configured provider."""
         match self.provider:
             case "OpenAI":
                 return OpenAI(
@@ -43,6 +46,7 @@ class ClientAPILLM(LLM):
                 raise ValueError(f"Unknown provider {self.provider}")
 
     def invoke(self, prompt: str, **kwargs: Any) -> str:
+        """Call the remote chat completion endpoint with basic retry/backoff."""
         # Simple retry/backoff around the API call
         delays = [1, 2, 4, 8]
         last_exc: Exception | None = None

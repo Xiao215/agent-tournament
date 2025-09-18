@@ -1,3 +1,5 @@
+"""Repeated-game mechanism that lets agents negotiate probability caps."""
+
 import json
 import re
 import textwrap
