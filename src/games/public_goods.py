@@ -47,10 +47,6 @@ class PublicGoods(Game):
         Actions (choose exactly one per round):
         - {PublicGoodsAction.CONTRIBUTE.to_token()} - Put all your starting money into the joint fund
         - {PublicGoodsAction.FREE_RIDE.to_token()} - Invest nothing and keep all your starting money
-
-        {{instruction}}
-
-        {{additional_info}}
         """
 
         super().__init__(
@@ -80,26 +76,25 @@ class PublicGoods(Game):
         if isinstance(additional_info, str):
             additional_info = [additional_info] * self.num_players
 
-        actions = {}
-        responses = {}
+        action_indices: dict[str, int] = {}
+        responses: dict[str, str] = {}
 
         for player, info in zip(players, additional_info):
-            resp = self.prompt_player(player, info)
-            prob_distribution = self._extract_mixed_strategy(player, resp, info)
-            action_idx = self._choose_from_mix_strategy(prob_distribution)
-            actions[player.name] = action_idx
+            resp, mix_probs = self.prompt_player_mix_probs(player, info)
+            action_idx = self._choose_from_mix_strategy(mix_probs)
+            action_indices[player.name] = action_idx
             responses[player.name] = resp
 
-        actions = action_map(actions)
-        actions = {
+        mapped_indices = action_map(action_indices)
+        final_actions: dict[str, PublicGoodsAction] = {
             name: PublicGoodsAction.from_index(action)
-            for name, action in actions.items()
+            for name, action in mapped_indices.items()
         }
 
-        share = self._calculate_share(actions)
+        share = self._calculate_share(final_actions)
 
         moves = []
-        for name, action in actions.items():
+        for name, action in final_actions.items():
             moves.append(
                 Move(
                     name=name,

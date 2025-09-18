@@ -33,7 +33,7 @@ class Mediation(Mechanism):
         - The mediator's objective is to maximize the payoff of the players who delegate to the mediator.
 
         Output Format:
-        Return exactly **one valid Python dictionary** in a single line:
+        Return a valid json in a single line:
         {{"1": <Action>, ..., "{num_players}": <Action>}} where <Action> is a string like "A0", "A1" ...
 
         - Keys: the number of players delegating (from 1 to {num_players}).
@@ -42,7 +42,7 @@ class Mediation(Mechanism):
         """
         )
 
-        self.game_prompt = textwrap.dedent(
+        self.mediation_mechanism_prompt = textwrap.dedent(
             """
         Additional Information:
         On top of the original game instructions, you have the option to delegate your move to a mediator agent.
@@ -57,41 +57,28 @@ class Mediation(Mechanism):
         )
 
     def _design_mediator(
-        self, player: Agent, *, max_retries: int = 5
+        self,
+        designer: Agent,
     ) -> tuple[str, dict[int, int]]:
         """
-        Design the mediator agent by prompting the designer.
+        Design the mediator agent by the given LLM agent.
 
         Returns:
             response (str): The raw response from the designer.
             mediator (dict[int, int]): A dictionary mapping number of delegating players to recommended action.
         """
-        base_prompt = self.mediator_design_prompt.format(
-            num_players=self.base_game.num_players,
+        base_prompt = (
+            self.base_game.prompt
+            + "\n"
+            + self.mediator_design_prompt.format(
+                num_players=self.base_game.num_players,
+            )
         )
-        response = ""
-        error_reason = ""
-
-        # include initial + retries
-        for attempt in range(max_retries + 1):
-            if attempt == 0:
-                prompt = base_prompt
-            else:
-                prompt = self._build_retry_prompt(base_prompt, response, error_reason)
-
-            response = self.base_game.prompt_player(player, output_instruction=prompt)
-            try:
-                return response, self._parse_mediator(response)
-            except ValueError as e:
-                error_reason = str(e)
-                print(
-                    f"Attempt {attempt + 1} of {player.name} to design mediator failed: "
-                    f"{error_reason} from response {response!r}"
-                )
-        raise ValueError(
-            f"Failed to design mediator with {player.name} after {1 + max_retries} attempts. "
-            f"Last error: {error_reason}. Last response: {response!r}"
+        response, mediator = designer.chat_with_retries(
+            base_prompt=base_prompt,
+            parse_func=self._parse_mediator,
         )
+        return response, mediator
 
     def _parse_mediator(self, response: str) -> dict[int, int]:
         """
@@ -143,13 +130,12 @@ class Mediation(Mechanism):
     def run_tournament(self, agents: Sequence[Agent]) -> PopulationPayoffs:
         mediator_design = {}
         for agent in agents:
-            if agent.name not in self.mediators:
-                response, mediator = self._design_mediator(agent)
-                self.mediators[agent.name] = mediator
-                mediator_design[agent.name] = {
-                    "response": response,
-                    "mediator": mediator,
-                }
+            response, mediator = self._design_mediator(agent)
+            self.mediators[agent.name] = mediator
+            mediator_design[agent.name] = {
+                "response": response,
+                "mediator": mediator,
+            }
         LOGGER.log_record(record=mediator_design, file_name="mediator_design.json")
         return super().run_tournament(agents)
 
@@ -163,13 +149,13 @@ class Mediation(Mechanism):
                 raise ValueError(f"Mediator for player {player.name} not found.")
             mediator = self.mediators[player.name]
             mediator_description = self._mediator_description(mediator)
-            additional_info = self.game_prompt.format(
+            mediator_mechanism = self.mediation_mechanism_prompt.format(
                 mediator_description=mediator_description,
                 additional_action_id=self.base_game.num_actions,
             )
             moves = self.base_game.play(
                 players=players,
-                additional_info=additional_info,
+                additional_info=mediator_mechanism,
                 action_map=self.mediator_mapping(mediator),
             )
             payoffs.add_profile(moves)

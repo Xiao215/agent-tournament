@@ -39,7 +39,7 @@ class Action(Enum):
         return action
 
 
-@dataclass(frozen=True)
+@dataclass
 class Move:
     """
     A record of one player's action in a single round.
@@ -101,12 +101,12 @@ class Game(ABC):
         """Play the game."""
         raise NotImplementedError
 
-    def prompt_player(
+    def prompt_player_mix_probs(
         self,
         player: Agent,
-        additional_info: str | None = None,
+        mechanism_info: str | None = None,
         output_instruction: str | None = None,
-    ) -> str:
+    ) -> tuple[str, dict[int, float]]:
         """
         Given the mechanism's additional info and the base game prompt,
         format the full prompt and query the player.
@@ -115,14 +115,18 @@ class Game(ABC):
         """
         prompt = self.prompt.format(
             player_name=player.name,
-            instruction=output_instruction or self.default_output_instruction,
         )
-        if additional_info:
-            prompt += additional_info
+
+        if mechanism_info:
+            prompt += mechanism_info
+
+        if output_instruction is None:
+            output_instruction = self.default_output_instruction
+        prompt += "\n" + output_instruction
 
         LOGGER.write_to_txt(prompt, "game_prompt.txt")
-        resp = player.chat(prompt)
-        return resp
+        resp, mix_probs = player.chat_with_retries(prompt, self._parse_mixed_probs)
+        return resp, mix_probs
 
     def _parse_mixed_probs(
         self,
@@ -150,7 +154,7 @@ class Game(ABC):
         for k, v in json_obj.items():
             if not isinstance(v, int):
                 raise ValueError(f"Value for {k} must be an integer, got {v!r}")
-            if not (0 <= v <= 100):
+            if not 0 <= v <= 100:
                 raise ValueError(f"Value for {k} must be between 0 and 100, got {v}")
             idx = int(k[1:])  # strip the leading 'A'
             result[idx] = v
@@ -178,43 +182,6 @@ class Game(ABC):
             f"Your previous response was:\n{br}\n"
             f"That response is INVALID because: {error_reason}\n"
             f"Please reflect on the error and provide the mixed strategy again based on the previous response!"
-        )
-
-    def _extract_mixed_strategy(
-        self,
-        player: Agent,
-        response: str,
-        additional_info: str,
-        max_retries: int = 5,
-    ) -> dict[int, float]:
-        """
-        Ask for a mixed strategy and parse with targeted retries.
-        Mirrors your disarm-caps control flow:
-        base_prompt -> parse -> on error: _build_retry_prompt(..., error_reason) -> retry
-        """
-        error_reason = ""
-
-        # initial + retries
-        for attempt in range(max_retries + 1):
-            if attempt != 0:
-                response = self.prompt_player(
-                    player,
-                    output_instruction=self._build_retry_prompt(response, error_reason),
-                    additional_info=additional_info,
-                )
-
-            try:
-                return self._parse_mixed_probs(response)
-            except ValueError as e:
-                error_reason = str(e)
-                print(
-                    f"Attempt {attempt + 1} of {player.name} to parse mixed strategy failed: "
-                    f"{error_reason} from response {response!r}"
-                )
-
-        raise ValueError(
-            f"Failed to parse mixed strategy for {player.name} after {1 + max_retries} attempts. "
-            f"Last error: {error_reason}. Last response: {response!r}"
         )
 
     @staticmethod

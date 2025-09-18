@@ -31,8 +31,6 @@ class Mechanism(ABC):
         payoffs = self._build_payoffs(agent_names=[agent.name for agent in agents])
 
         k = self.base_game.num_players
-        n = len(agents)
-        total_matches = math.comb(n, k)
         combo_iter = list(itertools.combinations_with_replacement(agents, k))
         random.shuffle(combo_iter)  # The order does not matter, kept just in case
 
@@ -92,19 +90,6 @@ class Mechanism(ABC):
                     merged.merge_from(local)
                     pbar.update(1)
         return merged
-
-    @staticmethod
-    def _build_retry_prompt(
-        base_prompt: str, bad_response: str, error_reason: str
-    ) -> str:
-        """Restate the prompt, show prior response and ask for regeneration."""
-        br = bad_response.replace("\n", " ")[:500]
-        return (
-            f"{base_prompt}\n\n"
-            f"Your previous response was:\n{br}\n\n"
-            f"That response is INVALID because: {error_reason}\n\n"
-            f"Please give the new output again!"
-        )
 
     @abstractmethod
     def _play_matchup(

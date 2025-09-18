@@ -45,8 +45,6 @@ class PrisonersDilemma(Game):
 
         Payoff matrix:
         {payoff_description}
-
-        {{instruction}}
         """
         )
 
@@ -80,13 +78,16 @@ class PrisonersDilemma(Game):
         if isinstance(additional_info, str):
             additional_info = [additional_info] * 2
 
-        responses = {}
-        actions = {}
+        responses: dict[str, str] = {}
+        action_indices: dict[str, int] = {}
 
         def play_one(player: Agent, info: str) -> tuple[str, int, str]:
-            resp = self.prompt_player(player, info)
-            probs = self._extract_mixed_strategy(player, resp, info)
-            action_idx = self._choose_from_mix_strategy(probs)
+            resp, mix_probs = self.prompt_player_mix_probs(player, info)
+            responses[player.name] = resp
+
+            action_idx = self._choose_from_mix_strategy(mix_probs)
+            action_indices[player.name] = action_idx
+            responses[player.name] = resp
             return player.name, action_idx, resp
 
         if self.parallel_players:
@@ -94,31 +95,33 @@ class PrisonersDilemma(Game):
                 futs = [ex.submit(play_one, p, info) for p, info in zip(players, additional_info)]
                 for fut in futs:
                     name, action_idx, resp = fut.result()
-                    actions[name] = action_idx
+                    action_indices[name] = action_idx
                     responses[name] = resp
         else:
             for player, info in zip(players, additional_info):
                 name, action_idx, resp = play_one(player, info)
-                actions[name] = action_idx
+                action_indices[name] = action_idx
                 responses[name] = resp
 
-        actions = action_map(actions)
-        actions = {
+        mapped_indices = action_map(action_indices)
+        final_actions: dict[str, PrisonersDilemmaAction] = {
             name: PrisonersDilemmaAction.from_index(action)
-            for name, action in actions.items()
+            for name, action in mapped_indices.items()
         }
 
-        pts1, pts2 = self.payoff_matrix[(actions[player1.name], actions[player2.name])]
+        pts1, pts2 = self.payoff_matrix[
+            (final_actions[player1.name], final_actions[player2.name])
+        ]
         return [
             Move(
                 name=player1.name,
-                action=actions[player1.name],
+                action=final_actions[player1.name],
                 points=pts1,
                 response=responses[player1.name],
             ),
             Move(
                 name=player2.name,
-                action=actions[player2.name],
+                action=final_actions[player2.name],
                 points=pts2,
                 response=responses[player2.name],
             ),

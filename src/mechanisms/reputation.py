@@ -179,7 +179,7 @@ class ReputationPrisonersDilemma(Reputation):
     def _update_reputation(self, name: str, action: str) -> None:
         self.reputation[name].record(
             "cooperation_rate",
-            action == PrisonersDilemmaAction.COOPERATE.name,
+            action == PrisonersDilemmaAction.COOPERATE.value,
         )
 
 
@@ -228,5 +228,5 @@ class ReputationPublicGoods(Reputation):
     def _update_reputation(self, name: str, action: str) -> None:
         self.reputation[name].record(
             "contribution_rate",
-            action == PublicGoodsAction.CONTRIBUTE.name,
+            action == PublicGoodsAction.CONTRIBUTE.value,
         )

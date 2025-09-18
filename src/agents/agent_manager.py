@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Callable, Any
 
 from src.agents.base import LLM
 from src.agents.client_api_llm import ClientAPILLM
@@ -51,6 +52,50 @@ class Agent(ABC):
 
     def __str__(self):
         return self.name
+
+    def chat_with_retries(
+        self,
+        base_prompt: str,
+        parse_func: Callable[[str], Any],
+        *,
+        max_retries: int = 5,
+    ) -> tuple[str, Any]:
+        """ """
+        response = ""
+        error_reason = ""
+
+        for attempt in range(max_retries + 1):
+            if attempt == 0:
+                prompt = base_prompt
+            else:
+                prompt = self._build_retry_prompt(base_prompt, response, error_reason)
+
+            response = self.chat(prompt)
+
+            try:
+                return response, parse_func(response)
+            except ValueError as e:
+                error_reason = str(e)
+                print(
+                    f"Attempt {attempt + 1} of {self.name} to parse response failed: "
+                    f"{error_reason} from response {response!r}"
+                )
+        raise ValueError(
+            f"Failed to parse response for {self.name} after {1 + max_retries} attempts. "
+            f"Last error: {error_reason}. Last response: {response!r}"
+        )
+
+    @staticmethod
+    def _build_retry_prompt(
+        base_prompt: str, bad_response: str, error_reason: str
+    ) -> str:
+        """Restate the prompt, show prior response and ask for regeneration."""
+        return (
+            f"{base_prompt}\n\n"
+            f"Your previous response was:\n{bad_response}\n\n"
+            f"That response is INVALID because: {error_reason}\n\n"
+            f"Please give the new output again!"
+        )
 
     @property
     @abstractmethod

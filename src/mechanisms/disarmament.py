@@ -52,13 +52,14 @@ class Disarmament(RepetitiveMechanism):
         {{"A0": <INT>, "A1": <INT>, ...}}
         """
         )
+        self.current_disarm_caps: dict[str, list[float]] = {}
 
-        self.game_prompt = textwrap.dedent(
+        self.disarmament_mechanism_prompt = textwrap.dedent(
             """
         Additional Information:
         A "cap" is the maximum probability (in %) with which you may choose an action in the next round.
         From previous round of negotiation, you agree to have a cap of:
-        {my_caps}
+        {caps_str}
 
         Now you need to propose a new probability distribution over actions subjected to your current cap limits.
         """
@@ -67,7 +68,6 @@ class Disarmament(RepetitiveMechanism):
     def _format_prompt(
         self,
         player_name: str,
-        caps_by_agent: dict[str, list[float]],
     ) -> str:
         """
         Build the filled prompt:
@@ -76,11 +76,16 @@ class Disarmament(RepetitiveMechanism):
         - discount: continuation probability (integer percent)
         """
 
-        my_caps_line = self._caps_to_line(caps_by_agent[player_name])
+        my_caps_line = self._caps_to_line(self.current_disarm_caps[player_name])
 
         opp_lines = []
-        for name in sorted(a for a in caps_by_agent.keys() if a != player_name):
-            opp_lines.append(f"\t{name}: {self._caps_to_line(caps_by_agent[name])}")
+        # TODO: change player name to player 1 or 2
+        for name in sorted(
+            a for a in self.current_disarm_caps.keys() if a != player_name
+        ):
+            opp_lines.append(
+                f"\t{name}: {self._caps_to_line(self.current_disarm_caps[name])}"
+            )
         opponents_caps_block = "\n".join(opp_lines)
 
         return self.disarm_prompt.format(
@@ -97,55 +102,26 @@ class Disarmament(RepetitiveMechanism):
     def _negotiate_disarm_caps(
         self,
         player: Agent,
-        old_caps: list[float],
-        caps_by_agent: dict[str, list[float]],
-        *,
-        max_retries: int = 5,
-    ) -> tuple[str, list[float], bool]:
+    ) -> tuple[str, tuple[list[float], bool]]:
         """
         Ask the LLM for disarm caps and parse with automatic retries.
         Returns: (new_caps, changed, last_response). On total failure, returns (old_caps, False, last_response)
         and prints a warning.
         """
-        base_prompt = self._format_prompt(player.name, caps_by_agent)
-        response = ""
-        error_reason = ""
-
-        # include initial + retries
-        for attempt in range(max_retries + 1):
-            if attempt == 0:
-                prompt = base_prompt
-            else:
-                prompt = self._build_retry_prompt(base_prompt, response, error_reason)
-
-            response = self.base_game.prompt_player(player, output_instruction=prompt)
-
-            try:
-                return response, *self._parse_disarm_caps(response, old_caps)
-            except ValueError as e:
-                error_reason = str(e)
-                print(
-                    f"Attempt {attempt + 1} of {player.name} to parse disarm caps failed: {error_reason} from response {response!r}"
-                )
-
-        print(
-            f"Warning: Failed to parse disarm caps for {player.name} after {1 + max_retries} attempts. "
-            f"Last error: {error_reason}. Last response: {response!r}"
+        base_prompt = self.base_game.prompt + "\n" + self._format_prompt(player.name)
+        parse_func = lambda resp: self._parse_disarm_caps(resp, player.name)
+        response, (new_caps, changed) = player.chat_with_retries(
+            base_prompt=base_prompt,
+            parse_func=parse_func,
         )
-        # If all the attempts fail, return the old caps and indicate no change
-        return (
-            f"Fail to disarm for {player.name}, keep the same cap.",
-            old_caps[:],
-            False,
-        )
+        return response, (new_caps, changed)
 
     def _parse_disarm_caps(
         self,
         response: str,
-        old_caps: list[float],
+        player_name: str,
     ) -> tuple[list[float], bool]:
         """Parse the disarmament probabilities (new caps) from the agent's response."""
-        n = len(old_caps)
         matches = re.findall(r"\{.*?\}", response, re.DOTALL)
         if not matches:
             raise ValueError(f"No JSON object found in the response {response!r}")
@@ -156,6 +132,7 @@ class Disarmament(RepetitiveMechanism):
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON: {e.msg}") from e
 
+        n = self.base_game.num_actions
         got_keys = set(json_obj.keys())
         missing = set(f"A{i}" for i in range(n)) - got_keys
         extra = got_keys - set(f"A{i}" for i in range(n))
@@ -165,6 +142,7 @@ class Disarmament(RepetitiveMechanism):
             raise ValueError(f"Action key mismatch. Missing: {sorted(missing)}")
 
         new_caps = [0.0] * n
+        old_caps = self.current_disarm_caps[player_name]
         for act_str, cap in json_obj.items():
             idx = int(act_str[1:])  # strip the leading 'A'
             if not 0 <= idx < n:
@@ -197,40 +175,40 @@ class Disarmament(RepetitiveMechanism):
         for _ in range(self.num_rounds):
             new_disarmed_cap = {}
             negotiation_continue = False
-            additional_info = []
+            disarmament_mechanisms = []
             round_records = []
 
             # Prepare tasks for players who still have wiggle room on their caps
-            def _negotiate(player: Agent):
-                return self._negotiate_disarm_caps(
-                    player=player,
-                    old_caps=disarmed_cap[player.name],
-                    caps_by_agent=disarmed_cap,
-                )
+            # Sync current caps for prompt formatting
+            self.current_disarm_caps = disarmed_cap
 
             negotiable_players = [
                 player for player in players if sum(disarmed_cap[player.name]) > 100.0
             ]
-            negotiation_results: dict[str, tuple[str, list[float], bool]] = {}
+            negotiation_results: dict[str, tuple[str, tuple[list[float], bool]]] = {}
             if len(negotiable_players) > 1 and self.negotiation_workers > 1:
                 with ThreadPoolExecutor(
                     max_workers=self.negotiation_workers
                 ) as executor:
                     futures = {
-                        executor.submit(_negotiate, player): player
+                        executor.submit(self._negotiate_disarm_caps, player): player
                         for player in negotiable_players
                     }
                     for future, player in futures.items():
                         negotiation_results[player.name] = future.result()
             else:
                 for player in negotiable_players:
-                    negotiation_results[player.name] = _negotiate(player)
+                    negotiation_results[player.name] = self._negotiate_disarm_caps(
+                        player
+                    )
 
             for player in players:
                 if player.name in negotiation_results:
-                    disarm_rsp, new_cap, changed = negotiation_results[player.name]
+                    disarm_rsp, (new_player_cap, changed) = negotiation_results[
+                        player.name
+                    ]
                     negotiation_continue |= changed
-                    new_disarmed_cap[player.name] = new_cap
+                    new_disarmed_cap[player.name] = new_player_cap
                 else:
                     disarm_rsp = "No room for further disarmament, keep the same cap."
                     new_disarmed_cap[player.name] = disarmed_cap[player.name]
@@ -241,15 +219,16 @@ class Disarmament(RepetitiveMechanism):
                         "new_cap": new_disarmed_cap[player.name],
                     }
                 )
-                capping_limitation = self._caps_to_line(new_disarmed_cap[player.name])
-                additional_info.append(
-                    self.game_prompt.format(my_caps=capping_limitation)
+                caps_str = self._caps_to_line(new_disarmed_cap[player.name])
+                disarmament_mechanisms.append(
+                    self.disarmament_mechanism_prompt.format(caps_str=caps_str)
                 )
 
             moves = self.base_game.play(
-                players=players, additional_info=additional_info
+                players=players, additional_info=disarmament_mechanisms
             )
             payoffs.add_profile(moves)
+            self.current_disarm_caps = new_disarmed_cap
 
             disarmament_records.append(
                 [{**r, **m.to_dict()} for r, m in zip(round_records, moves)]
