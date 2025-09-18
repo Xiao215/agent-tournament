@@ -235,7 +235,14 @@ class Disarmament(RepetitiveMechanism):
             self.current_disarm_caps = new_disarmed_cap
 
             disarmament_records.append(
-                [{**r, **m.to_dict()} for r, m in zip(round_records, moves)]
+                [
+                    {
+                        **r,
+                        **m.to_dict(),
+                        "match_id": "|".join(sorted(p.name for p in players)),
+                    }
+                    for r, m in zip(round_records, moves)
+                ]
             )
 
             disarmed_cap = new_disarmed_cap

@@ -125,31 +125,77 @@ def compute_agent_metrics(run: RunData, baseline_payoffs: Dict[str, float]) -> L
 
 
 def compute_pairwise_metrics(run: RunData) -> List[Dict[str, Any]]:
+    """Summarise ordered pair outcomes for a run."""
+
     rows: List[Dict[str, Any]] = []
-    for match_id, records in run.matchups.items():
-        if not records:
+    payoff_records: Dict[Tuple[str, str], List[float]] = defaultdict(list)
+    coop_counts: Dict[Tuple[str, str], List[float]] = defaultdict(lambda: [0.0, 0])
+    stage_payoffs: Dict[Tuple[str, str], List[float]] = defaultdict(list)
+
+    payoffs_json = (run.mechanism_payload or {}).get("payoffs") or {}
+    for profile in payoffs_json.get("profiles", []):
+        players = profile.get("players") or []
+        discounted = profile.get("discounted_average") or {}
+        if len(players) < 2:
+            # Single-agent entries (degenerate self-play) – store diagonal if present
+            agent = players[0] if players else None
+            if agent and agent in discounted:
+                payoff_records[(agent, agent)].append(float(discounted[agent]))
             continue
 
-        for seat_i, record_i in enumerate(records):
-            coop_i = 1.0 if record_i.action.upper().startswith("C") else 0.0
-            for seat_j, record_j in enumerate(records):
-                coop_j = 1.0 if record_j.action.upper().startswith("C") else 0.0
-                rows.append(
-                    {
-                        "run_dir": str(run.run_dir),
-                        "game": run.game,
-                        "mechanism": run.mechanism,
-                        "match_id": match_id,
-                        "agent_i": record_i.agent,
-                        "agent_j": record_j.agent,
-                        "points_i": record_i.points,
-                        "points_j": record_j.points,
-                        "coop_i": coop_i,
-                        "coop_j": coop_j,
-                        "seat_i": seat_i,
-                        "seat_j": seat_j,
-                    }
-                )
+        if len(players) != 2:
+            # For games with more than two players we currently skip discounted mapping
+            continue
+
+        agent_a, agent_b = players
+        if agent_a in discounted:
+            payoff_records[(agent_a, agent_b)].append(float(discounted[agent_a]))
+        if agent_b in discounted:
+            payoff_records[(agent_b, agent_a)].append(float(discounted[agent_b]))
+
+    # Collect cooperation rates and raw payoffs from recorded histories
+    for round_matchups in run.rounds:
+        for matchup in round_matchups:
+            if not matchup:
+                continue
+            for record_i in matchup:
+                coop_i = 1.0 if record_i.action.upper().startswith("C") else 0.0
+                for record_j in matchup:
+                    key = (record_i.agent, record_j.agent)
+                    coop_counts[key][0] += coop_i
+                    coop_counts[key][1] += 1
+                    stage_payoffs[key].append(record_i.points)
+
+    all_pairs = set(payoff_records) | set(stage_payoffs) | set(coop_counts)
+
+    for agent_i, agent_j in sorted(all_pairs):
+        payoff_vals = payoff_records.get((agent_i, agent_j))
+        if payoff_vals:
+            points_i = sum(payoff_vals) / len(payoff_vals)
+        else:
+            stage_vals = stage_payoffs.get((agent_i, agent_j))
+            points_i = sum(stage_vals) / len(stage_vals) if stage_vals else float("nan")
+
+        coop_num, coop_den = coop_counts.get((agent_i, agent_j), [0.0, 0])
+        coop_i = (coop_num / coop_den) if coop_den else float("nan")
+
+        rows.append(
+            {
+                "run_dir": str(run.run_dir),
+                "game": run.game,
+                "mechanism": run.mechanism,
+                "match_id": f"{agent_i}|{agent_j}",
+                "agent_i": agent_i,
+                "agent_j": agent_j,
+                "points_i": points_i,
+                "points_j": float("nan"),
+                "coop_i": coop_i,
+                "coop_j": float("nan"),
+                "seat_i": 0,
+                "seat_j": 0,
+            }
+        )
+
     return rows
 
 
@@ -239,20 +285,31 @@ def compute_disarmament_metrics(run: RunData) -> List[Dict[str, Any]]:
         return []
     caps_history = run.mechanism_payload.get("caps_history", {})
     rows: List[Dict[str, Any]] = []
-    for agent, history in caps_history.items():
-        prev = None
+    for agent, sessions in caps_history.items():
         total_reduction = 0.0
         reduction_steps = 0
-        final_caps = history[-1] if history else []
-        rounds = len(history)
-        for caps in history:
-            if prev is None:
-                prev = [100.0 for _ in caps]
-            reduction = sum(max(0.0, p - c) for p, c in zip(prev, caps))
-            if reduction > 0:
-                reduction_steps += 1
-            total_reduction += reduction
-            prev = caps
+        total_rounds = 0
+        final_caps: List[float] | None = None
+        for history in sessions.values():
+            if not history:
+                continue
+            prev = [100.0 for _ in history[0]]
+            for caps in history:
+                if len(prev) != len(caps):
+                    limit = min(len(prev), len(caps))
+                    pairs = zip(prev[:limit], caps[:limit])
+                else:
+                    pairs = zip(prev, caps)
+                reduction = sum(max(0.0, p - c) for p, c in pairs)
+                if reduction > 0:
+                    reduction_steps += 1
+                total_reduction += reduction
+                prev = caps
+            total_rounds += len(history)
+            final_caps = history[-1]
+
+        if final_caps is None:
+            continue
         final_sum = float(sum(final_caps)) if final_caps else float("nan")
         final_mean = final_sum / len(final_caps) if final_caps else float("nan")
         rows.append(
@@ -261,7 +318,7 @@ def compute_disarmament_metrics(run: RunData) -> List[Dict[str, Any]]:
                 "game": run.game,
                 "mechanism": run.mechanism,
                 "agent": agent,
-                "rounds": rounds,
+                "rounds": total_rounds,
                 "final_cap_sum": final_sum,
                 "final_cap_mean": final_mean,
                 "total_cap_reduction": total_reduction,

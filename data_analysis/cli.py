@@ -26,10 +26,15 @@ def main() -> None:
         action="store_true",
         help="Skip markdown report generation",
     )
+    parser.add_argument(
+        "--disarmament",
+        action="store_true",
+        help="Generate additional disarmament-specific metrics and plots",
+    )
 
     args = parser.parse_args()
 
-    outputs = analyze(args.root, args.out)
+    outputs = analyze(args.root, args.out, disarmament=args.disarmament)
     if not args.no_report:
         report_path = build_markdown_report(args.out)
         outputs["markdown_report"] = report_path
@@ -41,4 +46,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

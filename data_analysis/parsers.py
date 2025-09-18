@@ -61,7 +61,7 @@ def parse_run(run: RunPaths) -> RunData:
     moves: List[MoveRecord] = []
     matchups: Dict[str, List[MoveRecord]] = defaultdict(list)
     rounds: List[List[List[MoveRecord]]] = []
-    mechanism_payload: Dict[str, Any] = {}
+    mechanism_payload: Dict[str, Any] = {"payoffs": payoffs_json}
 
     if mechanism in {"Repetition", "ReputationPrisonersDilemma", "ReputationPublicGoods"}:
         # records: list per round, each round list of matchups, each matchup list of moves
@@ -87,17 +87,19 @@ def parse_run(run: RunPaths) -> RunData:
             rounds.append(round_moves)
 
     elif mechanism == "Disarmament":
-        caps_history: Dict[str, List[List[float]]] = defaultdict(list)
+        caps_history: Dict[str, Dict[str, List[List[float]]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
         for round_idx, round_entry in enumerate(records):
             # Each entry is a list with a single matchup (list of move dicts)
             round_matchups: List[List[MoveRecord]] = []
             matchup = round_entry[0] if round_entry else []
-            match_id = _make_match_id(round_idx, 0)
             match_records: List[MoveRecord] = []
             for move in matchup:
                 agent = move.get("name", "unknown")
+                match_tag = move.get("match_id") or "session_0"
                 new_cap = move.get("new_cap") or []
-                caps_history[agent].append(new_cap)
+                caps_history[agent][match_tag].append(new_cap)
                 record = MoveRecord(
                     agent=agent,
                     action=str(move.get("action", "")),
@@ -105,16 +107,18 @@ def parse_run(run: RunPaths) -> RunData:
                     response=str(move.get("response", "")),
                     round_index=round_idx,
                     matchup_index=0,
-                    metadata={"match_id": match_id, "new_cap": new_cap},
+                    metadata={"match_id": match_tag, "new_cap": new_cap},
                 )
                 moves.append(record)
-                matchups[match_id].append(record)
+                matchups[match_tag].append(record)
                 match_records.append(record)
             round_matchups.append(match_records)
             if not round_matchups:
                 round_matchups.append([])
             rounds.append(round_matchups)
-        mechanism_payload["caps_history"] = dict(caps_history)
+        mechanism_payload["caps_history"] = {
+            agent: dict(sessions) for agent, sessions in caps_history.items()
+        }
 
     elif mechanism == "Mediation":
         mediator_rounds: List[Dict[str, Any]] = []

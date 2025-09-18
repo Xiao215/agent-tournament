@@ -16,6 +16,7 @@ from .compute import (
     compute_reputation_metrics,
     compute_round_trajectory,
 )
+from .disarmament import generate_disarmament_report
 from .io import find_runs
 from .models import RunData
 from .parsers import parse_run
@@ -76,7 +77,7 @@ def _discover_runs(root: Path) -> List[RunData]:
     return parsed
 
 
-def analyze(root: Path, out_dir: Path) -> Dict[str, Path]:
+def analyze(root: Path, out_dir: Path, *, disarmament: bool = False) -> Dict[str, Path]:
     runs = _discover_runs(root)
     baseline = _build_baseline_map(runs)
 
@@ -143,6 +144,14 @@ def analyze(root: Path, out_dir: Path) -> Dict[str, Path]:
     plot_agent_metrics(out_dir / "agent_metrics.csv", out_dir)
     plot_pairwise_heatmaps(out_dir / "pairwise_metrics.csv", out_dir)
     outputs["figures"] = out_dir / "figures"
+
+    if disarmament:
+        disarm_outputs = generate_disarmament_report(
+            runs=runs,
+            out_dir=out_dir,
+            agent_metrics=agent_rows,
+        )
+        outputs.update(disarm_outputs)
 
     return outputs
 
