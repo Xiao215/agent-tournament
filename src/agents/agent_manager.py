@@ -65,10 +65,14 @@ class Agent(ABC):
         """Human-readable identifier for this seat (defaults to base name)."""
         return self._label
 
+    @label.setter
+    def label(self, value: str) -> None:
+        self._label = value
+
     def make_seat_clone(self, seat_index: int) -> "Agent":
         """Return a shallow clone representing one seat in a lineup."""
         clone = copy.copy(self)
-        clone._label = f"{self.name}#{seat_index}"
+        clone.label = f"{self.name}#{seat_index}"
         return clone
 
     def chat_with_retries(
