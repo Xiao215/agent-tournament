@@ -10,6 +10,7 @@ from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
 from src.logger_manager import LOGGER
 from src.mechanisms.base import Mechanism
+from src.utils.concurrency import run_tasks
 
 
 class Contracting(Mechanism):
@@ -195,21 +196,54 @@ class Contracting(Mechanism):
     def _play_matchup(
         self, players: Sequence[Agent], payoffs: PopulationPayoffs
     ) -> None:
+        """Have each designer propose a contract and play the base game."""
+
         history = []
         for designer in players:
             record = {
                 "designer": designer.name,
                 "agreements": {},
             }
+
+            agreement_results = run_tasks(
+                players,
+                lambda ply: (
+                    ply.label,
+                    self._agree_to_contract(player=ply, designer=designer),
+                ),
+                max_workers=(
+                    min(self.matchup_workers, len(players))
+                    if getattr(self, "matchup_workers", 1) > 1
+                    else 1
+                ),
+            )
+
             all_agree = True
-            for player in players:
-                response, agree = self._agree_to_contract(
-                    player=player, designer=designer
-                )
-                record["agreements"][player.label] = {
+            for label, (response, agree) in agreement_results:
+                record["agreements"][label] = {
                     "response": response,
                     "agree": agree,
                 }
                 if not agree:
                     all_agree = False
             record["all_agree"] = all_agree
+
+            if all_agree:
+                contract_prompt = self.contract_mechanism_prompt.format(
+                    contract_description=self._contract_description(
+                        self.contracts[designer.name]
+                    )
+                )
+                additional_info = [contract_prompt] * len(players)
+            else:
+                additional_info = ["None."] * len(players)
+
+            moves = self.base_game.play(
+                additional_info=additional_info,
+                players=players,
+            )
+            payoffs.add_profile(moves)
+            record["moves"] = [move.to_dict() for move in moves]
+            history.append(record)
+
+        LOGGER.log_record(record=history, file_name=self.record_file)
