@@ -1,23 +1,20 @@
 import textwrap
-from typing import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
+from typing import Callable, Sequence
 
 from src.agents.agent_manager import Agent
 from src.games.base import Action, Game, Move
 
 
-class PrisonersDilemmaAction(Action):
-    """Possible actions in the Prisoner's Dilemma"""
+class TrustGameAction(Action):
+    """Available actions for the trust game."""
 
-    COOPERATE = "C"
-    DEFECT = "D"
+    INVEST = "I"
+    KEEP = "K"
 
 
-class PrisonersDilemma(Game):
-    """
-    Prisoner's Dilemma environment that allows for one rounds of interaction
-    between two LLM agents.
-    """
+class TrustGame(Game):
+    """Two-player trust game modelled as a simultaneous move game."""
 
     def __init__(
         self,
@@ -28,23 +25,23 @@ class PrisonersDilemma(Game):
         self.payoff_matrix = self._parse_payoff_matrix(payoff_matrix)
         self.parallel_players = parallel_players
 
+        action_tokens = [act.to_token() for act in TrustGameAction]
         actions_block = "\n".join(
-            [f"- {act.to_token()}" for act in PrisonersDilemmaAction]
+            [
+                f"- {TrustGameAction.INVEST.to_token()} — Invest / trust the other player",
+                f"- {TrustGameAction.KEEP.to_token()} — Keep your endowment",
+            ]
         )
+
         self.prompt_template = textwrap.dedent(
             """
-        You are a player named {{player_name}} who plays in a decision-making game.
-        Your objective is to maximise your score in the game described below.
-
-        Rule:
-        1. You and the opponent each choose a probability for each action, simultaneously.
-        2. After both commitments are locked in, the final action will be drawn from the probability distributions.
-        3. Both players receive the points specified in the payoff table below.
+        You are a participant in a two-player trust game. Both players decide simultaneously
+        whether to invest their endowment (trust) or keep it.
 
         Actions:
         {actions_block}
 
-        Payoff matrix:
+        Payoff outcomes:
         {payoff_description}
         """
         )
@@ -55,15 +52,15 @@ class PrisonersDilemma(Game):
                 payoff_description=self._payoff_description(),
             ),
             num_players=2,
-            num_actions=len(PrisonersDilemmaAction),
+            num_actions=len(TrustGameAction),
         )
 
     def _payoff_description(self) -> str:
         lines = []
         for (a, b), (pts_a, pts_b) in self.payoff_matrix.items():
             lines.append(
-                f"  • If you choose {a.to_token()} and opponent chooses {b.to_token()}: "
-                f"you get {pts_a} points, opponent gets {pts_b} points."
+                f"  • If you choose {a.to_token()} and your counterpart chooses {b.to_token()}: "
+                f"you get {pts_a} points, they get {pts_b} points."
             )
         return "\n".join(lines)
 
@@ -101,14 +98,15 @@ class PrisonersDilemma(Game):
                 responses[label] = resp
 
         mapped_indices = action_map(action_indices)
-        final_actions: dict[str, PrisonersDilemmaAction] = {
-            lbl: PrisonersDilemmaAction.from_index(action)
+        final_actions: dict[str, TrustGameAction] = {
+            lbl: TrustGameAction.from_index(action)
             for lbl, action in mapped_indices.items()
         }
 
         label1 = player1.label
         label2 = player2.label
         pts1, pts2 = self.payoff_matrix[(final_actions[label1], final_actions[label2])]
+
         return [
             Move(
                 name=player1.name,
@@ -130,15 +128,11 @@ class PrisonersDilemma(Game):
     def _parse_payoff_matrix(
         cls,
         raw_payoff: dict[str, list[float]],
-    ) -> dict[
-        tuple[PrisonersDilemmaAction, PrisonersDilemmaAction], tuple[float, float]
-    ]:
-        """
-        Convert a raw payoff matrix with string keys into typed action pairs.
-        """
+    ) -> dict[tuple[TrustGameAction, TrustGameAction], tuple[float, float]]:
+        """Convert a raw payoff matrix with string keys into typed action pairs."""
         payoffs = {}
         for key, (p1, p2) in raw_payoff.items():
-            a1 = PrisonersDilemmaAction(key[0])
-            a2 = PrisonersDilemmaAction(key[1])
+            a1 = TrustGameAction(key[0])
+            a2 = TrustGameAction(key[1])
             payoffs[(a1, a2)] = (p1, p2)
         return payoffs
