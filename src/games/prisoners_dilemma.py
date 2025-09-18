@@ -83,47 +83,45 @@ class PrisonersDilemma(Game):
 
         def play_one(player: Agent, info: str) -> tuple[str, int, str]:
             resp, mix_probs = self.prompt_player_mix_probs(player, info)
-            responses[player.name] = resp
-
             action_idx = self._choose_from_mix_strategy(mix_probs)
-            action_indices[player.name] = action_idx
-            responses[player.name] = resp
-            return player.name, action_idx, resp
+            return player.label, action_idx, resp
 
         if self.parallel_players:
             with ThreadPoolExecutor(max_workers=self.num_players) as ex:
                 futs = [ex.submit(play_one, p, info) for p, info in zip(players, additional_info)]
                 for fut in futs:
-                    name, action_idx, resp = fut.result()
-                    action_indices[name] = action_idx
-                    responses[name] = resp
+                    label, action_idx, resp = fut.result()
+                    action_indices[label] = action_idx
+                    responses[label] = resp
         else:
             for player, info in zip(players, additional_info):
-                name, action_idx, resp = play_one(player, info)
-                action_indices[name] = action_idx
-                responses[name] = resp
+                label, action_idx, resp = play_one(player, info)
+                action_indices[label] = action_idx
+                responses[label] = resp
 
         mapped_indices = action_map(action_indices)
         final_actions: dict[str, PrisonersDilemmaAction] = {
-            name: PrisonersDilemmaAction.from_index(action)
-            for name, action in mapped_indices.items()
+            lbl: PrisonersDilemmaAction.from_index(action)
+            for lbl, action in mapped_indices.items()
         }
 
-        pts1, pts2 = self.payoff_matrix[
-            (final_actions[player1.name], final_actions[player2.name])
-        ]
+        label1 = player1.label
+        label2 = player2.label
+        pts1, pts2 = self.payoff_matrix[(final_actions[label1], final_actions[label2])]
         return [
             Move(
                 name=player1.name,
-                action=final_actions[player1.name],
+                label=label1,
+                action=final_actions[label1],
                 points=pts1,
-                response=responses[player1.name],
+                response=responses[label1],
             ),
             Move(
                 name=player2.name,
-                action=final_actions[player2.name],
+                label=label2,
+                action=final_actions[label2],
                 points=pts2,
-                response=responses[player2.name],
+                response=responses[label2],
             ),
         ]
 

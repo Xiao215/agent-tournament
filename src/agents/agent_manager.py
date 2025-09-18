@@ -1,3 +1,5 @@
+import copy
+import itertools
 from abc import ABC, abstractmethod
 from typing import Callable, Any
 
@@ -29,6 +31,7 @@ class Agent(ABC):
     """
 
     llm_manager = LLMManager()
+    _instance_counter = itertools.count(1)
 
     def __init__(self, llm_config: dict) -> None:
         self.model_type = llm_config["model"]
@@ -36,6 +39,8 @@ class Agent(ABC):
         self.pipeline = type(self).llm_manager.get_llm(
             self.model_type, llm_config["provider"]
         )
+        self.agent_id = next(type(self)._instance_counter)
+        self._label = self.name
 
     @abstractmethod
     def chat(
@@ -53,6 +58,17 @@ class Agent(ABC):
     def __str__(self):
         return self.name
 
+    @property
+    def label(self) -> str:
+        """Human-readable identifier for this seat (defaults to base name)."""
+        return self._label
+
+    def make_seat_clone(self, seat_index: int) -> "Agent":
+        """Return a shallow clone representing one seat in a lineup."""
+        clone = copy.copy(self)
+        clone._label = f"{self.name}#{seat_index}"
+        return clone
+
     def chat_with_retries(
         self,
         base_prompt: str,
@@ -60,7 +76,7 @@ class Agent(ABC):
         *,
         max_retries: int = 5,
     ) -> tuple[str, Any]:
-        """ """
+        """Chat with the agent, retrying if unique parsing fails."""
         response = ""
         error_reason = ""
 

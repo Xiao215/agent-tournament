@@ -132,7 +132,7 @@ class Mediation(Mechanism):
         for agent in agents:
             response, mediator = self._design_mediator(agent)
             self.mediators[agent.name] = mediator
-            mediator_design[agent.name] = {
+            mediator_design[agent.label] = {
                 "response": response,
                 "mediator": mediator,
             }
@@ -145,9 +145,10 @@ class Mediation(Mechanism):
         history = []
 
         def play_for_mediator(player: Agent) -> tuple[str, list[dict]]:
-            if player.name not in self.mediators:
+            base_name = player.name
+            if base_name not in self.mediators:
                 raise ValueError(f"Mediator for player {player.name} not found.")
-            mediator = self.mediators[player.name]
+            mediator = self.mediators[base_name]
             mediator_description = self._mediator_description(mediator)
             mediator_mechanism = self.mediation_mechanism_prompt.format(
                 mediator_description=mediator_description,
@@ -159,7 +160,7 @@ class Mediation(Mechanism):
                 action_map=self.mediator_mapping(mediator),
             )
             payoffs.add_profile(moves)
-            return player.name, [move.to_dict() for move in moves]
+            return player.label, [move.to_dict() for move in moves]
 
         if self.matchup_workers <= 1 or len(players) <= 1:
             for player in players:
@@ -182,18 +183,18 @@ class Mediation(Mechanism):
         """
 
         def apply_mediation(player_action_map: dict[str, int]) -> dict[str, int]:
-            actions = {}
+            actions: dict[str, int] = {}
             num_delegating = sum(
                 a == self.base_game.num_actions for a in player_action_map.values()
             )
             if num_delegating == 0:
                 return player_action_map
             recommended_action = mediator[num_delegating]
-            for player_name, action_idx in player_action_map.items():
+            for player_id, action_idx in player_action_map.items():
                 if action_idx == self.base_game.num_actions:
-                    actions[player_name] = recommended_action
+                    actions[player_id] = recommended_action
                 else:
-                    actions[player_name] = action_idx
+                    actions[player_id] = action_idx
             return actions
 
         return apply_mediation

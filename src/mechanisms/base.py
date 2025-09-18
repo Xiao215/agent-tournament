@@ -2,6 +2,7 @@ import itertools
 import math
 import random
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 from typing import Any, Sequence
@@ -23,12 +24,21 @@ class Mechanism(ABC):
         )
         self.matchup_workers = 1
 
-    def _build_payoffs(self, agent_names: list[str]) -> PopulationPayoffs:
-        return PopulationPayoffs(agent_names=agent_names)
+    def _build_payoffs(self, agents: Sequence[Agent]) -> PopulationPayoffs:
+        return PopulationPayoffs(agents=agents)
+
+    def _clone_lineup(self, lineup: Sequence[Agent]) -> list[Agent]:
+        counts: defaultdict[str, int] = defaultdict(int)
+        cloned: list[Agent] = []
+        for agent in lineup:
+            counts[agent.name] += 1
+            seat_idx = counts[agent.name]
+            cloned.append(agent.make_seat_clone(seat_idx))
+        return cloned
 
     def run_tournament(self, agents: Sequence[Agent]) -> PopulationPayoffs:
         """Run the mechanism over the base game across all players."""
-        payoffs = self._build_payoffs(agent_names=[agent.name for agent in agents])
+        payoffs = self._build_payoffs(agents)
 
         k = self.base_game.num_players
         combo_iter = list(itertools.combinations_with_replacement(agents, k))
@@ -43,10 +53,11 @@ class Mechanism(ABC):
                 dynamic_ncols=True,
             ) as pbar:
                 for players in combo_iter:
-                    matchup = " vs ".join(agent.name for agent in players)
+                    seat_players = self._clone_lineup(players)
+                    matchup = " vs ".join(agent.label for agent in seat_players)
                     pbar.set_postfix_str(matchup, refresh=False)
                     t0 = time.perf_counter()
-                    self._play_matchup(players, payoffs)
+                    self._play_matchup(seat_players, payoffs)
                     dt = time.perf_counter() - t0
                     if first_duration is None:
                         first_duration = dt
@@ -60,9 +71,10 @@ class Mechanism(ABC):
 
         # Parallel branch: run independent matchups concurrently
         def run_one(players: Sequence[Agent]) -> tuple[PopulationPayoffs, float]:
-            local = self._build_payoffs(agent_names=[agent.name for agent in agents])
+            local = self._build_payoffs(agents)
+            seat_players = self._clone_lineup(players)
             t0 = time.perf_counter()
-            self._play_matchup(players, local)
+            self._play_matchup(seat_players, local)
             dt = time.perf_counter() - t0
             return local, dt
 
@@ -107,8 +119,8 @@ class RepetitiveMechanism(Mechanism):
         self.num_rounds = num_rounds
         self.discount = discount
 
-    def _build_payoffs(self, agent_names: list[str]) -> PopulationPayoffs:
-        return PopulationPayoffs(agent_names=agent_names, discount=self.discount)
+    def _build_payoffs(self, agents: Sequence[Agent]) -> PopulationPayoffs:
+        return PopulationPayoffs(agents=agents, discount=self.discount)
 
 
 class NoMechanism(Mechanism):

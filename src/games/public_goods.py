@@ -78,33 +78,38 @@ class PublicGoods(Game):
 
         action_indices: dict[str, int] = {}
         responses: dict[str, str] = {}
+        id_to_name: dict[str, str] = {}
 
         for player, info in zip(players, additional_info):
             resp, mix_probs = self.prompt_player_mix_probs(player, info)
             action_idx = self._choose_from_mix_strategy(mix_probs)
-            action_indices[player.name] = action_idx
-            responses[player.name] = resp
+            label = player.label
+            action_indices[label] = action_idx
+            responses[label] = resp
+            id_to_name[label] = player.name
 
         mapped_indices = action_map(action_indices)
         final_actions: dict[str, PublicGoodsAction] = {
-            name: PublicGoodsAction.from_index(action)
-            for name, action in mapped_indices.items()
+            lbl: PublicGoodsAction.from_index(action)
+            for lbl, action in mapped_indices.items()
         }
 
         share = self._calculate_share(final_actions)
 
         moves = []
-        for name, action in final_actions.items():
+        for label, action in final_actions.items():
+            name = id_to_name[label]
             moves.append(
                 Move(
                     name=name,
+                    label=label,
                     action=action,
                     points=(
                         share
                         if action == PublicGoodsAction.CONTRIBUTE
                         else self.endowment + share
                     ),
-                    response=responses[name],
+                    response=responses[label],
                 )
             )
         return moves

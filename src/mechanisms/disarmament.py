@@ -2,7 +2,7 @@ import json
 import re
 import textwrap
 from concurrent.futures import ThreadPoolExecutor
-from typing import Sequence
+from typing import Any, Sequence
 
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
@@ -52,7 +52,8 @@ class Disarmament(RepetitiveMechanism):
         {{"A0": <INT>, "A1": <INT>, ...}}
         """
         )
-        self.current_disarm_caps: dict[str, list[float]] = {}
+        self.current_disarm_caps: dict[int, list[float]] = {}
+        self._id_to_name: dict[str, str] = {}
 
         self.disarmament_mechanism_prompt = textwrap.dedent(
             """
@@ -67,7 +68,7 @@ class Disarmament(RepetitiveMechanism):
 
     def _format_prompt(
         self,
-        player_name: str,
+        player_id: str,
     ) -> str:
         """
         Build the filled prompt:
@@ -76,15 +77,16 @@ class Disarmament(RepetitiveMechanism):
         - discount: continuation probability (integer percent)
         """
 
-        my_caps_line = self._caps_to_line(self.current_disarm_caps[player_name])
+        my_caps_line = self._caps_to_line(self.current_disarm_caps[player_id])
 
         opp_lines = []
-        # TODO: change player name to player 1 or 2
-        for name in sorted(
-            a for a in self.current_disarm_caps.keys() if a != player_name
+        for opponent_id in sorted(
+            (pid for pid in self.current_disarm_caps.keys() if pid != player_id),
+            key=lambda pid: self._id_to_name.get(pid, str(pid)),
         ):
+            opp_name = self._id_to_name.get(opponent_id, str(opponent_id))
             opp_lines.append(
-                f"\t{name}: {self._caps_to_line(self.current_disarm_caps[name])}"
+                f"\t{opp_name}: {self._caps_to_line(self.current_disarm_caps[opponent_id])}"
             )
         opponents_caps_block = "\n".join(opp_lines)
 
@@ -108,8 +110,9 @@ class Disarmament(RepetitiveMechanism):
         Returns: (new_caps, changed, last_response). On total failure, returns (old_caps, False, last_response)
         and prints a warning.
         """
-        base_prompt = self.base_game.prompt + "\n" + self._format_prompt(player.name)
-        parse_func = lambda resp: self._parse_disarm_caps(resp, player.name)
+        player_id = player.label
+        base_prompt = self.base_game.prompt + "\n" + self._format_prompt(player_id)
+        parse_func = lambda resp: self._parse_disarm_caps(resp, player_id)
         response, (new_caps, changed) = player.chat_with_retries(
             base_prompt=base_prompt,
             parse_func=parse_func,
@@ -119,7 +122,7 @@ class Disarmament(RepetitiveMechanism):
     def _parse_disarm_caps(
         self,
         response: str,
-        player_name: str,
+        player_id: str,
     ) -> tuple[list[float], bool]:
         """Parse the disarmament probabilities (new caps) from the agent's response."""
         matches = re.findall(r"\{.*?\}", response, re.DOTALL)
@@ -142,7 +145,7 @@ class Disarmament(RepetitiveMechanism):
             raise ValueError(f"Action key mismatch. Missing: {sorted(missing)}")
 
         new_caps = [0.0] * n
-        old_caps = self.current_disarm_caps[player_name]
+        old_caps = self.current_disarm_caps[player_id]
         for act_str, cap in json_obj.items():
             idx = int(act_str[1:])  # strip the leading 'A'
             if not 0 <= idx < n:
@@ -167,23 +170,26 @@ class Disarmament(RepetitiveMechanism):
     def _play_matchup(
         self, players: Sequence[Agent], payoffs: PopulationPayoffs
     ) -> None:
-        disarmed_cap = {
-            player.name: [100.0 for _ in range(self.base_game.num_actions)]
+        id_to_name = {player.label: player.name for player in players}
+        self._id_to_name = id_to_name
+
+        disarmed_cap: dict[str, list[float]] = {
+            player.label: [100.0 for _ in range(self.base_game.num_actions)]
             for player in players
         }
         disarmament_records = []
         for _ in range(self.num_rounds):
-            new_disarmed_cap = {}
+            new_disarmed_cap: dict[int, list[float]] = {}
             negotiation_continue = False
-            disarmament_mechanisms = []
-            round_records = []
+            disarmament_mechanisms: list[str] = []
+            round_records: list[dict[str, Any]] = []
 
             # Prepare tasks for players who still have wiggle room on their caps
             # Sync current caps for prompt formatting
             self.current_disarm_caps = disarmed_cap
 
             negotiable_players = [
-                player for player in players if sum(disarmed_cap[player.name]) > 100.0
+                player for player in players if sum(disarmed_cap[player.label]) > 100.0
             ]
             negotiation_results: dict[str, tuple[str, tuple[list[float], bool]]] = {}
             if len(negotiable_players) > 1 and self.negotiation_workers > 1:
@@ -195,31 +201,32 @@ class Disarmament(RepetitiveMechanism):
                         for player in negotiable_players
                     }
                     for future, player in futures.items():
-                        negotiation_results[player.name] = future.result()
+                        negotiation_results[player.label] = future.result()
             else:
                 for player in negotiable_players:
-                    negotiation_results[player.name] = self._negotiate_disarm_caps(
+                    negotiation_results[player.label] = self._negotiate_disarm_caps(
                         player
                     )
 
             for player in players:
-                if player.name in negotiation_results:
-                    disarm_rsp, (new_player_cap, changed) = negotiation_results[
-                        player.name
-                    ]
+                pid = player.label
+                if pid in negotiation_results:
+                    disarm_rsp, (new_player_cap, changed) = negotiation_results[pid]
                     negotiation_continue |= changed
-                    new_disarmed_cap[player.name] = new_player_cap
+                    new_disarmed_cap[pid] = new_player_cap
                 else:
                     disarm_rsp = "No room for further disarmament, keep the same cap."
-                    new_disarmed_cap[player.name] = disarmed_cap[player.name]
+                    new_disarmed_cap[pid] = disarmed_cap[pid]
 
                 round_records.append(
                     {
+                        "player_id": pid,
+                        "player": id_to_name[pid],
                         "response": disarm_rsp,
-                        "new_cap": new_disarmed_cap[player.name],
+                        "new_cap": new_disarmed_cap[pid],
                     }
                 )
-                caps_str = self._caps_to_line(new_disarmed_cap[player.name])
+                caps_str = self._caps_to_line(new_disarmed_cap[pid])
                 disarmament_mechanisms.append(
                     self.disarmament_mechanism_prompt.format(caps_str=caps_str)
                 )

@@ -64,7 +64,7 @@ class Reputation(RepetitiveMechanism, ABC):
 
     def run_tournament(self, agents: Sequence[Agent]) -> PopulationPayoffs:
         """Run the mechanism over the base game across all players."""
-        payoffs = self._build_payoffs(agent_names=[agent.name for agent in agents])
+        payoffs = self._build_payoffs(agents)
 
         for _ in tqdm(
             range(self.num_rounds),
@@ -83,9 +83,7 @@ class Reputation(RepetitiveMechanism, ABC):
         random.shuffle(combo_iter)
 
         def play_one(lineup: Sequence[Agent]) -> tuple[list[dict], PopulationPayoffs]:
-            local_payoffs = self._build_payoffs(
-                agent_names=[agent.name for agent in players]
-            )
+            local_payoffs = self._build_payoffs(players)
             moves = self.base_game.play(
                 additional_info=self._format_reputation(lineup), players=lineup
             )
@@ -155,7 +153,7 @@ class ReputationPrisonersDilemma(Reputation):
 
         for agent in agents:
             name = agent.name
-            agent_reputation = self.reputation[name]
+            agent_reputation = self.reputation[agent.name]
 
             coop_rate = agent_reputation.rate("cooperation_rate")
 
@@ -204,7 +202,7 @@ class ReputationPublicGoods(Reputation):
 
         for agent in agents:
             name = agent.name
-            agent_reputation = self.reputation[name]
+            agent_reputation = self.reputation[agent.name]
 
             coop_rate = agent_reputation.rate("contribution_rate")
 

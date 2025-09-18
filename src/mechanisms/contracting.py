@@ -185,7 +185,7 @@ class Contracting(Mechanism):
         for agent in agents:
             response, contract = self._design_contract(agent)
             self.contracts[agent.name] = contract
-            contract_design[agent.name] = {
+            contract_design[agent.label] = {
                 "response": response,
                 "contract": contract,
             }
@@ -197,13 +197,16 @@ class Contracting(Mechanism):
     ) -> None:
         history = []
         for designer in players:
-            record = {"designer": designer.name, "agreements": {}}
+            record = {
+                "designer": designer.name,
+                "agreements": {},
+            }
             all_agree = True
             for player in players:
                 response, agree = self._agree_to_contract(
                     player=player, designer=designer
                 )
-                record["agreements"][player.name] = {
+                record["agreements"][player.label] = {
                     "response": response,
                     "agree": agree,
                 }

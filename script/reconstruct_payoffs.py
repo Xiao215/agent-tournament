@@ -1,5 +1,6 @@
 import argparse
 import json
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -25,7 +26,14 @@ def reconstruct_payoffs(run_dir: Path) -> Path:
     agent_names = [a.get("name", "unknown") for a in (cfg.get("agents") or [])]
     discount = (cfg.get("mechanism") or {}).get("kwargs", {}).get("discount", 1.0)
 
-    pop = PopulationPayoffs(agent_names=agent_names, discount=discount)
+    class _StubAgent:
+        def __init__(self, name: str):
+            self.name = name
+
+    agents = [_StubAgent(name) for name in agent_names]
+    name_to_agent = {agent.name: agent for agent in agents}
+
+    pop = PopulationPayoffs(agents=agents, discount=discount)
 
     # Find the history file (*.jsonl)
     jsonl_files = sorted(run_dir.glob("*.jsonl"))
@@ -37,12 +45,21 @@ def reconstruct_payoffs(run_dir: Path) -> Path:
     for entry in iter_jsonl(hist_path):
         rounds = entry if (isinstance(entry, list) and entry and isinstance(entry[0], list)) else [entry]
         for round_moves in rounds:
-            class _M:
-                __slots__ = ("name", "points")
             moves_objs = []
+            seat_counts: defaultdict[str, int] = defaultdict(int)
+
+            class _Move:
+                __slots__ = ("label", "name", "points")
+
             for m in round_moves:
-                mo = _M()
-                mo.name = m["name"]
+                agent = name_to_agent.get(m["name"])
+                if agent is None:
+                    continue
+                seat_counts[agent.name] += 1
+                seat_idx = seat_counts[agent.name]
+                mo = _Move()
+                mo.name = agent.name
+                mo.label = f"{agent.name}#{seat_idx}"
                 mo.points = float(m["points"])
                 moves_objs.append(mo)
             pop.add_profile(moves_objs)
@@ -67,5 +84,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
