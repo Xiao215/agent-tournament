@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import math
 from collections import defaultdict
-from itertools import combinations
 from statistics import mean, median, pstdev
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -128,27 +127,29 @@ def compute_agent_metrics(run: RunData, baseline_payoffs: Dict[str, float]) -> L
 def compute_pairwise_metrics(run: RunData) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for match_id, records in run.matchups.items():
-        agents = [r.agent for r in records]
-        points_map = {r.agent: r.points for r in records}
-        coop_map = {r.agent: 1.0 if r.action.upper().startswith("C") else 0.0 for r in records}
-        rounds = len(records)
-        for a, b in combinations(agents, 2):
-            if a == b:
-                continue
-            rows.append(
-                {
-                    "run_dir": str(run.run_dir),
-                    "game": run.game,
-                    "mechanism": run.mechanism,
-                    "match_id": match_id,
-                    "agent_i": a,
-                    "agent_j": b,
-                    "points_i": points_map[a],
-                    "points_j": points_map[b],
-                    "coop_i": coop_map[a],
-                    "coop_j": coop_map[b],
-                }
-            )
+        if not records:
+            continue
+
+        for seat_i, record_i in enumerate(records):
+            coop_i = 1.0 if record_i.action.upper().startswith("C") else 0.0
+            for seat_j, record_j in enumerate(records):
+                coop_j = 1.0 if record_j.action.upper().startswith("C") else 0.0
+                rows.append(
+                    {
+                        "run_dir": str(run.run_dir),
+                        "game": run.game,
+                        "mechanism": run.mechanism,
+                        "match_id": match_id,
+                        "agent_i": record_i.agent,
+                        "agent_j": record_j.agent,
+                        "points_i": record_i.points,
+                        "points_j": record_j.points,
+                        "coop_i": coop_i,
+                        "coop_j": coop_j,
+                        "seat_i": seat_i,
+                        "seat_j": seat_j,
+                    }
+                )
     return rows
 
 

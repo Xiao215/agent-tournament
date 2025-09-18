@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Tuple, List, Iterable
+import textwrap
+import re
 
 import csv
 import math
@@ -11,47 +13,89 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 import seaborn as sns
 
-# Set modern style and color palette
-plt.style.use('seaborn-v0_8-whitegrid')
-sns.set_palette("husl")
-
-# Custom color palette for consistency
+# Soft palette tuned for reports
+PALETTE_BASE = ["#355070", "#6D597A", "#B56576", "#E56B6F", "#EAAC8B", "#5C7AEA"]
 COLOR_PALETTE = {
-    'primary': '#2E86AB',
-    'secondary': '#A23B72',
-    'accent1': '#F18F01',
-    'accent2': '#C73E1D',
-    'success': '#4CAF50',
-    'warning': '#FF9800',
-    'info': '#2196F3',
-    'light': '#F5F5F5',
-    'dark': '#333333'
+    "primary": "#355070",
+    "secondary": "#6D597A",
+    "accent1": "#E56B6F",
+    "accent2": "#5C7AEA",
+    "accent3": "#0EAD69",
+    "muted": "#9AA5B1",
+    "background": "#F6F7FB",
+    "panel": "#FFFFFF",
+    "grid": "#D8DEE9",
+    "text": "#2F3437",
 }
 
-# Create custom colormap
-colors = ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#4CAF50', '#FF9800']
-custom_cmap = LinearSegmentedColormap.from_list('custom', colors)
+custom_cmap = LinearSegmentedColormap.from_list("custom", PALETTE_BASE)
+
+sns.set_theme(style="whitegrid", context="talk", palette=PALETTE_BASE)
 
 def setup_plot_style():
     """Configure global plot styling"""
     plt.rcParams.update({
-        'font.family': 'sans-serif',
-        'font.sans-serif': ['Helvetica', 'Arial', 'DejaVu Sans'],
-        'font.size': 11,
-        'axes.titlesize': 14,
-        'axes.labelsize': 12,
-        'xtick.labelsize': 10,
-        'ytick.labelsize': 10,
-        'legend.fontsize': 10,
-        'figure.titlesize': 16,
-        'axes.spines.top': False,
-        'axes.spines.right': False,
-        'axes.grid': True,
-        'grid.alpha': 0.3,
-        'grid.linewidth': 0.5
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Inter", "Helvetica", "Arial", "DejaVu Sans"],
+        "font.size": 11,
+        "axes.titlesize": 16,
+        "axes.labelsize": 12,
+        "xtick.labelsize": 10,
+        "ytick.labelsize": 10,
+        "legend.fontsize": 10,
+        "figure.titlesize": 18,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.edgecolor": COLOR_PALETTE["grid"],
+        "axes.labelweight": "semibold",
+        "axes.titleweight": "bold",
+        "axes.facecolor": COLOR_PALETTE["panel"],
+        "figure.facecolor": COLOR_PALETTE["background"],
+        "axes.labelcolor": COLOR_PALETTE["text"],
+        "axes.titlecolor": COLOR_PALETTE["text"],
+        "xtick.color": COLOR_PALETTE["text"],
+        "ytick.color": COLOR_PALETTE["text"],
+        "axes.grid": True,
+        "grid.alpha": 0.25,
+        "grid.linewidth": 0.6,
+        "grid.color": COLOR_PALETTE["grid"],
     })
 
 setup_plot_style()
+
+
+def _style_axes(ax, *, facecolor: str | None = None) -> None:
+    if facecolor is None:
+        facecolor = COLOR_PALETTE["panel"]
+    ax.set_facecolor(facecolor)
+    ax.tick_params(axis="x", pad=4)
+    ax.tick_params(axis="y", pad=4)
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
+    for spine in ("left", "bottom"):
+        ax.spines[spine].set_color(COLOR_PALETTE["grid"])
+
+
+def _finalize(fig, ax) -> None:
+    fig.patch.set_facecolor(COLOR_PALETTE["background"])
+    _style_axes(ax)
+    fig.tight_layout()
+
+
+def _slugify(name: str) -> str:
+    base = re.sub(r"[\\/:]+", "-", name)
+    base = re.sub(r"[^A-Za-z0-9._-]", "_", base)
+    return base
+
+
+def _clean_agent_label(agent: str, *, wrap: bool = False, width: int = 12) -> str:
+    """Shorten agent identifier for plotting axes."""
+    base = agent.replace("(CoT)", "")
+    base = base.split("/")[-1]
+    base = base.replace("_", "-")
+    if wrap and len(base) > width:
+        return "\n".join(textwrap.wrap(base, width=width))
+    return base
 
 def add_watermark(ax, text="Agent Tournament Analysis"):
     """Add a subtle watermark to the plot"""
@@ -117,10 +161,16 @@ def plot_mechanism_effectiveness(csv_path: str | Path, out_dir: str | Path) -> N
         labels = [m for m, _ in items_sorted]
         values = [v for _, v in items_sorted]
 
-        # Create gradient colors based on values
-        colors = [custom_cmap(v) for v in values]
+        palette = sns.color_palette(PALETTE_BASE, len(values)) if values else []
 
-        bars = ax.bar(labels, values, color=colors, edgecolor='white', linewidth=1.5, alpha=0.85)
+        bars = ax.bar(
+            labels,
+            values,
+            color=palette,
+            edgecolor=COLOR_PALETTE["panel"],
+            linewidth=1.5,
+            alpha=0.9,
+        )
 
         # Add value labels on bars while keeping them within [0, 1]
         y_max = 1.0
@@ -139,27 +189,24 @@ def plot_mechanism_effectiveness(csv_path: str | Path, out_dir: str | Path) -> N
                 f"{value:.3f}",
                 ha="center",
                 va=va,
-                fontweight="bold",
-                fontsize=9,
+                fontweight="semibold",
+                fontsize=10,
+                color=COLOR_PALETTE["text"],
             )
 
         ax.set_ylim(0, y_max)
-        ax.set_title(f"Mechanism Effectiveness (Average Cooperation)\n{game}",
-                    fontsize=16, fontweight='bold', pad=20)
-        ax.set_ylabel("Average Cooperation Rate", fontweight='bold')
-        ax.set_xlabel("Mechanism", fontweight='bold')
-
-        # Improved tick styling
-        plt.xticks(rotation=35, ha="right", fontsize=10)
-        plt.yticks(fontsize=10)
-
-        # Add subtle background gradient
-        ax.set_facecolor('#FAFAFA')
+        ax.set_title(
+            f"Mechanism Effectiveness (Average Cooperation)\n{game}",
+            pad=18,
+        )
+        ax.set_ylabel("Average Cooperation Rate")
+        ax.set_xlabel("Mechanism")
+        plt.xticks(rotation=30, ha="right")
 
         out_path = Path(out_dir) / "figures" / f"mechanism_effectiveness_{game}.png"
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.tight_layout()
-        fig.savefig(out_path, dpi=300, bbox_inches='tight', facecolor='white')
+        _finalize(fig, ax)
+        fig.savefig(out_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -232,39 +279,44 @@ def plot_agent_performance(payoffs_csv: str | Path, coop_csv: str | Path, out_di
     for (game, mechanism), items in by_group.items():
         # Horizontal bar chart by expected payoff
         items_sorted = sorted(items, key=lambda t: (-t[1], t[0]))
-        fig, ax = plt.subplots(figsize=(10, max(6, len(items_sorted) * 0.5)))
+        fig, ax = plt.subplots(figsize=(10, max(6, len(items_sorted) * 0.55)))
         labels = [a for a, _, _ in items_sorted]
         pays = [p for _, p, _ in items_sorted]
 
-        # Create gradient colors for bars
-        norm_pays = np.array(pays)
-        if norm_pays.max() > norm_pays.min():
-            normalized = (norm_pays - norm_pays.min()) / (norm_pays.max() - norm_pays.min())
-        else:
-            normalized = np.ones_like(norm_pays) * 0.5
-        colors = [custom_cmap(n) for n in normalized]
+        palette = sns.color_palette(PALETTE_BASE, len(labels)) if labels else []
 
-        bars = ax.barh(labels, pays, color=colors, edgecolor='white', linewidth=1, alpha=0.85)
+        bars = ax.barh(
+            labels,
+            pays,
+            color=palette,
+            edgecolor=COLOR_PALETTE["panel"],
+            linewidth=1.2,
+            alpha=0.92,
+        )
 
         # Add value labels on bars
         for bar, pay in zip(bars, pays):
             width = bar.get_width()
-            ax.text(width + max(pays) * 0.01, bar.get_y() + bar.get_height()/2,
-                   f'{pay:.3f}', ha='left', va='center', fontweight='bold', fontsize=9)
+            ax.text(
+                width + max(pays) * 0.015,
+                bar.get_y() + bar.get_height() / 2,
+                f"{pay:.3f}",
+                ha="left",
+                va="center",
+                fontweight="semibold",
+                fontsize=10,
+                color=COLOR_PALETTE["text"],
+            )
 
-        ax.set_title(f"Agent Expected Payoff\n{game} | {mechanism}",
-                    fontsize=16, fontweight='bold', pad=20)
-        ax.set_xlabel("Expected Payoff", fontweight='bold')
-        ax.set_ylabel("Agent", fontweight='bold')
+        ax.set_title(f"Agent Expected Payoff\n{game} | {mechanism}", pad=18)
+        ax.set_xlabel("Expected Payoff")
+        ax.set_ylabel("Agent")
+        ax.grid(axis="x")
 
-        # Style improvements
-        ax.set_facecolor('#FAFAFA')
-        ax.grid(axis='x', alpha=0.3)
-
-        plt.tight_layout()
+        _finalize(fig, ax)
         out_path = Path(out_dir) / "figures" / f"agent_payoffs_{game}_{mechanism}.png"
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(out_path, dpi=300, bbox_inches='tight', facecolor='white')
+        fig.savefig(out_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
 
         # Scatter payoff vs cooperation where coop is available
@@ -288,33 +340,48 @@ def plot_agent_performance(payoffs_csv: str | Path, coop_csv: str | Path, out_di
             else:
                 point_sizes = [100] * len(sizes)
 
-            scatter = ax2.scatter(xs, ys, c=ys, s=point_sizes, alpha=0.7,
-                                cmap=custom_cmap, edgecolors='white', linewidth=1.5)
+            scatter = ax2.scatter(
+                xs,
+                ys,
+                c=ys,
+                s=point_sizes,
+                alpha=0.78,
+                cmap=custom_cmap,
+                edgecolors=COLOR_PALETTE["panel"],
+                linewidth=1.2,
+            )
 
             # Add colorbar
             cbar = plt.colorbar(scatter, ax=ax2)
-            cbar.set_label('Expected Payoff', fontweight='bold')
+            cbar.set_label("Expected Payoff")
+            cbar.outline.set_color("none")
 
             # Better annotations with background boxes
             for x, y, lab in zip(xs, ys, labs):
-                ax2.annotate(lab, (x, y), fontsize=9, fontweight='bold',
-                           xytext=(5, 5), textcoords="offset points",
-                           bbox=dict(boxstyle="round,pad=0.3", facecolor='white',
-                                   edgecolor='gray', alpha=0.8))
+                ax2.annotate(
+                    lab,
+                    (x, y),
+                    fontsize=9,
+                    fontweight="semibold",
+                    xytext=(6, 6),
+                    textcoords="offset points",
+                    bbox=dict(
+                        boxstyle="round,pad=0.25",
+                        facecolor=COLOR_PALETTE["panel"],
+                        edgecolor=COLOR_PALETTE["grid"],
+                        alpha=0.85,
+                    ),
+                )
 
             ax2.set_xlim(-0.05, 1.05)
-            ax2.set_xlabel("Cooperation Rate", fontweight='bold')
-            ax2.set_ylabel("Expected Payoff", fontweight='bold')
-            ax2.set_title(f"Payoff vs Cooperation Analysis\n{game} | {mechanism}",
-                         fontsize=16, fontweight='bold', pad=20)
+            ax2.set_xlabel("Cooperation Rate")
+            ax2.set_ylabel("Expected Payoff")
+            ax2.set_title(f"Payoff vs Cooperation Analysis\n{game} | {mechanism}", pad=18)
+            ax2.grid(True)
 
-            # Grid and styling
-            ax2.grid(True, alpha=0.3)
-            ax2.set_facecolor('#FAFAFA')
-
-            plt.tight_layout()
+            _finalize(fig2, ax2)
             out_path2 = Path(out_dir) / "figures" / f"agent_payoff_vs_coop_{game}_{mechanism}.png"
-            fig2.savefig(out_path2, dpi=300, bbox_inches='tight', facecolor='white')
+            fig2.savefig(out_path2, dpi=300, bbox_inches="tight")
             plt.close(fig2)
 
 
@@ -353,6 +420,95 @@ def _avg(values: Iterable[float]) -> float:
     return sum(vals) / len(vals) if vals else float("nan")
 
 
+def plot_pairwise_heatmaps(pairwise_csv: str | Path, out_dir: str | Path) -> None:
+    rows = _load_csv(Path(pairwise_csv))
+    if not rows:
+        return
+
+    by_run: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        run_dir = row.get("run_dir")
+        agent_i = row.get("agent_i")
+        agent_j = row.get("agent_j")
+        if not run_dir or not agent_i or not agent_j:
+            continue
+        bucket = by_run.setdefault(run_dir, {"rows": [], "mechanisms": set()})
+        bucket["rows"].append(row)
+        bucket["mechanisms"].add(row.get("mechanism") or "Unknown")
+
+    fig_dir = Path(out_dir) / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    for run_dir, payload in by_run.items():
+        run_rows = payload["rows"]
+        agents = sorted({r["agent_i"] for r in run_rows} | {r["agent_j"] for r in run_rows})
+        if not agents:
+            continue
+
+        index = {agent: i for i, agent in enumerate(agents)}
+        matrix = np.full((len(agents), len(agents)), np.nan, dtype=float)
+        values: Dict[Tuple[str, str], List[float]] = {}
+        for r in run_rows:
+            ai = r["agent_i"]
+            aj = r["agent_j"]
+            val = _safe_float(r.get("points_i"))
+            if math.isnan(val):
+                continue
+            values.setdefault((ai, aj), []).append(val)
+
+        for (ai, aj), vals in values.items():
+            i = index[ai]
+            j = index[aj]
+            matrix[i, j] = sum(vals) / len(vals)
+
+        labels_x = [_clean_agent_label(agent, wrap=False, width=18) for agent in agents]
+        labels_y = [_clean_agent_label(agent, wrap=True, width=14) for agent in agents]
+        size = max(4.5, 0.9 * len(agents) + 2.0)
+        fig, ax = plt.subplots(figsize=(size, size))
+
+        annot = np.empty_like(matrix, dtype=object)
+        for i in range(len(agents)):
+            for j in range(len(agents)):
+                annot[i, j] = "" if math.isnan(matrix[i, j]) else f"{matrix[i, j]:.2f}"
+
+        mask = np.isnan(matrix)
+        sns.heatmap(
+            matrix,
+            mask=mask,
+            cmap=custom_cmap,
+            annot=annot,
+            fmt="",
+            linewidths=0.5,
+            linecolor=COLOR_PALETTE["background"],
+            cbar_kws={"label": "Avg payoff"},
+            square=True,
+            vmin=0.0,
+            vmax=3.0,
+            ax=ax,
+        )
+
+        tick_positions = np.arange(len(agents)) + 0.5
+        ax.set_xticks(tick_positions)
+        ax.set_xticklabels(labels_x, rotation=35, ha="right")
+        ax.set_yticks(tick_positions)
+        ax.set_yticklabels(labels_y, rotation=0, ha="right")
+        ax.tick_params(axis="y", pad=8)
+
+        mech_title = ", ".join(sorted(payload["mechanisms"]))
+        ax.set_title(f"Pairwise Payoffs – {mech_title}")
+        ax.set_xlabel("Column agent")
+        ax.set_ylabel("Row agent")
+
+        _style_axes(ax)
+        fig.patch.set_facecolor(COLOR_PALETTE["background"])
+        fig.tight_layout()
+
+        slug = _slugify(Path(run_dir).name)
+        out_path = fig_dir / f"pairwise_payoffs_{slug}.png"
+        fig.savefig(out_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+
+
 def plot_mechanism_summary(summary_csv: str | Path, out_dir: str | Path) -> None:
     rows = _load_csv(Path(summary_csv))
     if not rows:
@@ -376,30 +532,62 @@ def plot_mechanism_summary(summary_csv: str | Path, out_dir: str | Path) -> None
         width = 0.35
 
         fig, ax1 = plt.subplots(figsize=(10, 6))
-        bars = ax1.bar(x - width / 2, payoffs, width, label="Avg Payoff", color=COLOR_PALETTE['primary'], alpha=0.8)
-        ax1.bar(x + width / 2, coop, width, label="Avg Cooperation", color=COLOR_PALETTE['success'], alpha=0.8)
+        bars = ax1.bar(
+            x - width / 2,
+            payoffs,
+            width,
+            label="Avg Payoff",
+            color=COLOR_PALETTE["primary"],
+            alpha=0.9,
+        )
+        ax1.bar(
+            x + width / 2,
+            coop,
+            width,
+            label="Avg Cooperation",
+            color=COLOR_PALETTE["accent3"],
+            alpha=0.85,
+        )
         ax1.set_xticks(x)
         ax1.set_xticklabels(labels, rotation=30, ha="right")
-        ax1.set_ylabel("Value", fontweight='bold')
-        ax1.set_title(f"Mechanism Summary – {game}", fontweight='bold', fontsize=16)
-        ax1.legend()
-        ax1.grid(alpha=0.3)
+        ax1.set_ylabel("Value")
+        ax1.set_title(f"Mechanism Summary – {game}")
+        ax1.legend(frameon=False, ncols=2)
+        ax1.grid(axis="y")
 
         for bar in bars:
             h = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width() / 2, h + 0.02, f"{h:.3f}", ha='center', va='bottom', fontsize=9)
+            ax1.text(
+                bar.get_x() + bar.get_width() / 2,
+                h + 0.02,
+                f"{h:.3f}",
+                ha="center",
+                va="bottom",
+                fontsize=10,
+                fontweight="semibold",
+                color=COLOR_PALETTE["text"],
+            )
 
         ax2 = ax1.twinx()
-        ax2.plot(x, delta, color=COLOR_PALETTE['accent1'], marker='o', linewidth=2, label="Δ Payoff vs Base")
-        ax2.set_ylabel("Δ Payoff", color=COLOR_PALETTE['accent1'], fontweight='bold')
-        ax2.tick_params(axis='y', labelcolor=COLOR_PALETTE['accent1'])
+        ax2.plot(
+            x,
+            delta,
+            color=COLOR_PALETTE["accent1"],
+            marker="o",
+            linewidth=2.2,
+            label="Δ Payoff vs Base",
+        )
+        ax2.set_ylabel("Δ Payoff", color=COLOR_PALETTE["accent1"])
+        ax2.tick_params(axis="y", colors=COLOR_PALETTE["accent1"])
+        _style_axes(ax1)
+        _style_axes(ax2, facecolor="none")
 
         lines, labels_leg = ax1.get_legend_handles_labels()
         l2, labels2 = ax2.get_legend_handles_labels()
         ax1.legend(lines + l2, labels_leg + labels2, loc='upper left')
 
-        fig.tight_layout()
-        fig.savefig(fig_dir / f"mechanism_summary_{game}.png", dpi=300, bbox_inches='tight', facecolor='white')
+        _finalize(fig, ax1)
+        fig.savefig(fig_dir / f"mechanism_summary_{game}.png", dpi=300, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -418,29 +606,42 @@ def plot_agent_metrics(agent_csv: str | Path, out_dir: str | Path) -> None:
     fig, ax = plt.subplots(figsize=(10, 6))
     for row in rows:
         mech = row.get("mechanism", "Unknown")
+        x_val = _safe_float(row.get("expected_payoff"))
+        y_val = _safe_float(row.get("coop_rate"))
         ax.scatter(
-            _safe_float(row.get("expected_payoff")),
-            _safe_float(row.get("coop_rate")),
-            color=mech_colors.get(mech, COLOR_PALETTE['primary']),
-            alpha=0.7,
+            x_val,
+            y_val,
+            color=mech_colors.get(mech, COLOR_PALETTE["primary"]),
+            alpha=0.8,
+            s=110,
+            edgecolor=COLOR_PALETTE["panel"],
+            linewidth=1.0,
             label=mech,
         )
         ax.annotate(
             row.get("agent", ""),
-            (_safe_float(row.get("expected_payoff")), _safe_float(row.get("coop_rate"))),
+            (x_val, y_val),
             textcoords="offset points",
-            xytext=(4, 4),
-            fontsize=8,
+            xytext=(6, 6),
+            fontsize=9,
+            fontweight="semibold",
+            bbox=dict(
+                boxstyle="round,pad=0.25",
+                facecolor=COLOR_PALETTE["panel"],
+                edgecolor=COLOR_PALETTE["grid"],
+                alpha=0.85,
+            ),
         )
-    ax.set_xlabel("Expected Payoff", fontweight='bold')
-    ax.set_ylabel("Cooperation Rate", fontweight='bold')
-    ax.set_title("Agent Payoff vs Cooperation", fontweight='bold', fontsize=16)
+    ax.set_xlabel("Expected Payoff")
+    ax.set_ylabel("Cooperation Rate")
+    ax.set_title("Agent Payoff vs Cooperation")
     handles, labels = ax.get_legend_handles_labels()
     unique = dict(zip(labels, handles))
-    ax.legend(unique.values(), unique.keys(), loc='best', frameon=True)
-    ax.grid(alpha=0.3)
-    fig.tight_layout()
-    fig.savefig(fig_dir / "agent_payoff_vs_coop.png", dpi=300, bbox_inches='tight', facecolor='white')
+    if unique:
+        ax.legend(unique.values(), unique.keys(), loc="best", frameon=False)
+    ax.grid(True)
+    _finalize(fig, ax)
+    fig.savefig(fig_dir / "agent_payoff_vs_coop.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
     # Horizontal bars of expected payoff per mechanism
@@ -452,12 +653,26 @@ def plot_agent_metrics(agent_csv: str | Path, out_dir: str | Path) -> None:
     fig, ax = plt.subplots(figsize=(10, max(4, len(clusters) * 0.8)))
     mechanisms = sorted(clusters)
     means = [_avg(clusters[m]) for m in mechanisms]
-    bars = ax.barh(mechanisms, means, color=COLOR_PALETTE['primary'], alpha=0.8)
+    palette = sns.color_palette(PALETTE_BASE, len(mechanisms)) if mechanisms else []
+    bars = ax.barh(
+        mechanisms,
+        means,
+        color=palette,
+        alpha=0.88,
+    )
     for bar, val in zip(bars, means):
-        ax.text(val + 0.01, bar.get_y() + bar.get_height() / 2, f"{val:.3f}", va='center', fontsize=9)
-    ax.set_xlabel("Average Expected Payoff", fontweight='bold')
-    ax.set_title("Average Agent Payoff by Mechanism", fontweight='bold', fontsize=16)
-    ax.grid(axis='x', alpha=0.3)
-    fig.tight_layout()
-    fig.savefig(fig_dir / "agent_payoff_by_mechanism.png", dpi=300, bbox_inches='tight', facecolor='white')
+        ax.text(
+            val + 0.01,
+            bar.get_y() + bar.get_height() / 2,
+            f"{val:.3f}",
+            va="center",
+            fontsize=10,
+            fontweight="semibold",
+            color=COLOR_PALETTE["text"],
+        )
+    ax.set_xlabel("Average Expected Payoff")
+    ax.set_title("Average Agent Payoff by Mechanism")
+    ax.grid(axis="x")
+    _finalize(fig, ax)
+    fig.savefig(fig_dir / "agent_payoff_by_mechanism.png", dpi=300, bbox_inches="tight")
     plt.close(fig)

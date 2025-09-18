@@ -19,7 +19,7 @@ from .compute import (
 from .io import find_runs
 from .models import RunData
 from .parsers import parse_run
-from .plots import plot_agent_metrics, plot_mechanism_summary
+from .plots import plot_agent_metrics, plot_mechanism_summary, plot_pairwise_heatmaps
 
 
 def _build_baseline_map(runs: List[RunData]) -> Dict[str, float]:
@@ -141,6 +141,7 @@ def analyze(root: Path, out_dir: Path) -> Dict[str, Path]:
     # Generate plots using the newly written tables
     plot_mechanism_summary(out_dir / "mechanism_summary.csv", out_dir)
     plot_agent_metrics(out_dir / "agent_metrics.csv", out_dir)
+    plot_pairwise_heatmaps(out_dir / "pairwise_metrics.csv", out_dir)
     outputs["figures"] = out_dir / "figures"
 
     return outputs
