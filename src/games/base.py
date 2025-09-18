@@ -3,13 +3,13 @@ import random
 import re
 import textwrap
 from abc import ABC, abstractmethod
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Callable, Self, Sequence
 
 from src.agents.agent_manager import Agent
 from src.logger_manager import LOGGER
+from src.utils.concurrency import run_tasks
 
 
 class Action(Enum):
@@ -216,9 +216,8 @@ class Game(ABC):
             action_idx = self._choose_from_mix_strategy(mix_probs)
             return player.label, action_idx, resp
 
-        if not parallel or len(players) == 1:
-            return [query(player, extra) for player, extra in zip(players, info)]
+        pairs = list(zip(players, info))
+        if not parallel:
+            return [query(player, extra) for player, extra in pairs]
 
-        with ThreadPoolExecutor(max_workers=len(players)) as executor:
-            futures = [executor.submit(query, player, extra) for player, extra in zip(players, info)]
-            return [future.result() for future in futures]
+        return run_tasks(pairs, lambda pair: query(*pair), max_workers=len(players))

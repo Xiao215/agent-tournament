@@ -11,9 +11,7 @@ from src.mechanisms.base import Mechanism
 
 
 class Contracting(Mechanism):
-    """
-    Disarmament mechanism that allows for multiple rounds of the same game.
-    """
+    """Mechanism where players negotiate and optionally sign payoff contracts."""
 
     def __init__(
         self,
@@ -78,7 +76,7 @@ class Contracting(Mechanism):
                 and value representing the payoff adjustment.
         """
         base_prompt = (
-            self.base_game.prompt + "/n" + self.contracts_design_prompt.format()
+            self.base_game.prompt + "\n" + self.contracts_design_prompt.format()
         )
         response, contract = designer.chat_with_retries(
             base_prompt=base_prompt,
@@ -92,7 +90,7 @@ class Contracting(Mechanism):
         """
         base_prompt = (
             self.base_game.prompt
-            + "/n"
+            + "\n"
             + self.contract_confirmation_prompt.format(
                 contract_description=self._contract_description(
                     self.contracts[designer.name]

@@ -1,7 +1,6 @@
 import json
 import re
 import textwrap
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Sequence
 
 from src.agents.agent_manager import Agent
@@ -9,6 +8,7 @@ from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
 from src.mechanisms.base import RepetitiveMechanism
 from src.logger_manager import LOGGER
+from src.utils.concurrency import run_tasks
 
 
 class Disarmament(RepetitiveMechanism):
@@ -52,7 +52,7 @@ class Disarmament(RepetitiveMechanism):
         {{"A0": <INT>, "A1": <INT>, ...}}
         """
         )
-        self.current_disarm_caps: dict[int, list[float]] = {}
+        self.current_disarm_caps: dict[str, list[float]] = {}
         self._id_to_name: dict[str, str] = {}
 
         self.disarmament_mechanism_prompt = textwrap.dedent(
@@ -179,7 +179,7 @@ class Disarmament(RepetitiveMechanism):
         }
         disarmament_records = []
         for _ in range(self.num_rounds):
-            new_disarmed_cap: dict[int, list[float]] = {}
+            new_disarmed_cap: dict[str, list[float]] = {}
             negotiation_continue = False
             disarmament_mechanisms: list[str] = []
             round_records: list[dict[str, Any]] = []
@@ -192,21 +192,16 @@ class Disarmament(RepetitiveMechanism):
                 player for player in players if sum(disarmed_cap[player.label]) > 100.0
             ]
             negotiation_results: dict[str, tuple[str, tuple[list[float], bool]]] = {}
-            if len(negotiable_players) > 1 and self.negotiation_workers > 1:
-                with ThreadPoolExecutor(
-                    max_workers=self.negotiation_workers
-                ) as executor:
-                    futures = {
-                        executor.submit(self._negotiate_disarm_caps, player): player
-                        for player in negotiable_players
-                    }
-                    for future, player in futures.items():
-                        negotiation_results[player.label] = future.result()
-            else:
-                for player in negotiable_players:
-                    negotiation_results[player.label] = self._negotiate_disarm_caps(
-                        player
-                    )
+            if negotiable_players:
+                results = run_tasks(
+                    negotiable_players,
+                    self._negotiate_disarm_caps,
+                    max_workers=self.negotiation_workers,
+                )
+                negotiation_results = {
+                    player.label: result
+                    for player, result in zip(negotiable_players, results, strict=True)
+                }
 
             for player in players:
                 pid = player.label

@@ -1,7 +1,6 @@
 import json
 import re
 import textwrap
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Callable, Sequence
 
 from src.agents.agent_manager import Agent
@@ -9,12 +8,11 @@ from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
 from src.logger_manager import LOGGER
 from src.mechanisms.base import Mechanism
+from src.utils.concurrency import run_tasks
 
 
 class Mediation(Mechanism):
-    """
-    Disarmament mechanism that allows for multiple rounds of the same game.
-    """
+    """Mechanism that lets agents delegate their action to a mediator."""
 
     def __init__(
         self,
@@ -162,18 +160,13 @@ class Mediation(Mechanism):
             payoffs.add_profile(moves)
             return player.label, [move.to_dict() for move in moves]
 
-        if self.matchup_workers <= 1 or len(players) <= 1:
-            for player in players:
-                mediator_name, move_dicts = play_for_mediator(player)
-                history.append({"mediator": mediator_name, "moves": move_dicts})
-        else:
-            with ThreadPoolExecutor(max_workers=min(self.matchup_workers, len(players))) as ex:
-                futures = {
-                    ex.submit(play_for_mediator, player): player for player in players
-                }
-                for fut in futures:
-                    mediator_name, move_dicts = fut.result()
-                    history.append({"mediator": mediator_name, "moves": move_dicts})
+        results = run_tasks(
+            players,
+            play_for_mediator,
+            max_workers=min(self.matchup_workers, len(players)),
+        )
+        for mediator_name, move_dicts in results:
+            history.append({"mediator": mediator_name, "moves": move_dicts})
         LOGGER.log_record(record=history, file_name=self.record_file)
 
     def mediator_mapping(self, mediator: dict[int, int]) -> Callable:

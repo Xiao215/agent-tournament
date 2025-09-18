@@ -94,7 +94,8 @@ class PublicGoods(Game):
         action_indices = {label: action_idx for label, action_idx, _ in results}
         responses = {label: resp for label, _, resp in results}
         labels_to_names = {
-            label: players[idx].name for idx, (label, _, _) in enumerate(results)
+            label: player.name
+            for player, (label, _, _) in zip(players, results, strict=True)
         }
 
         mapped_indices = action_map(action_indices)

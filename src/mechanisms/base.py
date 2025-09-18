@@ -1,10 +1,9 @@
 import itertools
-import math
 import random
+import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import time
 from typing import Any, Sequence
 
 from tqdm import tqdm
@@ -12,6 +11,7 @@ from tqdm import tqdm
 from src.agents.agent_manager import Agent
 from src.evolution.population_payoffs import PopulationPayoffs
 from src.games.base import Game
+
 
 
 class Mechanism(ABC):
