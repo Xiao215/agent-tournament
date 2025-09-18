@@ -3,6 +3,7 @@ import random
 import re
 import textwrap
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Callable, Self, Sequence
@@ -195,3 +196,29 @@ class Game(ABC):
                 return k
         # floating-point edge case fallback
         return next(reversed(probs))
+
+    def _collect_actions(
+        self,
+        players: Sequence[Agent],
+        info: Sequence[str],
+        *,
+        parallel: bool,
+    ) -> list[tuple[str, int, str]]:
+        """Prompt players (optionally in parallel) and sample actions."""
+
+        if len(players) != len(info):
+            raise ValueError(
+                f"Player count ({len(players)}) does not match info entries ({len(info)})."
+            )
+
+        def query(player: Agent, extra_info: str) -> tuple[str, int, str]:
+            resp, mix_probs = self.prompt_player_mix_probs(player, extra_info)
+            action_idx = self._choose_from_mix_strategy(mix_probs)
+            return player.label, action_idx, resp
+
+        if not parallel or len(players) == 1:
+            return [query(player, extra) for player, extra in zip(players, info)]
+
+        with ThreadPoolExecutor(max_workers=len(players)) as executor:
+            futures = [executor.submit(query, player, extra) for player, extra in zip(players, info)]
+            return [future.result() for future in futures]

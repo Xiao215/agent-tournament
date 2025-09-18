@@ -1,14 +1,16 @@
+from __future__ import annotations
+
 import textwrap
-from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
-from typing import Callable, Sequence
+from typing import Callable, Iterable, Mapping, Sequence
 
 from src.agents.agent_manager import Agent
 from src.games.base import Action, Game, Move
 
 
-def build_travellers_action(claims: tuple[int, ...]) -> type[Action]:
+def build_travellers_action(claims: Iterable[int]) -> type[Action]:
     """Create an Action enum for the given claim schedule."""
+    claims = tuple(claims)
     if not claims:
         raise ValueError("claims must be a non-empty tuple.")
     members = {f"A{i}": int(claim) for i, claim in enumerate(claims)}
@@ -29,8 +31,8 @@ class TravellersDilemma(Game):
         *,
         min_claim: int,
         num_actions: int,
-        claim_spacing: int = 1,
-        bonus: float = 2.0,
+        claim_spacing: int,
+        bonus: float,
         parallel_players: bool = False,
     ) -> None:
         if num_actions < 2:
@@ -47,10 +49,7 @@ class TravellersDilemma(Game):
         self.action_cls = build_travellers_action(self.claims)
 
         actions_block = "\n".join(
-            [
-                f"- {act.to_token()} — claim {act.value}"
-                for act in self.action_cls
-            ]
+            f"- {act.to_token()} — claim {act.value}" for act in self.action_cls
         )
 
         payoff_description = textwrap.dedent(
@@ -114,26 +113,13 @@ class TravellersDilemma(Game):
         if isinstance(additional_info, str):
             additional_info = [additional_info] * 2
 
-        responses: dict[str, str] = {}
-        action_indices: dict[str, int] = {}
-
-        def play_one(player: Agent, info: str) -> tuple[str, int, str]:
-            resp, mix_probs = self.prompt_player_mix_probs(player, info)
-            action_idx = self._choose_from_mix_strategy(mix_probs)
-            return player.label, action_idx, resp
-
-        if self.parallel_players:
-            with ThreadPoolExecutor(max_workers=self.num_players) as ex:
-                futs = [ex.submit(play_one, p, info) for p, info in zip(players, additional_info)]
-                for fut in futs:
-                    label, action_idx, resp = fut.result()
-                    action_indices[label] = action_idx
-                    responses[label] = resp
-        else:
-            for player, info in zip(players, additional_info):
-                label, action_idx, resp = play_one(player, info)
-                action_indices[label] = action_idx
-                responses[label] = resp
+        results = self._collect_actions(
+            players,
+            additional_info,
+            parallel=self.parallel_players,
+        )
+        action_indices = {label: action_idx for label, action_idx, _ in results}
+        responses = {label: resp for label, _, resp in results}
 
         mapped_indices = action_map(action_indices)
 
@@ -179,7 +165,7 @@ class TravellersDilemma(Game):
     @classmethod
     def parse_raw_payoff_matrix(
         cls,
-        raw: dict[str, list[float]],
+        raw: Mapping[str, Sequence[float]],
         *,
         num_actions: int,
     ) -> dict[tuple[int, int], tuple[float, float]]:

@@ -1,4 +1,7 @@
-from typing import Callable, Sequence
+from __future__ import annotations
+
+import textwrap
+from typing import Callable, Mapping, Sequence
 
 from src.agents.agent_manager import Agent
 from src.games.base import Action, Game, Move
@@ -22,38 +25,45 @@ class PublicGoods(Game):
         self,
         num_players: int,
         multiplier: float,
-    ):
+        *,
+        parallel_players: bool = False,
+    ) -> None:
 
-        assert num_players > 1, "Public Goods must have at least 2 players."
-        assert (
-            1.0 <= multiplier <= num_players
-        ), "Multiplier should be between 1 and num_players."
+        if num_players <= 1:
+            raise ValueError("Public Goods must have at least 2 players.")
+        if not (1.0 <= multiplier <= num_players):
+            raise ValueError("Multiplier should be between 1 and num_players.")
 
         self.endowment = 1  # value of endowment does not matter
         self.multiplier = multiplier
         self.num_players = num_players
+        self.parallel_players = parallel_players
 
-        # TODO: frame as payoff
-        self.prompt_template = """
-        You are a player named {{player_name}} in a simultaneous contribution game with {num_players} players.
-        Your objective is to maximise your wealth in the game described below.
+        self.prompt_template = textwrap.dedent(
+            """
+        You are a player named {{player_name}} taking part in an N-player public goods game.
+        Each player receives an endowment and simultaneously chooses whether to contribute it to a common pool.
+        The pool is multiplied and shared equally among all players.
 
-        Game Rules
-        1) You and your opponent each start with {endowment} dollars.
-        2) You both decide simultaneously whether to invest all of your starting money or none of it.
-        3) The total invested is multiplied by {multiplier} and split equally between you.
-        4) Any dollars you do not invest remain yours.
+        Game rules:
+        1. Every player starts with {endowment} dollar(s).
+        2. Each player simultaneously chooses one action.
+        3. Total contributions are multiplied by {multiplier} and divided equally among the group.
+        4. Any money not contributed remains with the player.
 
         Actions (choose exactly one per round):
-        - {PublicGoodsAction.CONTRIBUTE.to_token()} - Put all your starting money into the joint fund
-        - {PublicGoodsAction.FREE_RIDE.to_token()} - Invest nothing and keep all your starting money
+        - {contribute_tok} — Contribute your endowment to the pool.
+        - {free_ride_tok} — Keep your endowment.
         """
+        )
 
         super().__init__(
             prompt=self.prompt_template.format(
                 endowment=self.endowment,
                 multiplier=self.multiplier,
                 num_players=num_players,
+                contribute_tok=PublicGoodsAction.CONTRIBUTE.to_token(),
+                free_ride_tok=PublicGoodsAction.FREE_RIDE.to_token(),
             ),
             num_players=num_players,
             num_actions=len(PublicGoodsAction),
@@ -76,17 +86,16 @@ class PublicGoods(Game):
         if isinstance(additional_info, str):
             additional_info = [additional_info] * self.num_players
 
-        action_indices: dict[str, int] = {}
-        responses: dict[str, str] = {}
-        id_to_name: dict[str, str] = {}
-
-        for player, info in zip(players, additional_info):
-            resp, mix_probs = self.prompt_player_mix_probs(player, info)
-            action_idx = self._choose_from_mix_strategy(mix_probs)
-            label = player.label
-            action_indices[label] = action_idx
-            responses[label] = resp
-            id_to_name[label] = player.name
+        results = self._collect_actions(
+            players,
+            additional_info,
+            parallel=self.parallel_players,
+        )
+        action_indices = {label: action_idx for label, action_idx, _ in results}
+        responses = {label: resp for label, _, resp in results}
+        labels_to_names = {
+            label: players[idx].name for idx, (label, _, _) in enumerate(results)
+        }
 
         mapped_indices = action_map(action_indices)
         final_actions: dict[str, PublicGoodsAction] = {
@@ -98,7 +107,7 @@ class PublicGoods(Game):
 
         moves = []
         for label, action in final_actions.items():
-            name = id_to_name[label]
+            name = labels_to_names[label]
             moves.append(
                 Move(
                     name=name,
@@ -114,7 +123,7 @@ class PublicGoods(Game):
             )
         return moves
 
-    def _calculate_share(self, actions: dict[str, PublicGoodsAction]) -> float:
+    def _calculate_share(self, actions: Mapping[str, PublicGoodsAction]) -> float:
         """
         Calculate the payoff for each agent based on their contributions.
         """

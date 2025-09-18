@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import textwrap
-from typing import Callable, Sequence
-from concurrent.futures import ThreadPoolExecutor
+from typing import Callable, Mapping, Sequence
 
 from src.agents.agent_manager import Agent
 from src.games.base import Action, Game, Move
@@ -21,7 +22,7 @@ class PrisonersDilemma(Game):
 
     def __init__(
         self,
-        payoff_matrix: dict[str, list[float]],
+        payoff_matrix: Mapping[str, Sequence[float]],
         *,
         parallel_players: bool = False,
     ) -> None:
@@ -73,32 +74,19 @@ class PrisonersDilemma(Game):
         players: Sequence[Agent],
         action_map: Callable = lambda x: x,
     ) -> list[Move]:
-        assert len(players) == 2
+        assert len(players) == self.num_players
         player1, player2 = players
 
         if isinstance(additional_info, str):
-            additional_info = [additional_info] * 2
+            additional_info = [additional_info] * self.num_players
 
-        responses: dict[str, str] = {}
-        action_indices: dict[str, int] = {}
-
-        def play_one(player: Agent, info: str) -> tuple[str, int, str]:
-            resp, mix_probs = self.prompt_player_mix_probs(player, info)
-            action_idx = self._choose_from_mix_strategy(mix_probs)
-            return player.label, action_idx, resp
-
-        if self.parallel_players:
-            with ThreadPoolExecutor(max_workers=self.num_players) as ex:
-                futs = [ex.submit(play_one, p, info) for p, info in zip(players, additional_info)]
-                for fut in futs:
-                    label, action_idx, resp = fut.result()
-                    action_indices[label] = action_idx
-                    responses[label] = resp
-        else:
-            for player, info in zip(players, additional_info):
-                label, action_idx, resp = play_one(player, info)
-                action_indices[label] = action_idx
-                responses[label] = resp
+        results = self._collect_actions(
+            players,
+            additional_info,
+            parallel=self.parallel_players,
+        )
+        action_indices = {label: action_idx for label, action_idx, _ in results}
+        responses = {label: resp for label, _, resp in results}
 
         mapped_indices = action_map(action_indices)
         final_actions: dict[str, PrisonersDilemmaAction] = {
@@ -129,7 +117,7 @@ class PrisonersDilemma(Game):
     @classmethod
     def _parse_payoff_matrix(
         cls,
-        raw_payoff: dict[str, list[float]],
+        raw_payoff: Mapping[str, Sequence[float]],
     ) -> dict[
         tuple[PrisonersDilemmaAction, PrisonersDilemmaAction], tuple[float, float]
     ]:
